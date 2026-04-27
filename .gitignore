@@ -6,7 +6,8 @@
 
 .vercel/
 .gstack/
-.codex/
+.codex/settings.local.json
+.codex/**/*.local.*
 .claude/settings.local.json
 .claude/**/*.local.*
 
