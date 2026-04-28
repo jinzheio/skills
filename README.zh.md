@@ -4,7 +4,7 @@
 
 用于发布网站、绑定自定义域名、接入搜索索引的 agent skills。
 
-这是一个公开 skill pack。`skills/` 下的每个目录都是一个独立 skill，包含自己的 `SKILL.md` 和可选资源文件。
+这是一个公开 skill pack。项目根目录下的每个 skill 目录都是独立 skill，包含自己的 `SKILL.md` 和可选资源文件。
 
 ## Skills
 
@@ -37,23 +37,15 @@ Codex 示例：
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R skills/skills/upstart-site ~/.codex/skills/
-cp -R skills/skills/new-domain-launch ~/.codex/skills/
-cp -R skills/skills/index-onboarding ~/.codex/skills/
-cp -R skills/skills/add-indexnow ~/.codex/skills/
+cp -R upstart-site ~/.codex/skills/
+cp -R new-domain-launch ~/.codex/skills/
+cp -R index-onboarding ~/.codex/skills/
+cp -R add-indexnow ~/.codex/skills/
 ```
 
-如果 runner 从项目目录读取 skills，可以使用项目内目录：
+如果 runner 能直接读取这个仓库，不需要复制。
 
-```bash
-mkdir -p .claude/skills
-cp -R skills/skills/upstart-site .claude/skills/
-cp -R skills/skills/new-domain-launch .claude/skills/
-cp -R skills/skills/index-onboarding .claude/skills/
-cp -R skills/skills/add-indexnow .claude/skills/
-```
-
-如果你的 runner 能直接读取 `skills/`，不需要复制。
+每个 skill 可以包含 `agents/openai.yaml`。这些文件提供 OpenAI/Codex 类 runner 使用的展示信息和默认 prompt。只靠 `SKILL.md` 也能运行；发布或展示 skill pack 时，保留这些元数据更方便。
 
 ## 使用
 
@@ -93,7 +85,7 @@ cp .env.example .env
 | --- | --- | --- |
 | `upstart-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量；如果要配置邮件转发，需要 Cloudflare Email Routing 权限 |
 | `new-domain-launch` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；没有 API 时可用已登录浏览器会话 |
-| `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、Clarity project token 或 MCP 配置、`SITE_INTEGRATIONS_CONFIG` |
+| `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG` |
 | `add-indexnow` | 可写的项目仓库和已确定的正式域名 | 只有在覆盖自动生成 key 时才需要 `INDEXNOW_KEY` |
 
 常用变量：
@@ -103,15 +95,15 @@ cp .env.example .env
 - `CLOUDFLARE_API_TOKEN`：DNS 修改、验证 TXT 记录、代理/TLS/邮件转发等操作。
 - `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户级操作。
 - `SPACESHIP_API_KEY` 和 `SPACESHIP_API_SECRET`：Spaceship 注册商 nameserver 更新。
-- `UMAMI_BASE_URL`、`UMAMI_API_KEY`、`UMAMI_SCRIPT_URL`：Umami 兼容统计接入。
+- `UMAMI_BASE_URL`、`UMAMI_SCRIPT_URL`、`UMAMI_ADMIN_USERNAME`、`UMAMI_ADMIN_PASSWORD`：self-hosted Umami 接入。通过 `$UMAMI_BASE_URL/auth/login` 登录，使用返回的 Bearer token 调 API。
+- `UMAMI_API_KEY`：可选，仅用于 Umami Cloud 或明确支持 API-key auth 的兼容服务。
 - Google OAuth/ADC：用于 Search Console 和 Site Verification，授权账号需要拥有站点权限。常见本地方式包括 `gcloud auth application-default login`、`GOOGLE_APPLICATION_CREDENTIALS`，或其他已认证的 Google API 会话。
 - `BING_WEBMASTER_API_KEY`：Bing Webmaster Tools 站点验证和 sitemap 提交。
-- `CLARITY_PROJECT_ID`、`CLARITY_API_TOKEN`：已有 Clarity project 和项目级 Data Export API token。公开 Clarity MCP server 也使用已有 project token。
-- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。
+- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 只读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，跳过 Clarity 和元数据映射更新，并在汇总里说明。
 
-不要提交 `.env`、本地 Vercel 绑定、浏览器状态或生成的认证缓存。
+不要提交 `.env`、本地 Vercel 绑定、浏览器状态或生成的认证缓存。仓库 `.gitignore` 已排除 `.env` 和 `.env.*`，同时保留 `.env.example`。
 
-缺少可选凭证时，不中断无关步骤。例如缺少 Clarity 或 Umami 凭证，只在最后把对应集成标记为 skipped 或 manual。
+缺少可选凭证或配置文件时，不中断无关步骤。例如缺少 Clarity、Umami 或 `SITE_INTEGRATIONS_CONFIG`，只在最后把受影响的集成标记为 skipped。
 
 ## Index onboarding 数据源
 

@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 Reusable agent skills for publishing a website, connecting a custom domain, and setting up search indexing.
 
-This repository is a public skill pack. Each folder under `skills/` is a standalone skill with its own `SKILL.md` and optional bundled resources.
+This repository is a public skill pack. Each skill folder lives at the repository root and contains its own `SKILL.md` and optional bundled resources.
 
 ## Skills
 
@@ -37,23 +37,15 @@ Codex example:
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R skills/skills/upstart-site ~/.codex/skills/
-cp -R skills/skills/new-domain-launch ~/.codex/skills/
-cp -R skills/skills/index-onboarding ~/.codex/skills/
-cp -R skills/skills/add-indexnow ~/.codex/skills/
+cp -R upstart-site ~/.codex/skills/
+cp -R new-domain-launch ~/.codex/skills/
+cp -R index-onboarding ~/.codex/skills/
+cp -R add-indexnow ~/.codex/skills/
 ```
 
-Project-local example for runners that read skills from the repository:
+If your runner can read this repository directly, no copy step is needed.
 
-```bash
-mkdir -p .claude/skills
-cp -R skills/skills/upstart-site .claude/skills/
-cp -R skills/skills/new-domain-launch .claude/skills/
-cp -R skills/skills/index-onboarding .claude/skills/
-cp -R skills/skills/add-indexnow .claude/skills/
-```
-
-If your runner can read `skills/` directly, no copy step is needed.
+Each skill may include an `agents/openai.yaml` file. These files provide display metadata and default prompts for OpenAI/Codex-style runners. The skills still work from `SKILL.md` without that metadata, but the metadata is useful when publishing or listing the pack.
 
 ## Usage
 
@@ -93,7 +85,7 @@ Prepare only the credentials needed for the skills you run.
 | --- | --- | --- |
 | `upstart-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel, Cloudflare Email Routing credentials if email forwarding is requested |
 | `new-domain-launch` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, authenticated browser session for providers without API coverage |
-| `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, Clarity project token or MCP config, `SITE_INTEGRATIONS_CONFIG` |
+| `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config |
 | `add-indexnow` | Writable repo with a known final host | `INDEXNOW_KEY` only if overriding the generated key; otherwise the skill creates a fresh key |
 
 Common variables:
@@ -103,15 +95,15 @@ Common variables:
 - `CLOUDFLARE_API_TOKEN`: DNS edits, verification records, optional proxy/TLS/email routing changes.
 - `CLOUDFLARE_ACCOUNT_ID`: account-scoped Cloudflare operations.
 - `SPACESHIP_API_KEY` and `SPACESHIP_API_SECRET`: Spaceship registrar nameserver updates.
-- `UMAMI_BASE_URL`, `UMAMI_API_KEY`, `UMAMI_SCRIPT_URL`: Umami-compatible analytics setup.
+- `UMAMI_BASE_URL`, `UMAMI_SCRIPT_URL`, `UMAMI_ADMIN_USERNAME`, `UMAMI_ADMIN_PASSWORD`: self-hosted Umami setup. Log in through `$UMAMI_BASE_URL/auth/login` and use the returned Bearer token for API calls.
+- `UMAMI_API_KEY`: optional, for Umami Cloud or compatible providers that explicitly support API-key auth.
 - Google OAuth/ADC: Search Console and Site Verification access for the Google account that owns the site. Common local options are `gcloud auth application-default login`, `GOOGLE_APPLICATION_CREDENTIALS`, or another authenticated Google API session.
 - `BING_WEBMASTER_API_KEY`: Bing Webmaster Tools site verification and sitemap submission.
-- `CLARITY_PROJECT_ID`, `CLARITY_API_TOKEN`: existing Clarity project metadata and project-level Data Export API token. The public Clarity MCP server also uses an existing project token.
-- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map.
+- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity uses this map only, with per-domain `clarity.project_id` and `clarity.token` entries. If the map is missing, Clarity and metadata-map updates are skipped and reported.
 
-Never commit `.env`, local Vercel bindings, browser state, or generated auth caches.
+Never commit `.env`, local Vercel bindings, browser state, or generated auth caches. The repository `.gitignore` excludes `.env` and `.env.*`, while allowing `.env.example`.
 
-Missing optional credentials should not stop unrelated steps. For example, missing Clarity or Umami credentials should only mark those integrations as skipped or manual in the final report.
+Missing optional credentials or config files should not stop unrelated steps. For example, missing Clarity, Umami, or `SITE_INTEGRATIONS_CONFIG` should only mark the affected integration as skipped in the final report.
 
 ## Index onboarding data sources
 

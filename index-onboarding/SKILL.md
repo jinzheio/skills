@@ -47,7 +47,6 @@ Do not stop the whole workflow because one optional integration lacks credential
 
 - Required: final public domain, for example `example.com`
 - Optional: repo override if the site-to-repo mapping is missing
-- Optional: whether Clarity should be treated as manual-only for this run
 - Optional: integration config path; default to `$SITE_INTEGRATIONS_CONFIG` if set
 
 ## Goal
@@ -60,7 +59,7 @@ Attempt the basic public-site onboarding on the final domain:
 - sitemap is submitted where credentials allow it
 - IndexNow is installed or confirmed already present for the final domain
 - Bing Webmaster Tools has the site added and verified, or skipped/blocked with reason
-- Clarity is verified, or marked as manual pending
+- Clarity is verified from the shared integration map, or skipped with reason
 
 ## Core Rules
 
@@ -74,7 +73,7 @@ Attempt the basic public-site onboarding on the final domain:
 - If one integration cannot run, record `skipped` or `blocked` and continue with the next integration.
 - If a code change is needed but the repo cannot be resolved, skip repo-editing steps and continue with API-only or live-site checks.
 - If a deploy is needed but deployment credentials are missing, keep the local change unclaimed as live and continue with checks that do not need deployment.
-- If Clarity still needs human setup, report that clearly instead of blocking everything else.
+- Clarity project id and token are project-scoped. Read them only from the shared integration map. Do not ask for them interactively and do not read global Clarity env vars.
 
 ## Status Terms
 
@@ -94,19 +93,27 @@ Prefer reading the project integration map if the user has one. If `$SITE_INTEGR
 cat "$SITE_INTEGRATIONS_CONFIG"
 ```
 
+If `$SITE_INTEGRATIONS_CONFIG` is unset, empty, missing on disk, or cannot be parsed, do not block the workflow. Continue with repo resolution from the current directory or explicit repo override, skip integrations that require the map, and report the missing map in the final summary.
+
 Expected shape:
 
 ```json
 {
   "domains": {
     "example.com": {
-      "repo_dir": "/absolute/path/to/repo"
+      "repo_dir": "/absolute/path/to/repo",
+      "clarity": {
+        "project_id": "existing-clarity-project-id",
+        "project_name": "Optional project name",
+        "token": "project-level-data-export-token"
+      }
     }
   }
 }
 ```
 
-If the user does not maintain a shared map, resolve the repo from the current directory or ask for the target repo path.
+If the user does not maintain a shared map, resolve the repo from the current directory or an explicit repo override.
+Treat the `clarity` object as optional. If the map or the target domain's `clarity` object is missing, skip Clarity and continue.
 
 ## Workflow
 
@@ -129,6 +136,29 @@ If analytics credentials are missing:
 1. Check whether the live site already has an analytics script.
 2. If it is already installed, report `done` or `partial` based on what can be verified.
 3. If it is not installed, report analytics as `skipped` and continue to Search Console.
+
+For Umami specifically:
+
+- do not hardcode a specific Umami server URL in this skill; read the API base URL from `UMAMI_BASE_URL`, for example an origin plus `/api`
+- for self-hosted Umami, authenticate by posting `UMAMI_ADMIN_USERNAME` and `UMAMI_ADMIN_PASSWORD` to `<UMAMI_BASE_URL>/auth/login`, then use `Authorization: Bearer <token>`
+- for self-hosted Umami, list visible websites with `GET <UMAMI_BASE_URL>/me/websites`; if the account is an admin and site creation or full lookup is needed, use the documented admin endpoints such as `GET <UMAMI_BASE_URL>/admin/websites`
+- `UMAMI_API_KEY` is for Umami Cloud or compatible providers that explicitly support API-key auth; do not require it for self-hosted Umami
+- if neither a Cloud API key nor self-hosted login credentials are available, skip Umami and continue
+- if the base URL or the target website id cannot be resolved or created, skip Umami and continue
+- do not block Search Console, `robots.txt`, `sitemap.xml`, IndexNow, Bing Webmaster Tools, or Clarity because Umami cannot be provisioned
+- if only a script URL is available without a website id, do not inject an incomplete script
+
+Self-hosted Umami login pattern:
+
+```bash
+TOKEN=$(curl -sS "$UMAMI_BASE_URL/auth/login" \
+  -H "Content-Type: application/json" \
+  --data "{\"username\":\"$UMAMI_ADMIN_USERNAME\",\"password\":\"$UMAMI_ADMIN_PASSWORD\"}" \
+  | jq -r '.token')
+
+curl -sS "$UMAMI_BASE_URL/me/websites" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 Minimum goal:
 
@@ -245,21 +275,20 @@ Validation notes:
 
 ### 6. Clarity onboarding
 
-Clarity can be automated only up to the point that credentials and browser state allow.
-
-If Clarity credentials or browser access are missing, report Clarity as `manual` and continue to metadata updates or final reporting.
+Clarity is project-scoped. The only supported credential source is the shared integration map configured by `$SITE_INTEGRATIONS_CONFIG`.
 
 Microsoft's Clarity MCP server and Data Export API require an existing Clarity project and a project-level Data Export API token. Treat them as analytics read/query tools, not as project-creation APIs.
 
+Do not request Clarity credentials interactively. Do not use global env vars such as `CLARITY_PROJECT_ID` or `CLARITY_API_TOKEN`.
+
 Preferred handling:
 
-1. Check whether the Clarity script is already installed on the live site.
-2. Check whether the project token and project mapping are already recorded.
-3. If full automation is blocked, leave a precise manual handoff:
-   - create or select the right Clarity project
-   - install the Clarity script on the final domain
-   - generate the Data Export token
-   - record the token and project name in the user's integration map if one exists
+1. Resolve the target domain in the integration map.
+2. Read `domains[hostname].clarity`.
+3. If `clarity.project_id` and `clarity.token` are present, verify the live site has the matching Clarity script and query the Data Export API where needed.
+4. If `$SITE_INTEGRATIONS_CONFIG` is missing, unreadable, or invalid, report Clarity as `skipped` with the reason `no site-integrations config`.
+5. If the `clarity` object, project id, or token is missing, report Clarity as `skipped` with the reason `no site-integrations clarity config`.
+6. If the Clarity script is installed but the integration map lacks a token, report `partial` only if the live script is verifiable; otherwise report `skipped`.
 
 Do not mark Clarity complete unless the real project wiring is verifiable.
 
@@ -269,6 +298,8 @@ When new onboarding is completed, update the integration metadata repo as needed
 
 - the integration map configured by `$SITE_INTEGRATIONS_CONFIG`
 - provider cache files if the user's workflow depends on them
+
+If `$SITE_INTEGRATIONS_CONFIG` is unavailable, skip metadata-map updates and report that no integration map was updated.
 
 Keep these updates narrowly scoped to the target domain.
 
@@ -284,7 +315,7 @@ Do not consider an individual integration complete until its relevant checks pas
 6. sitemap submission state is known
 7. IndexNow key file and submission workflow state are known
 8. Bing Webmaster Tools site state is known
-9. Clarity is either verified or explicitly marked manual pending
+9. Clarity is verified from site integrations or skipped because the target domain lacks Clarity config
 
 ## Reporting
 

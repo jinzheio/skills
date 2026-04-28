@@ -82,8 +82,9 @@ Important:
 - DNS provider zone activation is not enough
 - the registry delegation must actually point to the intended nameservers
 - local `dig` results can lag or reflect the current network environment, so do not treat one stale local result as absolute truth
+- in some local or network environments, `dig` and public-resolver checks can keep showing the old nameservers even after the public HTTPS site is already serving the correct page; when live HTTPS access returns the intended site content and the `www` redirect policy works, do not keep waiting only because nameserver output is stale
 
-If delegation is still propagating, set a heartbeat automation and come back later.
+If delegation is still propagating and live HTTPS access does not yet return the intended site, set a heartbeat automation and come back later.
 
 ### 3. Bind the domain on the hosting provider
 
@@ -144,25 +145,25 @@ After configuring the redirect, verify both HTTP and HTTPS behavior if needed, b
 
 Do not consider the task complete until all relevant checks pass:
 
-1. `dig +trace NS <domain>` shows the intended delegated nameservers.
-2. Public resolvers return the intended NS.
+1. `dig +trace NS <domain>` shows the intended delegated nameservers, unless live HTTPS checks already prove the intended site is publicly reachable.
+2. Public resolvers return the intended NS, unless live HTTPS checks already prove the intended site is publicly reachable.
 3. Authoritative DNS on the chosen provider returns the intended apex and `www` records.
 4. Hosting provider marks both domains as attached.
 5. `https://APEX_HOST` returns the site successfully.
 6. `https://www.DOMAIN` returns a `301` to the canonical host if redirect is intended.
 7. Cloudflare proxy state and SSL mode match the intended policy.
 
-If local `dig` output stays stale but the real domain is already reachable on public HTTPS, treat successful live access as a strong verification signal and report the mismatch explicitly instead of blocking forever on one network path.
+If local `dig` output or public resolver output stays stale but the real domain is already reachable on public HTTPS, treat successful live access as the completion signal and report the DNS-output mismatch explicitly instead of blocking on propagation.
 
 ## Guardrails
 
 - Do not finish when only the dashboard looks correct.
 - Do not finish when only the DNS provider is active but registry delegation is stale.
 - Do not assume propagation is done without trace or public-resolver checks.
-- If local resolver results disagree with real-world access, verify from multiple public resolvers and with direct browser or HTTPS access before deciding the domain is still blocked.
+- If local resolver results disagree with real-world access, verify with direct browser or HTTPS access; if the domain serves the intended page and redirect behavior is correct, finish instead of continuing to wait on stale nameserver output.
 - Do not guess provider DNS targets when the official provider can return them.
 - Prefer registrar API over browser automation when credentials exist.
-- If propagation is the only blocker, automate the recheck instead of asking the user to babysit it.
+- If propagation is the only blocker and live HTTPS is still not working, automate the recheck instead of asking the user to babysit it.
 
 ## Good final report
 
@@ -177,7 +178,9 @@ Report these items clearly:
 - canonical host and redirect rule
 - remaining blocker, if any
 
-If propagation is still pending, say that explicitly and separate:
+If propagation is still pending and live HTTPS is still not working, say that explicitly and separate:
 
 - already applied configuration
 - still waiting on public delegation
+
+If live HTTPS works while nameserver checks still look stale, say that the site is reachable and note the stale DNS check as non-blocking.
