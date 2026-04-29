@@ -1,6 +1,7 @@
 ---
 name: new-domain-launch
-description: "Connect a newly bought domain to an already deployed site so it is publicly reachable on the intended host. Use after the site/repo/deployment already exists, often right after an upstart-site style workflow. Covers registrar nameservers, DNS provider setup, hosting-platform domain binding, HTTPS, apex/www redirect verification, and optional inbound email forwarding."
+version: "1.1.0"
+description: "Use when the user has an already deployed site and wants a custom domain connected, including 'connect this domain', '绑定域名', 'set up DNS', 'make www redirect', or 'enable HTTPS'. Covers registrar nameservers, DNS provider records, hosting-platform domain binding, TLS, apex/www redirects, and email forwarding only when requested. Do not use before the site has a working deployment; use upstart-site first."
 ---
 
 # new-domain-launch
@@ -50,9 +51,34 @@ Before touching DNS:
 
 If the site itself is not yet deployed, stop and use the deployment workflow first.
 
+## Source of truth
+
+Use platform APIs and dashboards as the source of truth for configuration:
+
+- DNS record intent comes from the hosting provider and DNS provider. For Vercel plus Cloudflare, trust Vercel domain/project inspection and Cloudflare DNS zone records over local resolver output.
+- Connectivity is proven by loading the public URL and receiving the expected page content. A bare DNS answer is only supporting evidence.
+- Local DNS output, including `dig`, can be stale or polluted by the local network. Do not let a polluted local DNS answer block completion when Vercel and Cloudflare records are correct and the public page returns the intended content.
+
 ## Workflow
 
-### 1. Create or inspect the DNS zone
+### 1. Plan
+
+Before changing registrar, DNS, hosting, TLS, or email settings, produce a plan:
+
+- domain and intended canonical host
+- registrar, DNS provider, and hosting provider
+- current nameserver state
+- hosting-provider domain binding targets
+- DNS records to create or update
+- proxy and TLS policy
+- redirect policy
+- validation commands and live URL checks
+- rollback or correction path for wrong DNS records
+- whether email forwarding was requested
+
+Ask for user confirmation before external changes unless the user already explicitly authorized the domain launch.
+
+### 2. Create or inspect the DNS zone
 
 If the domain will use Cloudflare DNS:
 
@@ -67,27 +93,23 @@ For Spaceship specifically:
 - prefer the official external API rather than the web app when API key and secret are available
 - use the domain API to inspect current nameservers and update them to `provider=custom` with the Cloudflare hosts
 
-### 2. Wait for nameserver delegation
+### 3. Wait for nameserver delegation
 
-Do not rush past this step.
+Do not rush past this step. Run `scripts/check-dns-propagation.sh <domain> <ns-keyword>` to poll propagation state automatically.
 
-Check:
+The script checks public resolvers (`1.1.1.1`, `8.8.8.8`) and then makes a live HTTPS request on each attempt. **The live HTTPS page load is the authoritative completion signal — not a clean DNS answer.**
 
-- registry or trace output, for example `dig +trace NS <domain>`
-- public resolvers such as `1.1.1.1` and `8.8.8.8`
-- DNS provider zone status, for example Cloudflare `active`
+DNS results from local resolvers and public resolvers can be stale or polluted by the local network for many minutes after delegation has actually changed. The script will tell you when this is happening and will not block on stale resolver output once the site is reachable.
 
-Important:
+If the script times out:
 
-- registrar UI success is not enough
-- DNS provider zone activation is not enough
-- the registry delegation must actually point to the intended nameservers
-- local `dig` results can lag or reflect the current network environment, so do not treat one stale local result as absolute truth
-- in some local or network environments, `dig` and public-resolver checks can keep showing the old nameservers even after the public HTTPS site is already serving the correct page; when live HTTPS access returns the intended site content and the `www` redirect policy works, do not keep waiting only because nameserver output is stale
+1. Open the live URL directly in a browser.
+2. Check Cloudflare and Vercel dashboards — if both show the records as active and correct, the configuration is done regardless of what `dig` returns locally.
+3. If the page loads in a browser, treat that as the completion signal and proceed.
 
-If delegation is still propagating and live HTTPS access does not yet return the intended site, set a heartbeat automation and come back later.
+If delegation is still propagating and live HTTPS is not yet working, re-run the script or set a heartbeat automation and come back later.
 
-### 3. Bind the domain on the hosting provider
+### 4. Bind the domain on the hosting provider
 
 Add both the apex and `www` domains to the hosting platform if the user wants both.
 
@@ -100,13 +122,20 @@ For Vercel-like platforms:
 
 Do not guess DNS targets from memory if the provider can return them directly.
 
+For Vercel, treat the apex and `www` records as separate provider instructions:
+
+- apex uses the record type and value Vercel shows for the apex host
+- `www` uses the record type and value Vercel shows for the `www` host
+- when Vercel asks for a `CNAME` on `www`, create a `CNAME`; do not create an `A` record
+- do not copy the apex `A` value into `www`
+
 Examples of acceptable sources:
 
 - official CLI output
 - official domain inspect/config API
 - provider dashboard
 
-### 4. Create DNS records
+### 5. Create DNS records
 
 After the hosting provider returns the exact target values:
 
@@ -114,14 +143,14 @@ After the hosting provider returns the exact target values:
 2. Create the `www` record.
 3. Match the provider's recommended record type and target.
 
-For Vercel-like setups, this commonly means:
+For Vercel-like setups:
 
-- apex: provider-recommended `A`
-- `www`: provider-recommended `CNAME`
+- apex: use the provider-recommended record type and value, often `A`
+- `www`: use the provider-recommended record type and value, normally `CNAME`
 
-Do not assume the `www` record should copy the apex target.
+For Vercel specifically, `www` should be a `CNAME` when Vercel returns a CNAME target such as `cname.vercel-dns.com`. Do not create an `A` record for `www`, and do not assume the `www` record should copy the apex target.
 
-### 5. Enable proxy and TLS settings when applicable
+### 6. Enable proxy and TLS settings when applicable
 
 If Cloudflare is the DNS provider and the user wants Cloudflare in front:
 
@@ -131,7 +160,7 @@ If Cloudflare is the DNS provider and the user wants Cloudflare in front:
 
 Do not leave the zone at `Full` if `Strict` is available.
 
-### 6. Configure the redirect
+### 7. Configure the redirect
 
 Prefer putting host redirects on the hosting platform when supported.
 
@@ -142,66 +171,13 @@ For the default policy:
 
 After configuring the redirect, verify both HTTP and HTTPS behavior if needed, but final acceptance should focus on HTTPS.
 
-### 7. Optional: enable Cloudflare Email Routing catch-all forwarding
+### 8. Optional email forwarding
 
-Only do this when the user explicitly asks for domain email forwarding and the final domain is already on Cloudflare.
-
-Preconditions:
-
-- the final custom domain is already delegated to Cloudflare
-- the zone is active
-- the user has provided or already configured the forwarding destination
-- Cloudflare token or browser session has permission for Email Routing
-
-Preferred flow:
-
-1. Check Email Routing status for the zone.
-2. If Email Routing is disabled, enable it and let Cloudflare add the required MX, SPF, and DKIM records.
-3. Check whether the destination mailbox already exists as a verified Email Routing address.
-4. If not verified, create the destination address and complete its mailbox verification.
-5. Update the catch-all rule from the default `drop` action to `forward`.
-6. Verify the catch-all rule points to the intended destination.
-7. Optionally send a real test email through an existing sender such as Mailgun to confirm end-to-end forwarding.
-
-Important:
-
-- this is for inbound forwarding such as `*@example.com -> destination@example.net`
-- Email Routing requires Cloudflare-managed DNS for the final domain
-- do not claim success if the zone still shows Email Routing as `unconfigured`
-- if API token scope is insufficient, fall back to browser automation or report the exact missing permission
-
-Minimum goal:
-
-- Email Routing is `enabled`
-- MX records point to Cloudflare mail exchangers
-- required SPF and DKIM records exist
-- catch-all rule is enabled and forwards to the intended mailbox
-- test send status is known if a sender is available
+If and only if the user asks for inbound domain email forwarding, read `references/email-routing.md`.
 
 ## Validation checklist
 
-Do not consider the task complete until all relevant checks pass:
-
-1. `dig +trace NS <domain>` shows the intended delegated nameservers, unless live HTTPS checks already prove the intended site is publicly reachable.
-2. Public resolvers return the intended NS, unless live HTTPS checks already prove the intended site is publicly reachable.
-3. Authoritative DNS on the chosen provider returns the intended apex and `www` records.
-4. Hosting provider marks both domains as attached.
-5. `https://APEX_HOST` returns the site successfully.
-6. `https://www.DOMAIN` returns a `301` to the canonical host if redirect is intended.
-7. Cloudflare proxy state and SSL mode match the intended policy.
-8. If email forwarding was requested, Cloudflare Email Routing is enabled and the catch-all forwards to the intended mailbox.
-
-If local `dig` output or public resolver output stays stale but the real domain is already reachable on public HTTPS, treat successful live access as the completion signal and report the DNS-output mismatch explicitly instead of blocking on propagation.
-
-## Guardrails
-
-- Do not finish when only the dashboard looks correct.
-- Do not finish when only the DNS provider is active but registry delegation is stale.
-- Do not assume propagation is done without trace or public-resolver checks.
-- If local resolver results disagree with real-world access, verify with direct browser or HTTPS access; if the domain serves the intended page and redirect behavior is correct, finish instead of continuing to wait on stale nameserver output.
-- Do not guess provider DNS targets when the official provider can return them.
-- Prefer registrar API over browser automation when credentials exist.
-- If propagation is the only blocker and live HTTPS is still not working, automate the recheck instead of asking the user to babysit it.
+Before reporting completion, read `references/validation-checklist.md` and verify every relevant item.
 
 ## Good final report
 

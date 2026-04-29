@@ -1,4 +1,4 @@
 interface:
   display_name: "New Domain Launch"
-  short_description: "Connect a custom domain, DNS, HTTPS, and redirects."
+  short_description: "Connect a deployed site to DNS, HTTPS, and redirects."
   default_prompt: "Use $new-domain-launch to connect this deployed site to its custom domain."

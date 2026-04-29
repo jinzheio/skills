@@ -1,0 +1,30 @@
+{
+  "skill_name": "new-domain-launch",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "这个站点已经在 Vercel 上了，帮我绑定 example.com",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Connect this deployed site to a custom domain with www redirect.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Set up Cloudflare DNS and HTTPS for this already deployed site.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Deploy this local app to Vercel first.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Set up Search Console for a domain that is already live.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Add IndexNow URL submission scripts.",
+      "should_trigger": false
+    }
+  ]
+}
