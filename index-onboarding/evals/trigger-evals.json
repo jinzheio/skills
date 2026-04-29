@@ -1,0 +1,30 @@
+{
+  "skill_name": "index-onboarding",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "域名已经解析好了，帮我接 GSC、Bing、Umami 和 Clarity",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Set up analytics and search indexing for example.com after launch.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "The final domain is live; submit sitemap and add baseline metrics.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Create the Vercel project and publish the local repo.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "The site is not deployed yet; help me get it online.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Connect the custom domain DNS first.",
+      "should_trigger": false
+    }
+  ]
+}

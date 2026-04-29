@@ -109,7 +109,7 @@ Prepare only the credentials needed for the skills you run.
 | --- | --- | --- |
 | `upstart-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel |
 | `new-domain-launch` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |
-| `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config |
+| `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config, or `CLARITY_ID` and `CLARITY_TOKEN` |
 | `add-indexnow` | Writable repo with a known final host | `INDEXNOW_KEY` only if overriding the generated key; otherwise the skill creates a fresh key |
 
 Common variables:
@@ -123,11 +123,44 @@ Common variables:
 - `UMAMI_API_KEY`: optional, for Umami Cloud or compatible providers that explicitly support API-key auth.
 - Google OAuth/ADC: Search Console and Site Verification access for the Google account that owns the site. Common local options are `gcloud auth application-default login`, `GOOGLE_APPLICATION_CREDENTIALS`, or another authenticated Google API session.
 - `BING_WEBMASTER_API_KEY`: Bing Webmaster Tools site verification and sitemap submission.
-- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity uses this map only, with per-domain `clarity.project_id` and `clarity.token` entries. If the map is missing, Clarity and metadata-map updates are skipped and reported.
+- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity first reads per-domain `clarity.project_id` and `clarity.token` entries from this map. If the map is missing or lacks Clarity for the target domain, `index-onboarding` checks `CLARITY_ID` and `CLARITY_TOKEN` in the current environment. If neither source has both values, Clarity is skipped and reported.
+- `CLARITY_ID` and `CLARITY_TOKEN`: optional Clarity project id and project-level Data Export API token for the current run.
+
+Example `SITE_INTEGRATIONS_CONFIG` file:
+
+```json
+{
+  "domains": {
+    "example.com": {
+      "repo_dir": "/absolute/path/to/repo",
+      "clarity": {
+        "project_id": "existing-clarity-project-id",
+        "project_name": "Optional project name",
+        "token": "project-level-data-export-token"
+      }
+    }
+  }
+}
+```
+
+Point the variable at the JSON file:
+
+```bash
+export SITE_INTEGRATIONS_CONFIG=/absolute/path/to/config/site-integrations.json
+```
+
+Keep files that contain Clarity tokens out of public commits.
+
+Environment fallback:
+
+```bash
+export CLARITY_ID=existing-clarity-project-id
+export CLARITY_TOKEN=project-level-data-export-token
+```
 
 Never commit `.env`, local Vercel bindings, browser state, or generated auth caches. The repository `.gitignore` excludes `.env` and `.env.*`, while allowing `.env.example`.
 
-Missing optional credentials or config files should not stop unrelated steps. For example, missing Clarity, Umami, or `SITE_INTEGRATIONS_CONFIG` should only mark the affected integration as skipped in the final report.
+Missing optional credentials or config files should not stop unrelated steps. For example, missing Clarity, Umami, or `SITE_INTEGRATIONS_CONFIG` should only mark the affected integration as skipped in the final report after supported fallbacks are checked.
 
 ## Index onboarding data sources
 

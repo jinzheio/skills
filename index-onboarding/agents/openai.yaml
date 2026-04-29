@@ -1,4 +1,4 @@
 interface:
   display_name: "Index Onboarding"
-  short_description: "Set up analytics and search indexing for a live site."
+  short_description: "Set up analytics and indexing after the final domain is live."
   default_prompt: "Use $index-onboarding to set up analytics and search indexing for this live domain."

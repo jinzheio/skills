@@ -109,7 +109,7 @@ cp .env.example .env
 | --- | --- | --- |
 | `upstart-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量 |
 | `new-domain-launch` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
-| `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG` |
+| `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG`，或 `CLARITY_ID` 和 `CLARITY_TOKEN` |
 | `add-indexnow` | 可写的项目仓库和已确定的正式域名 | 只有在覆盖自动生成 key 时才需要 `INDEXNOW_KEY` |
 
 常用变量：
@@ -123,11 +123,44 @@ cp .env.example .env
 - `UMAMI_API_KEY`：可选，仅用于 Umami Cloud 或明确支持 API-key auth 的兼容服务。
 - Google OAuth/ADC：用于 Search Console 和 Site Verification，授权账号需要拥有站点权限。常见本地方式包括 `gcloud auth application-default login`、`GOOGLE_APPLICATION_CREDENTIALS`，或其他已认证的 Google API 会话。
 - `BING_WEBMASTER_API_KEY`：Bing Webmaster Tools 站点验证和 sitemap 提交。
-- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 只读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，跳过 Clarity 和元数据映射更新，并在汇总里说明。
+- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 先读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，或目标域名没有 Clarity 配置，`index-onboarding` 会检查当前环境变量里的 `CLARITY_ID` 和 `CLARITY_TOKEN`。两个来源都缺少完整信息时，跳过 Clarity 并在汇总里说明。
+- `CLARITY_ID` 和 `CLARITY_TOKEN`：可选的 Clarity project ID 和项目级 Data Export API token，用于当前运行。
+
+`SITE_INTEGRATIONS_CONFIG` 文件示例：
+
+```json
+{
+  "domains": {
+    "example.com": {
+      "repo_dir": "/absolute/path/to/repo",
+      "clarity": {
+        "project_id": "existing-clarity-project-id",
+        "project_name": "Optional project name",
+        "token": "project-level-data-export-token"
+      }
+    }
+  }
+}
+```
+
+把变量指向这个 JSON 文件：
+
+```bash
+export SITE_INTEGRATIONS_CONFIG=/absolute/path/to/config/site-integrations.json
+```
+
+包含 Clarity token 的文件不要提交到公开仓库。
+
+环境变量 fallback：
+
+```bash
+export CLARITY_ID=existing-clarity-project-id
+export CLARITY_TOKEN=project-level-data-export-token
+```
 
 不要提交 `.env`、本地 Vercel 绑定、浏览器状态或生成的认证缓存。仓库 `.gitignore` 已排除 `.env` 和 `.env.*`，同时保留 `.env.example`。
 
-缺少可选凭证或配置文件时，不中断无关步骤。例如缺少 Clarity、Umami 或 `SITE_INTEGRATIONS_CONFIG`，只在最后把受影响的集成标记为 skipped。
+缺少可选凭证或配置文件时，不中断无关步骤。例如缺少 Clarity、Umami 或 `SITE_INTEGRATIONS_CONFIG`，在检查可用 fallback 后，只在最后把受影响的集成标记为 skipped。
 
 ## Index onboarding 数据源
 
