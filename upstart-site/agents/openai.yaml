@@ -1,4 +1,4 @@
 interface:
   display_name: "Upstart Site"
-  short_description: "Publish a local site through GitHub and Vercel."
+  short_description: "Publish a local site through GitHub-triggered Vercel deploys."
   default_prompt: "Use $upstart-site to publish this local website through GitHub and Vercel."

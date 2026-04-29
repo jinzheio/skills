@@ -1,0 +1,30 @@
+{
+  "skill_name": "upstart-site",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "把这个本地网站上线到 Vercel，并创建 GitHub repo",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Publish this local Next.js app through GitHub and Vercel.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Deploy to Vercel temporary domain only; custom domain later.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "The site is already deployed; connect my new domain.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "域名已经好了，帮我接 GSC 和统计",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Push this existing repo to origin.",
+      "should_trigger": false
+    }
+  ]
+}

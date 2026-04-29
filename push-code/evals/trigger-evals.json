@@ -1,0 +1,31 @@
+{
+  "skill_name": "push-code",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "Run checks and push this repo to origin.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "发布代码，构建通过后推送远端",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Push this public site and submit changed public URLs after push.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "帮我 push 这个后端 API 库",
+      "should_trigger": true,
+      "notes": "IndexNow should be skipped because this is backend-only."
+    },
+    {
+      "prompt": "Commit these changes but do not push.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Connect this deployed site to example.com.",
+      "should_trigger": false
+    }
+  ]
+}

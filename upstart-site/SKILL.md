@@ -1,6 +1,7 @@
 ---
 name: upstart-site
-description: "Bootstrap and publish a local site repo end to end: create or connect a GitHub repo, review and commit the intended local changes, push safely, connect the repo to a Vercel project under the requested team, sync minimum production env vars, and release via GitHub-triggered deployment. Use when the user wants to take a local website or app repo from local-only to a stable hosted deployment."
+version: "1.1.0"
+description: "Use when the user wants to publish a local website or web app end to end, including 'deploy this site', 'publish this local app', 'create a GitHub repo and deploy to Vercel', or '上线到 Vercel'. Create or connect GitHub, validate build, push, link Vercel, sync minimum production env vars, and verify a GitHub-triggered deployment. Do not handle custom-domain cutover or search/analytics onboarding except as follow-up handoff."
 ---
 
 # Upstart Site
@@ -27,18 +28,6 @@ If the user also wants a real public domain and search / analytics onboarding, t
 2. `index-onboarding`
 
 If the user also wants inbound email forwarding on the final domain, hand that off to `new-domain-launch` after the domain is on Cloudflare. It is optional and should not block the core repo-to-hosted-deploy release path.
-
-## Best Fit
-
-Use this when the user says things like:
-
-- "publish this local website"
-- "create a GitHub repository and deploy it"
-- "connect this project to Vercel"
-- "push this project and make it reachable"
-- "launch this local app end to end"
-
-This skill is especially appropriate for Next.js and other static or server-rendered web repos.
 
 ## Inputs
 
@@ -79,40 +68,23 @@ If auth is missing, stop and ask the user to authenticate first.
 
 ## Workflow
 
-### 1. Inspect local repo state
+### 1. Plan
 
-Run:
+Read `references/github-vercel-release.md` and run the Repo Inspection commands there. Then produce a plan covering:
 
-```bash
-pwd
-git status --short --branch
-git remote -v
-git branch --show-current
-rg --files -g 'package.json' -g 'pnpm-lock.yaml' -g 'package-lock.json' -g 'yarn.lock' -g 'bun.lockb' -g 'bun.lock'
-```
+- target GitHub owner and repo name
+- repo visibility
+- current branch and dirty-worktree state
+- package manager and build/check commands
+- Vercel team/scope and project name
+- deploy root (especially for monorepos)
+- production env keys to sync, without values
+- expected production URL
+- follow-up handoff, if a custom domain or indexing is requested
 
-Then inspect likely app entry points and build scripts:
+Ask for user confirmation before creating GitHub repos, linking Vercel projects, pushing, or writing production env vars unless the user already explicitly authorized the full publish flow.
 
-```bash
-sed -n '1,220p' package.json
-find . -maxdepth 3 \( -name 'package.json' -o -name 'next.config.*' -o -name 'vercel.json' -o -name 'pnpm-workspace.yaml' \)
-```
-
-Determine:
-
-- whether this is already a git repo
-- whether a remote already exists
-- whether the repo is clean or mixed
-- whether this is a single app or a monorepo
-- which directory should be deployed on Vercel
-
-For monorepos, identify the deploy root before linking Vercel. Common examples:
-
-- `apps/web`
-- `app`
-- `frontend`
-
-### 2. Verify local build before release
+### 2. Validate Local Release Path
 
 Find the most relevant checks and run them before any publish action.
 
@@ -144,33 +116,9 @@ Common blockers to catch:
 
 Do not proceed to shipping while the release path is still broken.
 
-### 3. Create or connect the GitHub repo
+### 3. Create Or Connect GitHub
 
-If no usable remote exists, create a private repo under the requested owner:
-
-```bash
-gh repo create <owner>/<repo-name> --private --source=. --remote=origin --push
-```
-
-If the user explicitly wants a public repository, replace `--private` with `--public`.
-
-Before creating, check whether the repo already exists:
-
-```bash
-gh repo view <owner>/<repo-name> --json nameWithOwner,visibility,defaultBranchRef
-```
-
-If it exists already:
-
-- do not recreate it
-- point `origin` to that repo if needed
-
-After creation or connection, verify:
-
-```bash
-git remote -v
-gh repo view <owner>/<repo-name> --json nameWithOwner,url,defaultBranchRef
-```
+Use `references/github-vercel-release.md`. Default to a private repo unless the user asks for public.
 
 ### 4. Commit intentionally
 
@@ -199,144 +147,17 @@ git pull --rebase --autostash origin $(git branch --show-current)
 git push -u origin $(git branch --show-current)
 ```
 
-### 6. Create or link the Vercel project
+### 6. Create Or Link Vercel
 
-Use the requested team or scope.
+Use `references/github-vercel-release.md`. Force GitHub integration rather than local-source deployment.
 
-Check for an existing linked project:
+### 7. Sync Minimum Production Env Vars
 
-```bash
-cat .vercel/project.json
-vercel project inspect <project-name> --scope <team>
-```
+Use `references/env-sync.md` only when production env vars are needed. Report key names only, never values.
 
-If the project does not exist, create it:
+### 8. Trigger And Verify Production Deploy
 
-```bash
-vercel project add <project-name> --scope <team>
-vercel link --project <project-name> --scope <team> --yes
-```
-
-### 7. Force GitHub integration, not local-source deploy
-
-Connect the Vercel project to the GitHub repo:
-
-```bash
-vercel git connect git@github.com:<owner>/<repo-name>.git --scope <team> --yes
-```
-
-If SSH is unavailable but HTTPS is the actual remote, use the HTTPS GitHub URL instead.
-
-After connecting, confirm the deployment metadata later shows GitHub commit fields such as:
-
-- `githubCommitSha`
-- `githubCommitRef`
-- `githubRepo`
-
-If those are absent, the release did not go through the intended GitHub path.
-
-### 8. Set monorepo root and framework correctly
-
-If this is not a single-app repo rooted at `.`, explicitly configure the Vercel project root.
-
-Preferred API-style update:
-
-```bash
-TOKEN=$(jq -r .token "$HOME/Library/Application Support/com.vercel.cli/auth.json")
-curl -sS -X PATCH \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  "https://api.vercel.com/v9/projects/${PROJECT_ID}?teamId=${TEAM_ID}" \
-  -d '{"rootDirectory":"<app-root>","framework":"nextjs"}'
-```
-
-At minimum, confirm afterward that:
-
-- `Root Directory` matches the intended app directory
-- framework is correct, for example `Next.js`
-
-### 9. Sync minimum production env vars
-
-Do not blindly upload every local env var.
-
-Start from:
-
-- `.env.production` if present
-- otherwise `.env`
-- otherwise `.env.example` only as a key reference, not as a source of secrets
-
-Sync only the variables required for production build and runtime of the deployed app.
-
-Typical examples:
-
-- `NEXT_PUBLIC_APP_URL`
-- auth secrets and callback URLs
-- database connection string
-- analytics public keys
-- third-party OAuth credentials
-
-Use:
-
-```bash
-printf '%s' '<value>' | vercel env add <KEY> production --scope <team> --yes --force
-```
-
-Before first deploy, check:
-
-```bash
-vercel env ls production --scope <team>
-```
-
-If the build requires values that are still missing, stop and report the exact keys.
-
-### 10. Trigger a GitHub-based production deploy
-
-If the repo was just connected to Vercel after the latest push, create a follow-up commit or empty commit so GitHub emits a new deployment event:
-
-```bash
-git commit --allow-empty -m "chore: trigger vercel deployment"
-git push origin $(git branch --show-current)
-```
-
-Then inspect deployments:
-
-```bash
-vercel list <project-name> --scope <team>
-vercel inspect <deployment-url> --scope <team>
-vercel inspect <deployment-url> --scope <team> --logs
-```
-
-If the deployment fails, treat that as part of the release workflow:
-
-1. read logs
-2. fix the blocker locally
-3. validate locally
-4. commit and push the fix
-5. verify the next GitHub-triggered deployment
-
-Common first-deploy failure:
-
-- `ERR_PNPM_OUTDATED_LOCKFILE`
-
-If you see that, run local install to resync the lockfile, commit it, and push again.
-
-### 11. Verify success
-
-A release is complete only when all of these are true:
-
-1. the code is on GitHub
-2. the Vercel project is connected to that GitHub repo
-3. the deployment used GitHub metadata
-4. the latest production deployment is `Ready`
-5. you have a working production URL
-
-Preferred checks:
-
-```bash
-vercel list <project-name> --scope <team>
-vercel inspect <deployment-url> --scope <team>
-curl -I "https://${PRODUCTION_HOSTNAME}"
-```
+Use `references/deploy-verify.md`. The release is complete only when the latest production deployment is `Ready`, includes GitHub metadata, and the production URL responds.
 
 ## Reporting
 
