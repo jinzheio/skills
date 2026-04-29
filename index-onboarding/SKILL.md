@@ -131,6 +131,8 @@ If the domain is still in transition, stop here and hand back to `new-domain-lau
 
 Prefer the analytics provider the user already uses. If the user has not chosen one and Umami credentials are available, use Umami.
 
+For Umami, prefer self-hosted admin login. Use Umami Cloud API-key auth only when self-hosted admin credentials are unavailable.
+
 If analytics credentials are missing:
 
 1. Check whether the live site already has an analytics script.

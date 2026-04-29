@@ -119,8 +119,8 @@ cp .env.example .env
 - `CLOUDFLARE_API_TOKEN`：DNS 修改、验证 TXT 记录、代理/TLS/邮件转发等操作。
 - `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户级操作。
 - `SPACESHIP_API_KEY` 和 `SPACESHIP_API_SECRET`：Spaceship 注册商 nameserver 更新。
-- `UMAMI_BASE_URL`、`UMAMI_SCRIPT_URL`、`UMAMI_ADMIN_USERNAME`、`UMAMI_ADMIN_PASSWORD`：self-hosted Umami 接入。通过 `$UMAMI_BASE_URL/auth/login` 登录，使用返回的 Bearer token 调 API。
-- `UMAMI_API_KEY`：可选，仅用于 Umami Cloud 或明确支持 API-key auth 的兼容服务。
+- `UMAMI_BASE_URL`、`UMAMI_SCRIPT_URL`、`UMAMI_ADMIN_USERNAME`、`UMAMI_ADMIN_PASSWORD`：首选的 self-hosted Umami 接入。通过 `$UMAMI_BASE_URL/auth/login` 登录，使用返回的 Bearer token 调 API。
+- `UMAMI_API_KEY`：仅作 fallback，用于 Umami Cloud 或明确支持 API-key auth 的兼容服务。
 - Google OAuth/ADC：用于 Search Console 和 Site Verification，授权账号需要拥有站点权限。常见本地方式包括 `gcloud auth application-default login`、`GOOGLE_APPLICATION_CREDENTIALS`，或其他已认证的 Google API 会话。
 - `BING_WEBMASTER_API_KEY`：Bing Webmaster Tools 站点验证和 sitemap 提交。
 - `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 先读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，或目标域名没有 Clarity 配置，`index-onboarding` 会检查当前环境变量里的 `CLARITY_ID` 和 `CLARITY_TOKEN`。两个来源都缺少完整信息时，跳过 Clarity 并在汇总里说明。

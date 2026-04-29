@@ -5,9 +5,9 @@ Load this reference for analytics onboarding when the user uses Umami or no anal
 ## Rules
 
 - Do not hardcode a specific Umami server URL; read `UMAMI_BASE_URL`, for example an origin plus `/api`.
-- `UMAMI_API_KEY` is for Umami Cloud or compatible providers that explicitly support API-key auth.
-- For self-hosted Umami, authenticate with `UMAMI_ADMIN_USERNAME` and `UMAMI_ADMIN_PASSWORD`.
-- If neither Cloud API key nor self-hosted login credentials are available, skip Umami and continue.
+- Prefer self-hosted Umami admin login when `UMAMI_BASE_URL`, `UMAMI_ADMIN_USERNAME`, and `UMAMI_ADMIN_PASSWORD` are available.
+- Use `UMAMI_API_KEY` only as a fallback for Umami Cloud or compatible providers that explicitly support API-key auth.
+- If neither self-hosted login credentials nor a Cloud API key are available, skip Umami and continue.
 - If only a script URL is available without a website id, do not inject an incomplete script.
 
 ## Self-Hosted Login Pattern
