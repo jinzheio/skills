@@ -1,0 +1,30 @@
+{
+  "skill_name": "add-indexnow",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "给这个 Next.js 站点加 IndexNow，包含 key 文件和提交脚本",
+      "should_trigger": true
+    },
+    {
+      "prompt": "I need post-push URL submission for changed public pages on this static site.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Generate collect and submit scripts for IndexNow in this web app.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Set up Google Search Console ownership for this domain.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Push this backend API repo to GitHub.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Add Bing Webmaster Tools verification meta tag.",
+      "should_trigger": false
+    }
+  ]
+}

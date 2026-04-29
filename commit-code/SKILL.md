@@ -1,6 +1,7 @@
 ---
 name: commit-code
-description: Review workspace changes, report risks, and create clean scoped commits after user confirmation.
+version: "1.1.0"
+description: "Use when the user asks to review and commit local workspace changes, including 'commit this', '帮我 commit', '确认提交', or 'split these changes into commits'. Review diffs first, report risks, wait for explicit confirmation, then create clean scoped commits. Do not push unless the user also asks to push."
 ---
 
 # Commit Code Skill
@@ -14,6 +15,8 @@ Run a lightweight code review on workspace changes, wait for user confirmation, 
 Run `git status` to list all changed files, including tracked and untracked files.
 
 For every changed file, run `git diff HEAD -- <file>` for tracked files or inspect the full contents for untracked files. Review the complete diff before judging the change.
+
+Preserve dirty worktrees. Do not stage, modify, revert, or commit files unrelated to the user's requested scope. If unrelated changes are present, list them separately and leave them untouched.
 
 **Code Review Checklist:**
 
@@ -29,23 +32,7 @@ Group findings by severity: high, medium, and low.
 
 ### Step 2: Report to the User
 
-Report the review result in this format:
-
-```
-## Code Review Summary
-
-### High Risk
-- [Issue description]
-
-### Medium Risk
-- [Issue description]
-
-### Low Risk / Suggestions
-- [Issue description]
-
-### Files With No Issues
-- [List files]
-```
+Report the review result using `assets/review-report.template.md`.
 
 If no issues are found, say so clearly.
 

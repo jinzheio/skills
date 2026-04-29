@@ -1,4 +1,4 @@
 interface:
   display_name: "Add IndexNow"
-  short_description: "Add IndexNow key, URL collection, and submission scripts."
+  short_description: "Add IndexNow key verification and URL submission for public sites."
   default_prompt: "Use $add-indexnow to add IndexNow support to this web app."

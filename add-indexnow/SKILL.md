@@ -1,6 +1,7 @@
 ---
 name: add-indexnow
-description: "Add reusable IndexNow support to a web app or Next.js repo. Use when a user wants IndexNow setup copied into a project, wants post-push URL submission, or asks to generate indexnow collect/submit scripts, key verification files, and validation steps for a site."
+version: "1.1.0"
+description: "Use when the user wants to add IndexNow support to a public web app, Next.js site, or static site: create key verification, URL collection, URL submission, docs, and validation. Trigger on requests like 'add IndexNow', 'submit changed URLs', or 'set up post-push URL submission'. Do not use for Google Search Console or Bing Webmaster onboarding by itself, or for repos without public URLs."
 ---
 
 # add-indexnow
