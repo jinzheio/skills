@@ -14,6 +14,8 @@ This repository is a public skill pack. Each skill folder lives at the repositor
 | `new-domain-launch` | Connect a deployed site to a custom domain with DNS, HTTPS, and redirects. |
 | `index-onboarding` | Set up analytics and search indexing after the final domain works. |
 | `add-indexnow` | Add IndexNow key verification, URL collection, and submission scripts to an existing site. |
+| `commit-code` | Review workspace changes and create scoped commits after confirmation. |
+| `push-code` | Verify, push, and run post-push indexing sync. |
 
 Recommended sequence for a new site:
 
@@ -22,6 +24,18 @@ upstart-site -> new-domain-launch -> index-onboarding
 ```
 
 `add-indexnow` is separate because it is also useful for existing sites that only need IndexNow support.
+
+## Code Upload Workflow
+
+For normal development work, use:
+
+```text
+commit-code -> push-code
+```
+
+`commit-code` reviews the working tree, reports risks, waits for confirmation, and commits only the intended files. `push-code` runs verification, keeps the git tree clean, pushes the branch, and then uses `add-indexnow` to ensure IndexNow URL collection and submission are available for changed public pages.
+
+`push-code` should not resubmit an unchanged sitemap to Google Search Console after every page edit. It should check or submit a sitemap only when the sitemap route, robots reference, canonical host, public route structure, or Search Console state changed. For ordinary edits to existing pages, IndexNow URL submission is the post-push sync path.
 
 ## Install
 
@@ -41,6 +55,8 @@ cp -R upstart-site ~/.codex/skills/
 cp -R new-domain-launch ~/.codex/skills/
 cp -R index-onboarding ~/.codex/skills/
 cp -R add-indexnow ~/.codex/skills/
+cp -R commit-code ~/.codex/skills/
+cp -R push-code ~/.codex/skills/
 ```
 
 If your runner can read this repository directly, no copy step is needed.
@@ -67,6 +83,14 @@ Use $index-onboarding to set up analytics and search indexing for example.com.
 Use $add-indexnow to add IndexNow support to this web app.
 ```
 
+```text
+Use $commit-code to review and commit these changes.
+```
+
+```text
+Use $push-code to verify, push, and sync changed public URLs.
+```
+
 ## Configuration
 
 The skills use authenticated CLIs, API tokens, browser sessions, or environment variables depending on the task.
@@ -83,8 +107,8 @@ Prepare only the credentials needed for the skills you run.
 
 | Skill | Required for the core path | Optional branches |
 | --- | --- | --- |
-| `upstart-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel, Cloudflare Email Routing credentials if email forwarding is requested |
-| `new-domain-launch` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, authenticated browser session for providers without API coverage |
+| `upstart-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel |
+| `new-domain-launch` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |
 | `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config |
 | `add-indexnow` | Writable repo with a known final host | `INDEXNOW_KEY` only if overriding the generated key; otherwise the skill creates a fresh key |
 

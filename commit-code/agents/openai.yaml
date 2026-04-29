@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit Code"
+  short_description: "Review changes and create clean, scoped commits"
+  default_prompt: "Use $commit-code to review my workspace changes and commit them in clean, scoped batches."

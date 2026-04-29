@@ -1,0 +1,4 @@
+interface:
+  display_name: "Push Code"
+  short_description: "Lint, build, clean the tree, and push safely"
+  default_prompt: "Use $push-code to verify this repo, ensure a clean git state, push it, and submit IndexNow URLs if needed."

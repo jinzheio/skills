@@ -10,10 +10,12 @@
 
 | Skill | 用途 |
 | --- | --- |
-| `upstart-site` | 通过 GitHub 和 Vercel 发布本地 Web 项目。 |
+| `upstart-site` | 通过 GitHub 和 Vercel 发布本地 Web 项目。NextJS 或者静态页面都可以。如果没有云端 repo，会新建 Private Repo。 |
 | `new-domain-launch` | 为已部署的网站绑定自定义域名、DNS、HTTPS 和跳转。 |
 | `index-onboarding` | 在正式域名可访问后，接入统计和搜索索引。 |
 | `add-indexnow` | 为已有网站添加 IndexNow 验证 key、URL 收集脚本和提交脚本。 |
+| `commit-code` | Review 工作区变更，确认后按范围提交。 |
+| `push-code` | 验证、推送代码，并同步变更页面的索引。 |
 
 新网站的推荐顺序：
 
@@ -22,6 +24,18 @@ upstart-site -> new-domain-launch -> index-onboarding
 ```
 
 `add-indexnow` 单独保留，因为已有网站可能只需要补 IndexNow。
+
+## 代码上传流程
+
+日常开发流程：
+
+```text
+commit-code -> push-code
+```
+
+`commit-code` 会 review 工作区、报告风险、等待确认，并只提交目标文件。`push-code` 会执行验证、保持 git 工作区干净、推送分支，并调用 `add-indexnow` 确保目标仓库具备 IndexNow URL 收集和提交能力，用于同步变更过的公开页面。
+
+`push-code` 不应该在每次页面编辑后重复向 Google Search Console 提交同一个 sitemap。只有 sitemap 路由、robots 引用、canonical host、公开路由结构或 Search Console 状态发生变化时，才检查或提交 sitemap。普通的既有页面更新，走 IndexNow URL 提交通道。
 
 ## 安装
 
@@ -41,6 +55,8 @@ cp -R upstart-site ~/.codex/skills/
 cp -R new-domain-launch ~/.codex/skills/
 cp -R index-onboarding ~/.codex/skills/
 cp -R add-indexnow ~/.codex/skills/
+cp -R commit-code ~/.codex/skills/
+cp -R push-code ~/.codex/skills/
 ```
 
 如果 runner 能直接读取这个仓库，不需要复制。
@@ -67,6 +83,14 @@ Use $index-onboarding to set up analytics and search indexing for example.com.
 Use $add-indexnow to add IndexNow support to this web app.
 ```
 
+```text
+Use $commit-code to review and commit these changes.
+```
+
+```text
+Use $push-code to verify, push, and sync changed public URLs.
+```
+
 ## 配置
 
 这些 skills 会根据任务使用已登录的 CLI、API token、浏览器会话或环境变量。
@@ -83,8 +107,8 @@ cp .env.example .env
 
 | Skill | 主流程需要 | 可选分支 |
 | --- | --- | --- |
-| `upstart-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量；如果要配置邮件转发，需要 Cloudflare Email Routing 权限 |
-| `new-domain-launch` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；没有 API 时可用已登录浏览器会话 |
+| `upstart-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量 |
+| `new-domain-launch` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
 | `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG` |
 | `add-indexnow` | 可写的项目仓库和已确定的正式域名 | 只有在覆盖自动生成 key 时才需要 `INDEXNOW_KEY` |
 

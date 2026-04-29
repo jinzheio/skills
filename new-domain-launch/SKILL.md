@@ -1,11 +1,11 @@
 ---
 name: new-domain-launch
-description: "Connect a newly bought domain to an already deployed site so it is publicly reachable on the intended host. Use after the site/repo/deployment already exists, often right after an upstart-site style workflow. Covers registrar nameservers, DNS provider setup, hosting-platform domain binding, HTTPS, and apex/www redirect verification."
+description: "Connect a newly bought domain to an already deployed site so it is publicly reachable on the intended host. Use after the site/repo/deployment already exists, often right after an upstart-site style workflow. Covers registrar nameservers, DNS provider setup, hosting-platform domain binding, HTTPS, apex/www redirect verification, and optional inbound email forwarding."
 ---
 
 # new-domain-launch
 
-Use this skill when the site is already deployed, but the user now wants a new domain to work on the public internet.
+Use this skill when the site is already deployed, but the user now wants a new custom domain to work on the public internet.
 
 Typical sequence:
 
@@ -23,6 +23,7 @@ Make the new domain work end to end:
 - `www` follows the intended redirect policy
 - HTTPS works
 - the live site is reachable from the public internet
+- optional inbound email forwarding works if requested
 
 ## Default policy
 
@@ -141,6 +142,42 @@ For the default policy:
 
 After configuring the redirect, verify both HTTP and HTTPS behavior if needed, but final acceptance should focus on HTTPS.
 
+### 7. Optional: enable Cloudflare Email Routing catch-all forwarding
+
+Only do this when the user explicitly asks for domain email forwarding and the final domain is already on Cloudflare.
+
+Preconditions:
+
+- the final custom domain is already delegated to Cloudflare
+- the zone is active
+- the user has provided or already configured the forwarding destination
+- Cloudflare token or browser session has permission for Email Routing
+
+Preferred flow:
+
+1. Check Email Routing status for the zone.
+2. If Email Routing is disabled, enable it and let Cloudflare add the required MX, SPF, and DKIM records.
+3. Check whether the destination mailbox already exists as a verified Email Routing address.
+4. If not verified, create the destination address and complete its mailbox verification.
+5. Update the catch-all rule from the default `drop` action to `forward`.
+6. Verify the catch-all rule points to the intended destination.
+7. Optionally send a real test email through an existing sender such as Mailgun to confirm end-to-end forwarding.
+
+Important:
+
+- this is for inbound forwarding such as `*@example.com -> destination@example.net`
+- Email Routing requires Cloudflare-managed DNS for the final domain
+- do not claim success if the zone still shows Email Routing as `unconfigured`
+- if API token scope is insufficient, fall back to browser automation or report the exact missing permission
+
+Minimum goal:
+
+- Email Routing is `enabled`
+- MX records point to Cloudflare mail exchangers
+- required SPF and DKIM records exist
+- catch-all rule is enabled and forwards to the intended mailbox
+- test send status is known if a sender is available
+
 ## Validation checklist
 
 Do not consider the task complete until all relevant checks pass:
@@ -152,6 +189,7 @@ Do not consider the task complete until all relevant checks pass:
 5. `https://APEX_HOST` returns the site successfully.
 6. `https://www.DOMAIN` returns a `301` to the canonical host if redirect is intended.
 7. Cloudflare proxy state and SSL mode match the intended policy.
+8. If email forwarding was requested, Cloudflare Email Routing is enabled and the catch-all forwards to the intended mailbox.
 
 If local `dig` output or public resolver output stays stale but the real domain is already reachable on public HTTPS, treat successful live access as the completion signal and report the DNS-output mismatch explicitly instead of blocking on propagation.
 
@@ -176,6 +214,7 @@ Report these items clearly:
 - proxy state
 - TLS mode
 - canonical host and redirect rule
+- email forwarding state, if requested
 - remaining blocker, if any
 
 If propagation is still pending and live HTTPS is still not working, say that explicitly and separate:

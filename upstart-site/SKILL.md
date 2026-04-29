@@ -18,7 +18,6 @@ This is a release workflow, not just a deploy command. The job is to make the re
 7. configure the correct app root for monorepos
 8. sync the minimum required production env vars
 9. trigger and verify a GitHub-based production deployment
-10. if requested and the final domain already lives on Cloudflare, enable basic inbound email forwarding
 
 Do not treat "vercel --prod" from the local checkout as completion unless the user explicitly asks for local-source deployment. Default to GitHub-connected deploys.
 
@@ -27,7 +26,7 @@ If the user also wants a real public domain and search / analytics onboarding, t
 1. `new-domain-launch`
 2. `index-onboarding`
 
-If the user also wants inbound email forwarding on the final domain, that can be handled after the domain is on Cloudflare. It is optional and should not block the core repo-to-hosted-deploy release path.
+If the user also wants inbound email forwarding on the final domain, hand that off to `new-domain-launch` after the domain is on Cloudflare. It is optional and should not block the core repo-to-hosted-deploy release path.
 
 ## Best Fit
 
@@ -44,10 +43,10 @@ This skill is especially appropriate for Next.js and other static or server-rend
 ## Inputs
 
 - Required: local repo path, or run from inside the target repo
-- Required: GitHub owner to use, for example `acme`
-- Required: Vercel team or scope, for example `acme-team`
+- Required: GitHub owner to use, for example `jinzheio`
+- Required: Vercel team or scope, for example `my-team`
 - Optional: desired repo or project name; default to the local directory name
-- Optional: monorepo app root, for example `apps/web`
+- Optional: monorepo app root, for example `app`
 - Optional: whether production env vars should be copied from `.env.production`, `.env`, or another source
 - Optional: repo visibility; default to private unless the user asks for public
 
@@ -77,7 +76,6 @@ If auth is missing, stop and ask the user to authenticate first.
 - If the lockfile is stale, fix it before shipping.
 - If local build fails, fix or surface the blocker before attempting release.
 - Do not mix domain cutover or indexing work into the core repo-to-hosted-deploy release path.
-- Do not attempt Cloudflare Email Routing before the final domain is already delegated to Cloudflare and publicly stable.
 
 ## Workflow
 
@@ -290,42 +288,6 @@ vercel env ls production --scope <team>
 ```
 
 If the build requires values that are still missing, stop and report the exact keys.
-
-### 10. Optional: enable Cloudflare Email Routing catch-all forwarding
-
-Only do this when the user explicitly asks for domain email forwarding and the final domain is already on Cloudflare.
-
-Preconditions:
-
-- the final custom domain is already delegated to Cloudflare
-- the zone is active
-- the user has provided or already configured the forwarding destination
-- Cloudflare token or browser session has permission for Email Routing
-
-Preferred flow:
-
-1. Check Email Routing status for the zone.
-2. If Email Routing is disabled, enable it and let Cloudflare add the required MX, SPF, and DKIM records.
-3. Check whether the destination mailbox already exists as a verified Email Routing address.
-4. If not verified, create the destination address and complete its mailbox verification.
-5. Update the catch-all rule from the default `drop` action to `forward`.
-6. Verify the catch-all rule points to the intended destination.
-7. Optionally send a real test email through an existing sender such as Mailgun to confirm end-to-end forwarding.
-
-Important:
-
-- this is for inbound forwarding such as `*@example.com -> destination@example.net`
-- Email Routing requires Cloudflare-managed DNS for the final domain
-- do not claim success if the zone still shows Email Routing as `unconfigured`
-- if API token scope is insufficient, fall back to browser automation or report the exact missing permission
-
-Minimum goal:
-
-- Email Routing is `enabled`
-- MX records point to Cloudflare mail exchangers
-- required SPF and DKIM records exist
-- catch-all rule is enabled and forwards to the intended mailbox
-- test send status is known if a sender is available
 
 ### 10. Trigger a GitHub-based production deploy
 
