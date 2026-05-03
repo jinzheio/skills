@@ -1,19 +1,19 @@
-# Deploy Verification
+# 部署验证
 
-Load this reference when the repo is pushed and the Vercel project is connected.
+repo 已 push 且 Vercel project 已连接时读取。
 
-## Trigger GitHub-Based Deploy
+## 触发 GitHub-based Deploy
 
-If Vercel was connected to GitHub after the latest push, create a follow-up commit or empty commit so GitHub emits a new deployment event:
+如果 Vercel 是在最近一次 push 后才连接 GitHub，创建 follow-up commit 或 empty commit，让 GitHub 发出新的 deployment event：
 
 ```bash
 git commit --allow-empty -m "chore: trigger vercel deployment"
 git push origin $(git branch --show-current)
 ```
 
-Do not treat `vercel --prod` from the local checkout as completion unless the user explicitly requested local-source deployment.
+除非用户明确要求 local-source deployment，不要把本地 `vercel --prod` 当作完成。
 
-## Inspect Deployments
+## 检查 Deployments
 
 ```bash
 vercel list <project-name> --scope <team>
@@ -21,29 +21,29 @@ vercel inspect <deployment-url> --scope <team>
 vercel inspect <deployment-url> --scope <team> --logs
 ```
 
-If deployment fails:
+如果 deployment 失败：
 
-1. Read logs.
-2. Fix only the blocker that prevents release.
-3. Validate locally.
-4. Commit and push the fix.
-5. Verify the next GitHub-triggered deployment.
+1. 读取 logs。
+2. 只修复阻塞 release 的问题。
+3. 本地验证。
+4. commit 并 push 修复。
+5. 验证下一次 GitHub-triggered deployment。
 
-Common first-deploy blocker:
+常见 first-deploy blocker：
 
-- `ERR_PNPM_OUTDATED_LOCKFILE`: run local install to resync the lockfile, commit it, and push again.
+- `ERR_PNPM_OUTDATED_LOCKFILE`：本地 install 同步 lockfile，commit 后再 push。
 
-## Completion Checks
+## 完成检查
 
-The release is complete only when:
+release 完成必须满足：
 
-1. code is on GitHub
-2. Vercel project is connected to that GitHub repo
-3. deployment used GitHub metadata
-4. latest production deployment is `Ready`
-5. production URL works
+1. code 已在 GitHub
+2. Vercel project 已连接该 GitHub repo
+3. deployment 使用 GitHub metadata
+4. 最新 production deployment 为 `Ready`
+5. production URL 可访问
 
-Preferred checks:
+推荐检查：
 
 ```bash
 vercel list <project-name> --scope <team>

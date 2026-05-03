@@ -1,4 +1,4 @@
 interface:
-  display_name: "Add IndexNow"
-  short_description: "Add IndexNow key verification and URL submission for public sites."
-  default_prompt: "Use $add-indexnow to add IndexNow support to this web app."
+  display_name: "添加 IndexNow"
+  short_description: "为公开站点增加 IndexNow key、URL 收集与提交流程"
+  default_prompt: "使用 $add-indexnow 为当前公开站点增加 IndexNow 支持，并完成 dry run 与 lint 验证。"

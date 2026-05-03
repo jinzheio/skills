@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Cloud Agent Collaborator"
+  short_description: "增加 agent 合作者，并让 upstream 保持只读"
+  default_prompt: "使用 $add-cloud-agent-collaborator 为当前 GitHub 项目添加 agent 合作者，确保只能写 fork、upstream 只读。"

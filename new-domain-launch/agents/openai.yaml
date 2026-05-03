@@ -1,4 +1,4 @@
 interface:
-  display_name: "New Domain Launch"
-  short_description: "Connect a deployed site to DNS, HTTPS, and redirects."
-  default_prompt: "Use $new-domain-launch to connect this deployed site to its custom domain."
+  display_name: "连接新域名"
+  short_description: "连接 DNS、托管平台、HTTPS 和可选邮箱转发"
+  default_prompt: "使用 $new-domain-launch 为已经部署的站点连接自定义域名，并验证 HTTPS 与跳转策略。"

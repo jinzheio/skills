@@ -1,35 +1,35 @@
 # Bing Webmaster Tools
 
-Load this reference for Bing Webmaster Tools onboarding.
+处理 Bing Webmaster Tools onboarding 时读取。
 
-IndexNow URL submission does not by itself make the site appear in Bing Webmaster Tools.
+IndexNow URL submission 本身不会让站点出现在 Bing Webmaster Tools 中。
 
-## Rules
+## 规则
 
-- If `BING_WEBMASTER_API_KEY` is available, prefer the API route over manual browser import.
-- Importing from Google Search Console is valid when explicitly requested, but optional.
-- If Bing credentials and browser access are missing, report Bing Webmaster Tools as `skipped` and continue to Clarity.
+- 如果有 `BING_WEBMASTER_API_KEY`，优先走 API，不走手动浏览器导入。
+- 用户明确要求时，可以从 Google Search Console import，但这是可选项。
+- 如果缺少 Bing 凭据和浏览器访问，把 Bing Webmaster Tools 标记为 `skipped`，继续 Clarity。
 
-## Preferred API Flow
+## 推荐 API 流程
 
-1. Check `GetUserSites` to see whether the final domain is already present.
-2. If missing, call `AddSite` for the final canonical URL, for example `https://example.com/`.
-3. Read returned site metadata, especially:
+1. 调 `GetUserSites` 检查最终域名是否已存在。
+2. 缺失时，对最终 canonical URL 调 `AddSite`，例如 `https://example.com/`。
+3. 读取返回 metadata，尤其是：
    - `AuthenticationCode`
    - `DnsVerificationCode`
    - `IsVerified`
-4. Prefer HTML meta verification for static or repo-controlled sites:
-   - add `<meta name="msvalidate.01" content="<AuthenticationCode>" />` to the live homepage head
-   - deploy the repo if code changed and deployment credentials exist
-5. Once the verification token is live, call `VerifySite`.
-6. Recheck `GetUserSites` until the site appears with `IsVerified = true`, or report a refresh delay if `VerifySite` succeeded but site state has not caught up.
-7. Submit the sitemap through `SubmitFeed`.
-8. Optionally submit the homepage or changed URLs through `SubmitUrl`.
+4. 静态或 repo-controlled 站点优先使用 HTML meta 验证：
+   - 在 live homepage head 加 `<meta name="msvalidate.01" content="<AuthenticationCode>" />`
+   - 如改了代码且有部署凭据，部署 repo
+5. verification token live 后调 `VerifySite`。
+6. 重查 `GetUserSites`，直到 `IsVerified = true`；如果 `VerifySite` 成功但状态未刷新，报告刷新延迟。
+7. 通过 `SubmitFeed` 提交 sitemap。
+8. 可选：通过 `SubmitUrl` 提交 homepage 或 changed URLs。
 
-## Minimum Goal
+## 最小目标
 
-- site appears in Bing Webmaster Tools for the owning account
-- verification state is known
-- sitemap submission state is known
+- site 出现在拥有账号的 Bing Webmaster Tools 中
+- verification state 已知
+- sitemap submission state 已知
 
-Verify against the final canonical URL with trailing slash consistency.
+使用最终 canonical URL 验证，并保持 trailing slash 一致。

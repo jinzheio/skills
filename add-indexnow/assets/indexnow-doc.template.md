@@ -1,35 +1,35 @@
-# IndexNow Integration
+# IndexNow 集成
 
-This project can submit changed public URLs to IndexNow after a push or deploy.
+本项目可以在 push 或 deploy 后向 IndexNow 提交变更过的公开 URL。
 
-## Required setup
+## 必需设置
 
-- Generate a new random IndexNow key for this project and host.
-- Add a verification file to `public/`:
-  - filename: `<INDEXNOW_KEY>.txt`
-  - file content: `<INDEXNOW_KEY>`
+- 为当前项目和 host 生成新的随机 IndexNow key。
+- 在 `public/` 增加验证文件：
+  - 文件名：`<INDEXNOW_KEY>.txt`
+  - 文件内容：`<INDEXNOW_KEY>`
 
-Do not reuse a shared key from another project by default. Prefer one unique key per host or project.
+默认不要复用其它项目的共享 key。优先每个 host 或项目使用独立 key。
 
-## Optional environment variables
+## 可选环境变量
 
-- `INDEXNOW_KEY`: override key used by the submit script
-- `INDEXNOW_ENDPOINT`: custom endpoint override. Defaults to `https://api.indexnow.org/indexnow`
+- `INDEXNOW_KEY`：覆盖 submit 脚本使用的 key
+- `INDEXNOW_ENDPOINT`：自定义 endpoint，默认 `https://api.indexnow.org/indexnow`
 
-## Collect changed URLs
+## 收集变更 URL
 
 ```bash
 tmp_file="$(mktemp)"
 pnpm indexnow:collect --base-url https://example.com --from <old-ref> --to <new-ref> --out-file "$tmp_file"
 ```
 
-## Submit URLs
+## 提交 URL
 
 ```bash
 pnpm indexnow:submit --base-url https://example.com --urls-file "$tmp_file"
 ```
 
-## Typical flow
+## 常用流程
 
 ```bash
 tmp_file="$(mktemp)"

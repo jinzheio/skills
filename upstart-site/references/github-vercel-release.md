@@ -1,8 +1,6 @@
-# GitHub and Vercel Release Reference
+# GitHub 与 Vercel Release 参考
 
-Load this reference for repo inspection, GitHub creation/connection, and Vercel project setup.
-
----
+repo inspection、GitHub 创建/连接、Vercel project 设置时读取。
 
 ## Repo Inspection
 
@@ -14,96 +12,88 @@ git branch --show-current
 rg --files -g 'package.json' -g 'pnpm-lock.yaml' -g 'package-lock.json' -g 'yarn.lock' -g 'bun.lockb' -g 'bun.lock'
 ```
 
-Inspect app entry points and build config:
+检查 app entry points 和 build config：
 
 ```bash
 sed -n '1,220p' package.json
 find . -maxdepth 3 \( -name 'package.json' -o -name 'next.config.*' -o -name 'vercel.json' -o -name 'pnpm-workspace.yaml' \)
 ```
 
-For monorepos, identify the deploy root before any Vercel linking. Common patterns: `apps/web`, `app`, `frontend`.
+monorepo 中，任何 Vercel linking 前先识别 deploy root。常见模式：`apps/web`、`app`、`frontend`。
 
----
+## 创建或连接 GitHub Repo
 
-## Create or Connect GitHub Repo
-
-Check whether the target repo already exists:
+检查目标 repo 是否已存在：
 
 ```bash
 gh repo view <owner>/<repo-name> --json nameWithOwner,visibility,defaultBranchRef
 ```
 
-If it does not exist, create a private repo and set it as origin. Do not push here; the main workflow owns the later validated push step.
+如果不存在，创建 private repo 并设为 origin。这里不要 push；主流程负责后续验证后的 push。
 
 ```bash
 gh repo create <owner>/<repo-name> --private --source=. --remote=origin
 ```
 
-If the user explicitly wants public, replace `--private` with `--public`.
+如果用户明确要求 public，把 `--private` 换成 `--public`。
 
-If it already exists, point `origin` to it without recreating:
+如果 repo 已存在，只把 `origin` 指向它，不重新创建：
 
 ```bash
 git remote add origin git@github.com:<owner>/<repo-name>.git
-# or if origin already exists:
+# origin 已存在时：
 git remote set-url origin git@github.com:<owner>/<repo-name>.git
 ```
 
-Verify after creation or connection:
+创建或连接后验证：
 
 ```bash
 git remote -v
 gh repo view <owner>/<repo-name> --json nameWithOwner,url,defaultBranchRef
 ```
 
----
+## 创建或连接 Vercel Project
 
-## Create or Link Vercel Project
-
-Check for an existing linked project:
+检查是否已有 linked project：
 
 ```bash
 cat .vercel/project.json 2>/dev/null
 vercel project inspect <project-name> --scope <team>
 ```
 
-If the project does not exist, create and link it:
+如果 project 不存在，创建并 link：
 
 ```bash
 vercel project add <project-name> --scope <team>
 vercel link --project <project-name> --scope <team> --yes
 ```
 
----
+## 连接 Vercel 到 GitHub
 
-## Connect Vercel to GitHub
-
-Force GitHub integration. Do not use `vercel --prod` from local checkout unless the user explicitly asks for it.
+强制使用 GitHub integration。除非用户明确要求，不使用本地 checkout 的 `vercel --prod`。
 
 ```bash
 vercel git connect git@github.com:<owner>/<repo-name>.git --scope <team> --yes
 ```
 
-If SSH is unavailable but the actual remote is HTTPS, use the HTTPS GitHub URL instead.
+如果 SSH 不可用，但实际 remote 是 HTTPS，改用 HTTPS GitHub URL。
 
-After connecting, confirm a subsequent deployment includes GitHub metadata:
+连接后确认后续 deployment metadata 包含：
 
 - `githubCommitSha`
 - `githubCommitRef`
 - `githubRepo`
 
-If those fields are absent in the deployment metadata, the deploy did not go through the GitHub path.
+如果 deployment metadata 没有这些字段，说明 deploy 没走 GitHub path。
 
----
+## 设置 Monorepo Root 和 Framework
 
-## Set Monorepo Root and Framework
+deploy root 不是 `.` 时必需。
 
-Required when the deploy root is not `.`.
-
-Preferred method via Vercel API:
+优先用 Vercel API。使用用户明确提供的 Vercel API token，或已认证 CLI session 的 token；不要打印 token：
 
 ```bash
-TOKEN=$(jq -r .token "$HOME/Library/Application Support/com.vercel.cli/auth.json")
+TOKEN="${VERCEL_TOKEN:?set VERCEL_TOKEN}"
 curl -sS -X PATCH \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -111,7 +101,7 @@ curl -sS -X PATCH \
   -d "{\"rootDirectory\":\"<app-root>\",\"framework\":\"nextjs\"}"
 ```
 
-Confirm afterward that the Vercel project shows:
+之后确认 Vercel project 显示：
 
-- **Root Directory** matching the intended app directory
-- **Framework** set correctly, for example `Next.js`
+- **Root Directory** 匹配目标 app directory
+- **Framework** 正确，例如 `Next.js`

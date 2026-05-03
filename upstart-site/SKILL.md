@@ -1,190 +1,151 @@
 ---
 name: upstart-site
 version: "1.1.0"
-description: "Use when the user wants to publish a local website or web app end to end, including 'deploy this site', 'publish this local app', 'create a GitHub repo and deploy to Vercel', or '上线到 Vercel'. Create or connect GitHub, validate build, push, link Vercel, sync minimum production env vars, and verify a GitHub-triggered deployment. Do not handle custom-domain cutover or search/analytics onboarding except as follow-up handoff."
+description: "当用户想把本地网站或 Web app 完整发布上线时使用，包括 deploy this site、publish this local app、create a GitHub repo and deploy to Vercel、上线到 Vercel。创建或连接 GitHub，验证 build，push，连接 Vercel，同步最低限度生产环境变量，并验证 GitHub 触发的部署。不要处理自定义域名 cutover 或搜索/统计 onboarding；这些作为后续 handoff。"
 ---
 
-# Upstart Site
+# 发布本地站点
 
-Use this skill for the full "local repo to live site" flow.
+用于把本地 repo 发布成可托管的站点。
 
-This is a release workflow, not just a deploy command. The job is to make the repo publishable and connected correctly:
+这是 release workflow，不只是 deploy command。任务是让 repo 可以稳定发布并正确连接：
 
-1. inspect the local repo and build status
-2. create or connect a GitHub repo
-3. fix blockers that would prevent CI or Vercel from building
-4. commit and push intentionally
-5. create or link a Vercel project under the requested team
-6. connect Vercel to GitHub
-7. configure the correct app root for monorepos
-8. sync the minimum required production env vars
-9. trigger and verify a GitHub-based production deployment
+1. 检查本地 repo 和 build 状态
+2. 创建或连接 GitHub repo
+3. 修复阻塞 CI 或 Vercel build 的问题
+4. 有意图地 commit 和 push
+5. 创建或连接 Vercel project
+6. 连接 Vercel 和 GitHub
+7. monorepo 时设置正确 root directory
+8. 同步最低限度 production env vars
+9. 触发并验证 GitHub-based production deployment
 
-Do not treat "vercel --prod" from the local checkout as completion unless the user explicitly asks for local-source deployment. Default to GitHub-connected deploys.
+除非用户明确要求 local-source deployment，不要把本地 `vercel --prod` 当作完成。默认使用 GitHub-connected deploy。
 
-If the user also wants a real public domain and search / analytics onboarding, the intended follow-up sequence is:
+如果用户还要正式域名和搜索/统计 onboarding，后续顺序是：
 
 1. `new-domain-launch`
 2. `index-onboarding`
 
-If the user also wants inbound email forwarding on the final domain, hand that off to `new-domain-launch` after the domain is on Cloudflare. It is optional and should not block the core repo-to-hosted-deploy release path.
+如果用户还要最终域名的入站邮件转发，域名进入 Cloudflare 后交给 `new-domain-launch`。这不阻塞核心发布流程。
 
-## Inputs
+## 输入
 
-- Required: local repo path, or run from inside the target repo
-- Required: GitHub owner to use, for example `jinzheio`
-- Required: Vercel team or scope, for example `my-team`
-- Optional: desired repo or project name; default to the local directory name
-- Optional: monorepo app root, for example `app`
-- Optional: whether production env vars should be copied from `.env.production`, `.env`, or another source
-- Optional: repo visibility; default to private unless the user asks for public
+- 必填：本地 repo path，或当前就在目标 repo 中
+- 必填：GitHub owner，例如 `<github-owner>`
+- 必填：Vercel team / scope，例如 `my-team`
+- 可选：repo / project name，默认当前目录名
+- 可选：monorepo app root，例如 `app`
+- 可选：production env vars 来源：`.env.production`、`.env` 或其它路径
+- 可选：repo visibility；默认 private，除非用户要求 public
 
-If the user does not specify repo name or Vercel project name, default to the current directory name.
+如果用户未指定 repo name 或 Vercel project name，默认使用当前目录名。
 
-## Required Tools and Auth
+## 必需工具和认证
 
-Before doing any repo or deploy changes, confirm these are available:
+任何 repo 或 deploy 改动前确认：
 
 - `gh --version`
 - `gh auth status`
 - `vercel --version`
 - `vercel whoami`
 
-If `gh` or `vercel` is missing, stop and say exactly which CLI is missing.
-If auth is missing, stop and ask the user to authenticate first.
+如果缺少 `gh` 或 `vercel`，停止并说明缺哪个 CLI。
 
-## Core Rules
+如果缺少认证，停止并让用户先登录。
 
-- Prefer `rg` for repo inspection.
-- Never use `git add .`.
-- Never push unrelated local changes silently.
-- Never use destructive git commands like `reset --hard`.
-- Default to a private GitHub repo unless the user asks for public.
-- Default to GitHub-triggered Vercel deploys.
-- If the repo is a monorepo, explicitly set the Vercel root directory.
-- If the lockfile is stale, fix it before shipping.
-- If local build fails, fix or surface the blocker before attempting release.
-- Do not mix domain cutover or indexing work into the core repo-to-hosted-deploy release path.
+## 核心规则
 
-## Workflow
+- repo 检查优先用 `rg`。
+- 不要用 `git add .`。
+- 不要静默 push 无关本地改动。
+- 不要使用 `reset --hard` 这类破坏性 git 命令。
+- 默认创建 private GitHub repo，除非用户要求 public。
+- 默认使用 GitHub-triggered Vercel deploy。
+- monorepo 必须显式设置 Vercel root directory。
+- lockfile 过期时先修复再发布。
+- local build 失败时先修复或报告 blocker，不要继续 release。
+- 不要把域名 cutover 或 indexing 混进核心 repo-to-hosted-deploy 流程。
 
-### 1. Plan
+## 流程
 
-Read `references/github-vercel-release.md` and run the Repo Inspection commands there. Then produce a plan covering:
+### 1. 计划
 
-- target GitHub owner and repo name
+阅读 `references/github-vercel-release.md`，执行其中 Repo Inspection commands，然后给出计划：
+
+- GitHub owner 和 repo name
 - repo visibility
-- current branch and dirty-worktree state
-- package manager and build/check commands
-- Vercel team/scope and project name
-- deploy root (especially for monorepos)
-- production env keys to sync, without values
-- expected production URL
-- follow-up handoff, if a custom domain or indexing is requested
+- 当前 branch 和 dirty worktree
+- package manager 与 build/check commands
+- Vercel team/scope 和 project name
+- deploy root，尤其是 monorepo
+- 需要同步的 production env vars
+- 预期 commit / push / deploy 步骤
 
-Ask for user confirmation before creating GitHub repos, linking Vercel projects, pushing, or writing production env vars unless the user already explicitly authorized the full publish flow.
+### 2. 准备 repo
 
-### 2. Validate Local Release Path
+检查：
 
-Find the most relevant checks and run them before any publish action.
+- 是否已经是 git repo
+- remote 是否存在
+- 当前 branch
+- 未提交变更
+- `.gitignore`
+- lockfile 与 package manager
+- build 是否可运行
 
-Typical order:
+如果不是 git repo，初始化并添加合适 `.gitignore`。Next.js 项目可参考 `init-nextjs-git`。
 
-```bash
-pnpm install
-pnpm build
-```
+### 3. GitHub
 
-Fallbacks:
+创建或连接 GitHub repo：
 
-- `npm install && npm run build`
-- `yarn install && yarn build`
-- repo-specific lint or typecheck commands if build is absent
+- 默认 private
+- 使用用户指定 owner
+- remote 使用 SSH
+- 不覆盖已有 remote，除非用户确认
+- push 前确保 commit 只包含目标变更
 
-If the build fails:
+### 4. Build 与修复
 
-1. identify the real blocker
-2. fix it if the change is low-risk and directly necessary for release
-3. rerun the validation
+运行适用检查：
 
-Common blockers to catch:
+- lint / typecheck
+- build
 
-- stale lockfile
-- missing Next.js experimental flag required by current code
-- missing monorepo root configuration
-- missing required env parsing defaults during build
+失败时只修复与发布直接相关的问题。不要做无关重构。
 
-Do not proceed to shipping while the release path is still broken.
+### 5. Vercel
 
-### 3. Create Or Connect GitHub
+创建或连接 project：
 
-Use `references/github-vercel-release.md`. Default to a private repo unless the user asks for public.
+- 使用用户指定 team / scope
+- monorepo 设置 root directory
+- 连接 GitHub repo
+- 同步最低限度 production env vars
+- 不把本地临时变量或 secret 打印出来
 
-### 4. Commit intentionally
+环境变量细节见 `references/env-sync.md`。
 
-If local changes are part of the release, review and commit them deliberately.
+### 6. GitHub-triggered deploy
 
-Prefer using the existing `commit-code` skill when available. If it is not available, follow the same intent manually:
+push 后让 Vercel 通过 GitHub 触发部署。不要用本地 deploy 伪装成 GitHub-connected deploy。
 
-1. inspect `git diff`
-2. stage only intended files
-3. commit with a concise message
+部署验证见 `references/deploy-verify.md`。
 
-Never batch unrelated work into the release commit.
+### 7. 完成汇报
 
-### 5. Push safely
+报告：
 
-Prefer using the existing `push-code` skill when available. If it is not available, push manually:
+- GitHub repo URL
+- Vercel project / deployment URL
+- build/check 结果
+- production env 同步范围
+- 是否还有未提交变更
+- 后续是否需要 `new-domain-launch` 或 `index-onboarding`
 
-```bash
-git push -u origin $(git branch --show-current)
-```
+## 相关引用
 
-If push is rejected because remote moved ahead:
-
-```bash
-git pull --rebase --autostash origin $(git branch --show-current)
-git push -u origin $(git branch --show-current)
-```
-
-### 6. Create Or Link Vercel
-
-Use `references/github-vercel-release.md`. Force GitHub integration rather than local-source deployment.
-
-### 7. Sync Minimum Production Env Vars
-
-Use `references/env-sync.md` only when production env vars are needed. Report key names only, never values.
-
-### 8. Trigger And Verify Production Deploy
-
-Use `references/deploy-verify.md`. The release is complete only when the latest production deployment is `Ready`, includes GitHub metadata, and the production URL responds.
-
-## Reporting
-
-Summarize the result in this order:
-
-1. GitHub repo created or connected
-2. commits pushed
-3. Vercel project and scope
-4. root directory and framework used
-5. production env vars synced, described by key names only
-6. final production URL
-7. whether custom-domain handoff is still needed
-8. any remaining operational risk
-
-## Do Not Skip
-
-- build validation
-- lockfile health
-- private repo creation
-- Vercel GitHub connection
-- root directory configuration for monorepos
-- production env sanity
-- final deploy verification
-
-This skill is successful only when the repo is truly publishable and the site is actually live.
-
-For custom-domain public launch follow-up, hand off to:
-
-- `new-domain-launch` for registrar / DNS / hosting cutover
-- `index-onboarding` for Umami, Search Console, IndexNow, Bing Webmaster Tools, and Clarity onboarding on the final domain
+- GitHub + Vercel release：`references/github-vercel-release.md`
+- env 同步：`references/env-sync.md`
+- deploy 验证：`references/deploy-verify.md`

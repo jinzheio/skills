@@ -1,24 +1,24 @@
 # IndexNow Onboarding
 
-Load this reference for IndexNow work inside the post-domain onboarding flow.
+在域名上线后的 onboarding 流程中处理 IndexNow 时读取。
 
-Treat IndexNow as post-domain indexing setup, not core deployment.
+把 IndexNow 当作域名后的索引配置，不是核心部署步骤。
 
-## Flow
+## 流程
 
-1. Check whether the repo already has an IndexNow implementation.
-2. If it does not, use `add-indexnow` from this skill pack.
-3. Generate a fresh host-scoped key only for the final domain.
-4. Ensure the verification file is served on the final domain.
-5. Ensure the repo has a collect-and-submit path for URL submission.
-6. Validate against the real final host, not the temporary deployment URL.
+1. 检查 repo 是否已有 IndexNow 实现。
+2. 如果没有，使用本 skill pack 的 `add-indexnow`。
+3. 只为最终域名生成新的 host-scoped key。
+4. 确认 verification file 已在最终域名上提供。
+5. 确认 repo 有可复用的 collect-and-submit 路径。
+6. 使用真实最终 host 验证，不用临时部署 URL。
 
-## Minimum Goal
+## 最小目标
 
-- key file is present and publicly reachable on the final host
-- repo has a reusable submission workflow
-- IndexNow setup matches the final canonical domain
+- key file 在最终 host 上公开可访问
+- repo 有可复用 submission workflow
+- IndexNow 配置匹配最终 canonical domain
 
-Do not reuse a key tied to a temporary host. If an implementation already exists, update it instead of duplicating scripts.
+不要复用绑定临时 host 的 key。如果已有实现，更新它，不要重复创建脚本。
 
-If the repo cannot be resolved or edited, report IndexNow as `skipped` and continue to Bing Webmaster Tools.
+如果无法解析或编辑 repo，报告 IndexNow 为 `skipped`，继续 Bing Webmaster Tools。

@@ -1,16 +1,16 @@
-## Code Review Summary
+## Code Review 总结
 
-### High Risk
-- [Issue description]
+### 高风险
+- [问题描述]
 
-### Medium Risk
-- [Issue description]
+### 中风险
+- [问题描述]
 
-### Low Risk / Suggestions
-- [Issue description]
+### 低风险 / 建议
+- [问题描述]
 
-### Files With No Issues
-- [List files]
+### 未发现问题的文件
+- [文件列表]
 
-### Out Of Scope
-- [Unrelated dirty-worktree files left untouched]
+### 范围外
+- [保留不动的无关脏工作区文件]

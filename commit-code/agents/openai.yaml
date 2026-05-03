@@ -1,4 +1,4 @@
 interface:
-  display_name: "Commit Code"
-  short_description: "Review local changes and create scoped commits after confirmation."
-  default_prompt: "Use $commit-code to review my workspace changes and commit them in clean, scoped batches."
+  display_name: "Review 并提交代码"
+  short_description: "先 review 工作区变更，确认后按功能拆分提交"
+  default_prompt: "使用 $commit-code review 当前工作区变更，报告风险，等我确认后按功能创建 commit。"

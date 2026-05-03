@@ -1,32 +1,32 @@
 # Cloudflare Email Routing
 
-Load this reference only when the user explicitly asks for inbound domain email forwarding.
+仅当用户明确要求入站域名邮件转发时读取。
 
-## Preconditions
+## 前置条件
 
-- final custom domain is delegated to Cloudflare
-- Cloudflare zone is active
-- forwarding destination is provided or already configured
-- Cloudflare token or browser session has Email Routing permission
+- 最终自定义域名已委托到 Cloudflare
+- Cloudflare zone 已 active
+- 已提供或已配置转发目标邮箱
+- Cloudflare token 或浏览器 session 有 Email Routing 权限
 
-## Flow
+## 流程
 
-1. Check Email Routing status for the zone.
-2. If Email Routing is disabled, enable it and let Cloudflare add MX, SPF, and DKIM records.
-3. Check whether the destination mailbox already exists as a verified Email Routing address.
-4. If not verified, create the destination address and complete mailbox verification.
-5. Update the catch-all rule from `drop` to `forward`.
-6. Verify the catch-all rule points to the intended destination.
-7. If a sender is available, send a real test email and report the result.
+1. 检查 zone 的 Email Routing 状态。
+2. 如果未启用，启用 Email Routing，并让 Cloudflare 添加 MX、SPF、DKIM records。
+3. 检查目标邮箱是否已经是 verified Email Routing address。
+4. 如果未验证，创建 destination address 并完成邮箱验证。
+5. 将 catch-all rule 从 `drop` 改为 `forward`。
+6. 验证 catch-all rule 指向目标邮箱。
+7. 如果有可用 sender，发送真实测试邮件并报告结果。
 
-## Completion
+## 完成标准
 
-Email forwarding is complete only when:
+邮件转发完成必须满足：
 
-- Email Routing is `enabled`
-- MX records point to Cloudflare mail exchangers
-- required SPF and DKIM records exist
-- catch-all rule is enabled and forwards to the intended mailbox
-- test send status is known if a sender is available
+- Email Routing 为 `enabled`
+- MX records 指向 Cloudflare mail exchangers
+- 必需 SPF 和 DKIM records 存在
+- catch-all rule 已启用并转发到目标邮箱
+- 如有 sender，test send 状态已知
 
-If API token scope is insufficient, fall back to browser automation or report the exact missing permission.
+如果 API token scope 不足，改用浏览器自动化，或报告缺少的精确权限。

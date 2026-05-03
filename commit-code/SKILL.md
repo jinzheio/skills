@@ -1,60 +1,65 @@
 ---
 name: commit-code
 version: "1.1.0"
-description: "Use when the user asks to review and commit local workspace changes, including 'commit this', '帮我 commit', '确认提交', or 'split these changes into commits'. Review diffs first, report risks, wait for explicit confirmation, then create clean scoped commits. Do not push unless the user also asks to push."
+description: "当用户要求 review 并提交本地工作区变更时使用，包括 commit this、帮我 commit、确认提交、split these changes into commits。先 review diff 并报告风险，等待用户明确确认，再按功能创建干净的 scoped commits。除非用户同时要求 push，否则不要推送。"
 ---
 
-# Commit Code Skill
+# 代码 Review 与提交
 
-Run a lightweight code review on workspace changes, wait for user confirmation, then split the changes into clean functional commits.
+对工作区变更做轻量 code review，等待用户确认后，按功能拆分并提交。
 
-## Step-by-Step Instructions
+## 步骤
 
-### Step 1: Analyze Workspace Changes
+### 1. 分析工作区变更
 
-Run `git status` to list all changed files, including tracked and untracked files.
+运行 `git status` 查看 tracked 和 untracked 文件。
 
-For every changed file, run `git diff HEAD -- <file>` for tracked files or inspect the full contents for untracked files. Review the complete diff before judging the change.
+对每个变更文件：
 
-Preserve dirty worktrees. Do not stage, modify, revert, or commit files unrelated to the user's requested scope. If unrelated changes are present, list them separately and leave them untouched.
+- tracked 文件运行 `git diff HEAD -- <file>`
+- untracked 文件读取完整内容
+- 先看完整 diff，再判断风险
 
-**Code Review Checklist:**
+保留脏工作区现状。不要 stage、修改、还原或提交与用户请求无关的文件。若存在无关变更，单独列出并保持不动。
 
-1. **Logic completeness**: Does the new behavior connect end to end across API, data, and UI boundaries?
-2. **Dead code**: Are there unused variables, imports, props, functions, files, or stale branches?
-3. **Error handling**: Do async paths handle failures? Are loading or cleanup states released correctly?
-4. **Type safety**: Do TypeScript types match the actual data shape?
-5. **Security**: Are user inputs validated? Is there any injection, secret exposure, or trust-boundary risk?
-6. **Side effects**: Are polling loops, timers, subscriptions, file writes, or network calls controlled and cleaned up?
-7. **Breaking changes**: Could the change affect existing APIs, schema, deployment flows, or running agents?
+**Review 清单：**
 
-Group findings by severity: high, medium, and low.
+1. **逻辑完整性**：新行为是否贯通 API、数据和 UI 边界？
+2. **死代码**：是否有未使用变量、import、props、函数、文件或过期分支？
+3. **错误处理**：异步失败是否处理？loading / cleanup 状态是否释放？
+4. **类型安全**：TypeScript 类型是否匹配真实数据结构？
+5. **安全性**：用户输入是否校验？是否有注入、密钥暴露或信任边界问题？
+6. **副作用**：轮询、timer、subscription、文件写入或网络请求是否受控并清理？
+7. **破坏性变更**：是否影响既有 API、schema、部署流程或运行中的 agent？
 
-### Step 2: Report to the User
+按 high / medium / low 分组报告问题。
 
-Report the review result using `assets/review-report.template.md`.
+### 2. 向用户汇报
 
-If no issues are found, say so clearly.
+使用 `assets/review-report.template.md` 的结构报告 review 结果。
 
-Then ask the user:
-**"Do you confirm that I should commit these changes? If anything needs to be fixed first, tell me; otherwise reply with 'confirm commit'."**
+如果没有发现问题，明确说明。
 
-WAIT for the user to explicitly reply before proceeding to Step 3.
+然后询问用户：
 
-### Step 3: Plan Commit Groups
+**“是否确认提交这些变更？如果需要先修复，请告诉我；否则回复 confirm commit。”**
 
-After the user confirms, group changed files by function or module:
+必须等用户明确回复后，才能进入下一步。
 
-- Put frontend and backend files for the same feature in the same commit.
-- Put standalone runner, shell, or install scripts in their own commit.
-- Put pure UI or styling changes in their own commit.
-- Put documentation-only changes in their own commit.
-- Put schema changes in their own commit because they may trigger migrations.
-- Include untracked files in the commit group that owns their functionality.
+### 3. 规划 commit 分组
 
-List the planned commit groups, for example:
+用户确认后，按功能或模块分组：
 
-```
+- 同一功能的 frontend / backend 文件放在同一个 commit
+- 独立 runner、shell、install script 单独 commit
+- 纯 UI 或样式变更单独 commit
+- 纯文档变更单独 commit
+- schema 变更单独 commit，因为可能触发迁移
+- untracked 文件放入归属功能的 commit
+
+列出计划，例如：
+
+```text
 Commit 1: feat(api): ...
   - src/app/api/...
   - src/app/[locale]/...
@@ -66,20 +71,29 @@ Commit 3: docs: ...
   - docs/...
 ```
 
-### Step 4: Commit Each Group
+### 4. 逐组提交
 
-For each group:
+每组执行：
 
-1. Run `git add <file1> <file2> ...` with exact paths. Do not use `git add .`.
-2. `git commit -m "<type>(<scope>): <summary>\n\n<bullet points>"`
+1. 用精确路径 `git add <file1> <file2> ...`。不要用 `git add .`。
+2. 执行：
 
-Use Conventional Commits:
+```bash
+git commit -m "<type>(<scope>): <summary>
 
-- type: `feat` / `fix` / `refactor` / `docs` / `chore` / `style`
-- scope: module name, such as `profile`, `runner`, `api`, or `admin`
-- summary: English, under 50 characters, starting with a verb
-- body: key changes, with each item starting with `-`
+<bullet points>"
+```
 
-### Step 5: Finish
+使用 Conventional Commits：
 
-Run `git log --oneline -<N>` to show the new commits, then report the result to the user.
+- type：`feat` / `fix` / `refactor` / `docs` / `chore` / `style`
+- scope：模块名，如 `profile`、`runner`、`api`、`admin`
+- summary：英文，50 字符以内，动词开头
+
+### 5. 最终汇报
+
+提交完成后：
+
+- 运行 `git status --short`
+- 运行 `git log --oneline -<N>` 展示新 commit
+- 向用户报告 commit hash、分组和剩余未提交变更

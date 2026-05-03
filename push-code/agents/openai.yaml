@@ -1,4 +1,4 @@
 interface:
-  display_name: "Push Code"
-  short_description: "Verify and push code, with indexing only for public site changes."
-  default_prompt: "Use $push-code to verify this repo, ensure a clean git state, push it, and submit IndexNow URLs if needed."
+  display_name: "验证并推送代码"
+  short_description: "运行适用检查，确保变更已提交，然后推送远端"
+  default_prompt: "使用 $push-code 验证当前仓库，确认变更已提交后推送；如适用，完成 push 后索引提交。"

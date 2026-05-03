@@ -14,6 +14,7 @@ This repository is a public skill pack. Each skill folder lives at the repositor
 | `new-domain-launch` | Connect a deployed site to a custom domain with DNS, HTTPS, and redirects. |
 | `index-onboarding` | Set up analytics and search indexing after the final domain works. |
 | `add-indexnow` | Add IndexNow key verification, URL collection, and submission scripts to an existing site. |
+| `add-cloud-agent-collaborator` | Prepare fork-only GitHub permissions for a cloud-agent developer account. |
 | `commit-code` | Review workspace changes and create scoped commits after confirmation. |
 | `push-code` | Verify, push, and run post-push indexing sync. |
 
@@ -42,7 +43,7 @@ commit-code -> push-code
 Clone the repository:
 
 ```bash
-git clone https://github.com/jinzheio/skills.git
+git clone https://github.com/<owner>/<repo>.git
 ```
 
 Then copy or symlink the skills you want into the skills directory supported by your agent or runner.
@@ -55,6 +56,7 @@ cp -R upstart-site ~/.codex/skills/
 cp -R new-domain-launch ~/.codex/skills/
 cp -R index-onboarding ~/.codex/skills/
 cp -R add-indexnow ~/.codex/skills/
+cp -R add-cloud-agent-collaborator ~/.codex/skills/
 cp -R commit-code ~/.codex/skills/
 cp -R push-code ~/.codex/skills/
 ```
@@ -81,6 +83,10 @@ Use $index-onboarding to set up analytics and search indexing for example.com.
 
 ```text
 Use $add-indexnow to add IndexNow support to this web app.
+```
+
+```text
+Use $add-cloud-agent-collaborator to prepare fork-only GitHub access for this repo.
 ```
 
 ```text
@@ -111,6 +117,7 @@ Prepare only the credentials needed for the skills you run.
 | `new-domain-launch` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |
 | `index-onboarding` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config, or `CLARITY_ID` and `CLARITY_TOKEN` |
 | `add-indexnow` | Writable repo with a known final host | `INDEXNOW_KEY` only if overriding the generated key; otherwise the skill creates a fresh key |
+| `add-cloud-agent-collaborator` | GitHub CLI auth for `OWNER_ACCOUNT`; agent account details from local config or user input | `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`, `AGENT_GITHUB`, `AGENT_EMAIL` |
 
 Common variables:
 
@@ -125,6 +132,7 @@ Common variables:
 - `BING_WEBMASTER_API_KEY`: Bing Webmaster Tools site verification and sitemap submission.
 - `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity first reads per-domain `clarity.project_id` and `clarity.token` entries from this map. If the map is missing or lacks Clarity for the target domain, `index-onboarding` checks `CLARITY_ID` and `CLARITY_TOKEN` in the current environment. If neither source has both values, Clarity is skipped and reported.
 - `CLARITY_ID` and `CLARITY_TOKEN`: optional Clarity project id and project-level Data Export API token for the current run.
+- `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`: optional local env file for cloud-agent GitHub permission setup.
 
 Example `SITE_INTEGRATIONS_CONFIG` file:
 

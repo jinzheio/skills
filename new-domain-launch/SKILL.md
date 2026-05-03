@@ -1,201 +1,142 @@
 ---
 name: new-domain-launch
-version: "1.1.0"
-description: "Use when the user has an already deployed site and wants a custom domain connected, including 'connect this domain', '绑定域名', 'set up DNS', 'make www redirect', or 'enable HTTPS'. Covers registrar nameservers, DNS provider records, hosting-platform domain binding, TLS, apex/www redirects, and email forwarding only when requested. Do not use before the site has a working deployment; use upstart-site first."
+version: "1.1.1"
+description: "当用户已有可用部署、想连接自定义域名时使用，包括 connect this domain、绑定域名、set up DNS、make www redirect、enable HTTPS。覆盖 registrar nameservers、DNS provider records、hosting-platform domain binding、TLS、apex/www 跳转，以及用户要求时的邮箱转发。站点还没有可用部署时不要使用；先用 upstart-site。"
 ---
 
 # new-domain-launch
 
-Use this skill when the site is already deployed, but the user now wants a new custom domain to work on the public internet.
+用于站点已经部署后，把自定义域名连到公开互联网。
 
-Typical sequence:
+典型顺序：
 
-1. Site already exists on a temporary host or platform URL.
-2. User provides a new domain.
-3. This skill connects the registrar, DNS provider, and hosting platform until the domain is actually reachable.
+1. 站点已经有临时 host 或平台 URL。
+2. 用户提供新域名。
+3. 本 skill 连接 registrar、DNS provider 和 hosting provider，直到域名可访问。
 
-Do not stop at "record created" or "platform says verified". The finish line is public reachability.
+不要把“记录已创建”或“平台显示 verified”当作完成。完成标准是公网可访问。
 
-## Goal
+## 目标
 
-Make the new domain work end to end:
+- apex host 解析正确
+- `www` 符合预期跳转策略
+- HTTPS 可用
+- live site 可从公网访问
+- 用户要求时，入站邮件转发可用
 
-- apex host resolves correctly
-- `www` follows the intended redirect policy
-- HTTPS works
-- the live site is reachable from the public internet
-- optional inbound email forwarding works if requested
+## 默认策略
 
-## Default policy
+除非用户另有要求：
 
-Unless the user says otherwise:
+- apex 域名为 canonical，例如 `example.com`
+- `www.example.com` 用 `301` 跳转到 apex
+- Vercel 类托管中，如果 provider 返回 CNAME target，`www` 使用 `CNAME`
+- 不要把 apex 的 `A` 记录照搬到 `www`
+- 使用 Cloudflare 时，先确认 origin，再开启 orange-cloud proxy
+- Cloudflare 代理有效 HTTPS origin 时，SSL/TLS 使用 `Full (strict)`
 
-- make the apex domain canonical, for example `example.com`
-- make `www.example.com` redirect to the apex with `301`
-- if Cloudflare is used, enable orange-cloud proxy only after the target records are known
-- if Cloudflare fronts a valid HTTPS origin such as Vercel, use `Full (strict)`
+## 不要漏掉
 
-## Preconditions
+- Vercel + Cloudflare 场景下，`www` 应使用 provider 推荐的 `CNAME`。
+- Cloudflare proxy 只用于 Web records，例如 `A`、`AAAA`、`CNAME`。
+- 不要 proxy 或改写 `MX`、SPF、DKIM、DMARC、Cloudflare Email Routing TXT。
+- Cloudflare 是目标 DNS 层时，origin 验证后再开启 orange-cloud。
+- origin 有有效证书时，Cloudflare SSL/TLS 设为 `Full (strict)`。
+- 代理开启后重新验证 HTTPS。DNS-only 可用不代表 proxy 后也可用。
 
-Before touching DNS:
+## 前置条件
 
-1. Confirm the project already has a working deployment on the hosting provider.
-2. Identify the intended canonical host:
+改 DNS 前确认：
+
+1. 项目已经在托管平台有可用部署。
+2. 已确认 canonical host：
    - apex only
    - `www` only
-   - apex canonical with `www` redirect
-3. Identify the three systems involved:
-   - registrar, such as Spaceship
-   - DNS provider, often Cloudflare
-   - hosting provider, often Vercel
+   - apex canonical + `www` redirect
+3. 已确认三个系统：
+   - registrar，例如 Spaceship
+   - DNS provider，常见是 Cloudflare
+   - hosting provider，常见是 Vercel
 
-If the site itself is not yet deployed, stop and use the deployment workflow first.
+如果站点还没部署，停止并先走部署流程。
 
-## Source of truth
+## Source of Truth
 
-Use platform APIs and dashboards as the source of truth for configuration:
+配置以平台 API 和 dashboard 为准：
 
-- DNS record intent comes from the hosting provider and DNS provider. For Vercel plus Cloudflare, trust Vercel domain/project inspection and Cloudflare DNS zone records over local resolver output.
-- Connectivity is proven by loading the public URL and receiving the expected page content. A bare DNS answer is only supporting evidence.
-- Local DNS output, including `dig`, can be stale or polluted by the local network. Do not let a polluted local DNS answer block completion when Vercel and Cloudflare records are correct and the public page returns the intended content.
+- DNS intent 来自 hosting provider 和 DNS provider。
+- Vercel + Cloudflare 时，优先信任 Vercel domain/project inspection 和 Cloudflare zone records。
+- 可访问性通过加载公网 URL 并收到预期页面内容证明。
+- `dig` 等本地 DNS 输出只能作为辅助证据，可能受缓存或本地网络污染影响。
 
-## Workflow
+## 流程
 
-### 1. Plan
+### 1. 计划
 
-Before changing registrar, DNS, hosting, TLS, or email settings, produce a plan:
+改 registrar、DNS、hosting、TLS 或 email 前，先给出计划：
 
-- domain and intended canonical host
-- registrar, DNS provider, and hosting provider
-- current nameserver state
-- hosting-provider domain binding targets
-- DNS records to create or update
-- proxy and TLS policy
-- redirect policy
-- validation commands and live URL checks
-- rollback or correction path for wrong DNS records
-- whether email forwarding was requested
+- domain 和 canonical host
+- registrar、DNS provider、hosting provider
+- apex / `www` 目标记录
+- proxy 策略
+- HTTPS 验证方式
+- 是否包含 email routing
 
-Ask for user confirmation before external changes unless the user already explicitly authorized the domain launch.
+### 2. 检查当前状态
 
-### 2. Create or inspect the DNS zone
+使用可用 CLI / API / dashboard 查询：
 
-If the domain will use Cloudflare DNS:
+- registrar nameserver
+- DNS zone records
+- hosting provider domain binding
+- HTTPS 状态
+- 当前公网响应
 
-1. Create the zone in Cloudflare first.
-2. Record the assigned nameservers.
-3. If the registrar is separate, update the registrar nameservers to the Cloudflare nameservers.
-4. Prefer the registrar's official API when credentials are available.
-5. Only fall back to browser automation when the registrar API is unavailable or blocked.
+优先使用 provider API。不要只依赖本地 resolver。
 
-For Spaceship specifically:
+### 3. 设置 DNS 和托管平台
 
-- prefer the official external API rather than the web app when API key and secret are available
-- use the domain API to inspect current nameservers and update them to `provider=custom` with the Cloudflare hosts
+按 provider 的目标记录设置：
 
-### 3. Wait for nameserver delegation
+- apex：通常是 `A` 或 provider 指定记录
+- `www`：通常是 `CNAME`
+- 删除冲突记录
+- 确认 hosting provider 已绑定域名
+- 等待 provider 显示可验证状态
 
-Do not rush past this step. Run `scripts/check-dns-propagation.sh <domain> <ns-keyword>` to poll propagation state automatically.
+如果 Cloudflare 代理会影响验证，先用 DNS-only 完成 origin 验证，再开启 proxy。
 
-The script checks public resolvers (`1.1.1.1`, `8.8.8.8`) and then makes a live HTTPS request on each attempt. **The live HTTPS page load is the authoritative completion signal — not a clean DNS answer.**
+### 4. HTTPS 与跳转
 
-DNS results from local resolvers and public resolvers can be stale or polluted by the local network for many minutes after delegation has actually changed. The script will tell you when this is happening and will not block on stale resolver output once the site is reachable.
+验证：
 
-If the script times out:
+- `https://apex`
+- `https://www`
+- canonical redirect
+- HTTP 到 HTTPS
+- 证书链
+- 页面内容是否是目标站点
 
-1. Open the live URL directly in a browser.
-2. Check Cloudflare and Vercel dashboards — if both show the records as active and correct, the configuration is done regardless of what `dig` returns locally.
-3. If the page loads in a browser, treat that as the completion signal and proceed.
+### 5. 邮箱转发
 
-If delegation is still propagating and live HTTPS is not yet working, re-run the script or set a heartbeat automation and come back later.
+只有用户要求时处理。先读 `references/email-routing.md`。
 
-### 4. Bind the domain on the hosting provider
+不要为了网站上线改坏现有邮件记录。
 
-Add both the apex and `www` domains to the hosting platform if the user wants both.
+### 6. 验收
 
-For Vercel-like platforms:
+用 `references/validation-checklist.md` 做最终检查。
 
-1. Add the apex domain to the project.
-2. Add the `www` domain to the project.
-3. Query the provider for the exact required DNS targets.
-4. Configure project-level redirect rules if `www -> apex` or `apex -> www` is desired.
+汇报时包括：
 
-Do not guess DNS targets from memory if the provider can return them directly.
+- 最终 DNS 记录
+- canonical host 和 redirect 结果
+- HTTPS 结果
+- Cloudflare proxy 状态
+- 邮箱转发是否处理
+- 仍在传播或需要用户确认的事项
 
-For Vercel, treat the apex and `www` records as separate provider instructions:
+## 相关引用
 
-- apex uses the record type and value Vercel shows for the apex host
-- `www` uses the record type and value Vercel shows for the `www` host
-- when Vercel asks for a `CNAME` on `www`, create a `CNAME`; do not create an `A` record
-- do not copy the apex `A` value into `www`
-
-Examples of acceptable sources:
-
-- official CLI output
-- official domain inspect/config API
-- provider dashboard
-
-### 5. Create DNS records
-
-After the hosting provider returns the exact target values:
-
-1. Create the apex record.
-2. Create the `www` record.
-3. Match the provider's recommended record type and target.
-
-For Vercel-like setups:
-
-- apex: use the provider-recommended record type and value, often `A`
-- `www`: use the provider-recommended record type and value, normally `CNAME`
-
-For Vercel specifically, `www` should be a `CNAME` when Vercel returns a CNAME target such as `cname.vercel-dns.com`. Do not create an `A` record for `www`, and do not assume the `www` record should copy the apex target.
-
-### 6. Enable proxy and TLS settings when applicable
-
-If Cloudflare is the DNS provider and the user wants Cloudflare in front:
-
-1. Turn on orange-cloud proxy for the live records.
-2. Set SSL/TLS mode to `Full (strict)` when the origin has a valid certificate.
-3. Only use weaker TLS modes if the origin cannot support strict validation.
-
-Do not leave the zone at `Full` if `Strict` is available.
-
-### 7. Configure the redirect
-
-Prefer putting host redirects on the hosting platform when supported.
-
-For the default policy:
-
-- apex serves the site
-- `www` returns `301` to the apex
-
-After configuring the redirect, verify both HTTP and HTTPS behavior if needed, but final acceptance should focus on HTTPS.
-
-### 8. Optional email forwarding
-
-If and only if the user asks for inbound domain email forwarding, read `references/email-routing.md`.
-
-## Validation checklist
-
-Before reporting completion, read `references/validation-checklist.md` and verify every relevant item.
-
-## Good final report
-
-Report these items clearly:
-
-- registrar nameserver state
-- DNS provider zone state
-- apex record
-- `www` record
-- proxy state
-- TLS mode
-- canonical host and redirect rule
-- email forwarding state, if requested
-- remaining blocker, if any
-
-If propagation is still pending and live HTTPS is still not working, say that explicitly and separate:
-
-- already applied configuration
-- still waiting on public delegation
-
-If live HTTPS works while nameserver checks still look stale, say that the site is reachable and note the stale DNS check as non-blocking.
+- 邮件转发：`references/email-routing.md`
+- 验证清单：`references/validation-checklist.md`

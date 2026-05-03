@@ -14,6 +14,7 @@
 | `new-domain-launch` | 为已部署的网站绑定自定义域名、DNS、HTTPS 和跳转。 |
 | `index-onboarding` | 在正式域名可访问后，接入统计和搜索索引。 |
 | `add-indexnow` | 为已有网站添加 IndexNow 验证 key、URL 收集脚本和提交脚本。 |
+| `add-cloud-agent-collaborator` | 为 cloud-agent 开发账号准备 fork-only GitHub 权限。 |
 | `commit-code` | Review 工作区变更，确认后按范围提交。 |
 | `push-code` | 验证、推送代码，并同步变更页面的索引。 |
 
@@ -42,7 +43,7 @@ commit-code -> push-code
 克隆仓库：
 
 ```bash
-git clone https://github.com/jinzheio/skills.git
+git clone https://github.com/<owner>/<repo>.git
 ```
 
 然后把需要的 skills 复制或软链接到你的 agent/runner 支持的 skills 目录。
@@ -55,6 +56,7 @@ cp -R upstart-site ~/.codex/skills/
 cp -R new-domain-launch ~/.codex/skills/
 cp -R index-onboarding ~/.codex/skills/
 cp -R add-indexnow ~/.codex/skills/
+cp -R add-cloud-agent-collaborator ~/.codex/skills/
 cp -R commit-code ~/.codex/skills/
 cp -R push-code ~/.codex/skills/
 ```
@@ -81,6 +83,10 @@ Use $index-onboarding to set up analytics and search indexing for example.com.
 
 ```text
 Use $add-indexnow to add IndexNow support to this web app.
+```
+
+```text
+Use $add-cloud-agent-collaborator to prepare fork-only GitHub access for this repo.
 ```
 
 ```text
@@ -111,6 +117,7 @@ cp .env.example .env
 | `new-domain-launch` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
 | `index-onboarding` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG`，或 `CLARITY_ID` 和 `CLARITY_TOKEN` |
 | `add-indexnow` | 可写的项目仓库和已确定的正式域名 | 只有在覆盖自动生成 key 时才需要 `INDEXNOW_KEY` |
+| `add-cloud-agent-collaborator` | `OWNER_ACCOUNT` 的 GitHub CLI 登录；agent 账号信息来自本机配置或用户输入 | `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`、`AGENT_GITHUB`、`AGENT_EMAIL` |
 
 常用变量：
 
@@ -125,6 +132,7 @@ cp .env.example .env
 - `BING_WEBMASTER_API_KEY`：Bing Webmaster Tools 站点验证和 sitemap 提交。
 - `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 先读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，或目标域名没有 Clarity 配置，`index-onboarding` 会检查当前环境变量里的 `CLARITY_ID` 和 `CLARITY_TOKEN`。两个来源都缺少完整信息时，跳过 Clarity 并在汇总里说明。
 - `CLARITY_ID` 和 `CLARITY_TOKEN`：可选的 Clarity project ID 和项目级 Data Export API token，用于当前运行。
+- `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`：cloud-agent GitHub 权限设置使用的本机 env 文件路径。
 
 `SITE_INTEGRATIONS_CONFIG` 文件示例：
 

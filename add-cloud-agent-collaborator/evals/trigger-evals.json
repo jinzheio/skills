@@ -1,0 +1,30 @@
+{
+  "skill_name": "add-cloud-agent-collaborator",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "给这个 repo 增加 cloud agent 开发账号，只能写 fork，upstream 只读",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Prepare fork-only GitHub access for my OpenClaw agent account.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "让 Hermes 用 agent GitHub 账号参与开发，但不要给 upstream push 权限",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Create a Vercel preview project and Neon database for this cloud agent.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Clone the repo on the cloud agent server and run the app.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Review my local diff and commit it in clean batches.",
+      "should_trigger": false
+    }
+  ]
+}

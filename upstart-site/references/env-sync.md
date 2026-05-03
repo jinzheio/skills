@@ -1,39 +1,39 @@
-# Production Env Sync
+# Production Env 同步
 
-Load this reference only when production env vars are required for the Vercel deployment.
+只有 Vercel deployment 需要 production env vars 时读取。
 
-## Source Selection
+## 来源选择
 
-Do not upload every local env var.
+不要上传所有本地 env var。
 
-Start from:
+按这个顺序选择来源：
 
-- `.env.production` if present
-- otherwise `.env`
-- otherwise `.env.example` only as a key reference, not as a source of secrets
+- 优先 `.env.production`
+- 否则 `.env`
+- 否则 `.env.example` 只作为 key reference，不作为 secret 来源
 
-Sync only variables required for production build and runtime.
+只同步 production build 和 runtime 必需变量。
 
-Typical examples:
+常见例子：
 
 - `NEXT_PUBLIC_APP_URL`
-- auth secrets and callback URLs
+- auth secrets 和 callback URLs
 - database connection string
 - analytics public keys
 - third-party OAuth credentials
 
-## Commands
+## 命令
 
-Check current production env:
+检查当前 production env：
 
 ```bash
 vercel env ls production --scope <team>
 ```
 
-Add or update a key:
+添加或更新 key：
 
 ```bash
 printf '%s' '<value>' | vercel env add <KEY> production --scope <team> --yes --force
 ```
 
-If a required value is missing, stop and report the exact key name. Do not invent secret values.
+如果缺少必需值，停止并报告准确 key 名。不要编造 secret。

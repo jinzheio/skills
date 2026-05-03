@@ -1,4 +1,4 @@
 interface:
-  display_name: "Index Onboarding"
-  short_description: "Set up analytics and indexing after the final domain is live."
-  default_prompt: "Use $index-onboarding to set up analytics and search indexing for this live domain."
+  display_name: "搜索与统计接入"
+  short_description: "为正式域名接入 analytics、GSC、IndexNow、Bing 和 Clarity"
+  default_prompt: "使用 $index-onboarding 为这个已上线域名完成搜索、索引和统计接入，并报告跳过项原因。"
