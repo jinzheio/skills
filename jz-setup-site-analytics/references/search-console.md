@@ -18,6 +18,8 @@ Search Console 和 Site Verification API 调用需要两件事：
 - 可以拥有或验证站点的 Google identity
 - API 调用使用的 GCP quota project
 
+`GCP_QUOTA_PROJECT` 未设置时，默认使用当前项目名（如 `clawsimple`、`auditmycareer`）。
+
 不要静默使用当前 `gcloud config get-value project` 作为 quota project；它可能属于无关 app。
 
 推荐 quota-project 流程：

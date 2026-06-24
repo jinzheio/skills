@@ -51,7 +51,7 @@ description: "当公开站点已经在最终自定义域名上线，且用户要
 ### Google Search Console / Site Verification
 
 - Google OAuth / ADC 已认证会话（`gcloud auth application-default login`）
-- `GCP_QUOTA_PROJECT` — 已启用 Search Console + Site Verification API 的 GCP 项目
+- `GCP_QUOTA_PROJECT` — 已启用 Search Console + Site Verification API 的 GCP 项目。未设置时默认使用当前项目名（如 `clawsimple`、`auditmycareer`）
 
 ### Cloudflare（DNS TXT 验证记录）
 
