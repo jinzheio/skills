@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -62,6 +63,146 @@ def env_or(name: str, env: dict, default: str = "") -> str:
 
 def normalize_hostname(value: str) -> str:
     return (value or "").strip().lower()
+
+
+def clean_hostname(value: str) -> str:
+    """Normalize a URL/domain string into a bare hostname."""
+    if not value:
+        return ""
+    value = value.strip().lower()
+    value = re.sub(r"^https?://", "", value)
+    value = value.split("/")[0].split("?")[0].split("#")[0]
+    value = value.split(":")[0]
+    if value.startswith("www."):
+        value = value[4:]
+    return value
+
+
+def strip_jsonc_comments(text: str) -> str:
+    """Remove // and /* */ comments so JSON parsing works."""
+    text = re.sub(r"//.*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return text
+
+
+def detect_hostname_from_project() -> str:
+    """Auto-detect site hostname from common project config files."""
+    cwd = Path.cwd()
+
+    # 1. wrangler.jsonc / wrangler.toml
+    wrangler_jsonc = cwd / "wrangler.jsonc"
+    if wrangler_jsonc.exists():
+        try:
+            data = json.loads(strip_jsonc_comments(wrangler_jsonc.read_text()))
+            candidates = []
+            for route in data.get("routes", []):
+                pattern = route.get("pattern", "")
+                if route.get("custom_domain") and pattern:
+                    host = clean_hostname(pattern)
+                    if host and host not in candidates:
+                        candidates.append(host)
+            # Prefer apex domain over www
+            for c in candidates:
+                if not c.startswith("www."):
+                    return c
+            if candidates:
+                return candidates[0]
+        except Exception:
+            pass
+
+    wrangler_toml = cwd / "wrangler.toml"
+    if wrangler_toml.exists():
+        try:
+            import tomllib
+
+            data = tomllib.loads(wrangler_toml.read_text())
+            candidates = []
+            for route in data.get("routes", []):
+                pattern = route.get("pattern", "")
+                if route.get("custom_domain") and pattern:
+                    host = clean_hostname(pattern)
+                    if host and host not in candidates:
+                        candidates.append(host)
+            for c in candidates:
+                if not c.startswith("www."):
+                    return c
+            if candidates:
+                return candidates[0]
+        except Exception:
+            pass
+
+    # 2. .env files
+    for env_name in (".env.local", ".env"):
+        env_path = cwd / env_name
+        if env_path.exists():
+            try:
+                env = read_env_file(env_path)
+                for key in (
+                    "NEXT_PUBLIC_BASE_URL",
+                    "NEXT_PUBLIC_SITE_URL",
+                    "SITE_URL",
+                    "BASE_URL",
+                ):
+                    host = clean_hostname(env.get(key, ""))
+                    if host and host not in ("localhost", "127.0.0.1"):
+                        return host
+            except Exception:
+                pass
+
+    # 3. next.config.* — attempt simple regex extraction
+    for config_name in ("next.config.ts", "next.config.js", "next.config.mjs"):
+        config_path = cwd / config_name
+        if config_path.exists():
+            try:
+                text = config_path.read_text()
+                for match in re.finditer(
+                    r'(?:domain|hostname|baseUrl|siteUrl)\s*:\s*["\']([^"\']+)["\']', text
+                ):
+                    host = clean_hostname(match.group(1))
+                    if host and host not in ("localhost", "127.0.0.1"):
+                        return host
+            except Exception:
+                pass
+
+    # 4. package.json homepage
+    package_path = cwd / "package.json"
+    if package_path.exists():
+        try:
+            data = json.loads(package_path.read_text())
+            host = clean_hostname(data.get("homepage", ""))
+            if host and host not in ("localhost", "127.0.0.1"):
+                return host
+        except Exception:
+            pass
+
+    # 5. layout / page files
+    for glob in (
+        "src/app/layout.tsx",
+        "src/app/layout.ts",
+        "src/app/layout.jsx",
+        "src/app/layout.js",
+        "app/layout.tsx",
+        "app/layout.ts",
+        "src/app/page.tsx",
+        "src/app/page.ts",
+        "app/page.tsx",
+        "app/page.ts",
+    ):
+        layout_path = cwd / glob
+        if layout_path.exists():
+            try:
+                text = layout_path.read_text()
+                for match in re.finditer(
+                    r'(?:baseUrl|siteUrl|BASE_URL|SITE_URL)\s*(?:=|:)\s*["\'](https?://[^"\']+)["\']',
+                    text,
+                ):
+                    host = clean_hostname(match.group(1))
+                    if host and host not in ("localhost", "127.0.0.1"):
+                        return host
+            except Exception:
+                pass
+
+    return ""
 
 
 def iso_date_range(days: int):
@@ -584,7 +725,7 @@ def build_summary(report: dict) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="jz-check-metrics — 实时查看站点 metrics")
-    parser.add_argument("--hostname", required=True, help="站点域名")
+    parser.add_argument("--hostname", required=False, help="站点域名（未提供时自动检测）")
     parser.add_argument("--days", type=int, default=28, help="查询天数（默认 28）")
     parser.add_argument(
         "--providers", default="gsc,cloudflare,umami,clarity",
@@ -592,7 +733,17 @@ def main():
     )
     args = parser.parse_args()
 
-    hostname = normalize_hostname(args.hostname)
+    hostname = normalize_hostname(args.hostname) if args.hostname else detect_hostname_from_project()
+    if not hostname:
+        print(
+            json.dumps(
+                {"error": "未检测到站点域名，请提供 --hostname，例如 auditmycareer.com"},
+                indent=2,
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
+        return 1
     days = max(1, args.days)
     requested = {p.strip() for p in args.providers.split(",") if p.strip()}
     if not requested:

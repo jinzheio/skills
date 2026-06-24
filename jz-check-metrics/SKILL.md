@@ -1,7 +1,7 @@
 ---
 name: jz-check-metrics
 version: "1.0.0"
-description: "实时查看站点 metrics。覆盖 Google Search Console、Cloudflare Analytics、Umami、Microsoft Clarity 四个 provider。需要查看站点表现、搜索数据、流量、用户行为时触发。触发词包括 '查一下网站的 metrics'、'查看站点数据'、'最近表现怎么样'。默认获取全部 provider。"
+description: "实时查看站点 metrics。覆盖 Google Search Console、Cloudflare Analytics、Umami、Microsoft Clarity 四个 provider。未指定域名时自动从项目配置中检测。需要查看站点表现、搜索数据、流量、用户行为时触发。触发词包括 '查一下网站的 metrics'、'查看站点数据'、'最近表现怎么样'。默认获取全部 provider。"
 ---
 
 # 站点 Metrics 实时查看
@@ -26,17 +26,42 @@ description: "实时查看站点 metrics。覆盖 Google Search Console、Cloudf
 
 ## 输入
 
-- 必填：`--hostname`，例如 `growagardencalculate.com`
+- 可选：`--hostname`，例如 `growagardencalculate.com`。未指定时，自动从当前项目配置文件读取。
 - 可选：`--days`（默认 28）
 - 可选：`--providers` 逗号分隔，默认 `gsc,cloudflare,umami,clarity`。可选值：`gsc` | `cloudflare` | `umami` | `clarity`
 
+## 站点自动发现（Hostname 自动检测）
+
+当用户未提供 `--hostname` 时，按以下优先级从当前项目读取：
+
+1. `wrangler.jsonc` / `wrangler.toml`：`routes[].pattern`（取 `custom_domain: true` 的条目，优先 apex 域名，去掉 `www.`）
+2. `.env.local` / `.env`：`NEXT_PUBLIC_BASE_URL`、`NEXT_PUBLIC_SITE_URL`、`SITE_URL`、`BASE_URL`
+3. `next.config.ts` / `next.config.js` / `next.config.mjs` 中显式配置的域名
+4. `package.json`：`homepage` 字段
+5. `src/app/layout.tsx` / `app/layout.tsx` 等：代码中硬编码的 `baseUrl` / `siteUrl`
+6. `.vercel/project.json`：仅作参考，通常只含 `projectName` 不含完整域名
+
+读取到候选 hostname 后：
+
+- 清理协议头（`https://`）、`www.`、路径、尾部斜杠、端口，统一小写
+- 过滤掉 `localhost`、`127.0.0.1` 等本地地址
+- 向用户确认："检测到站点 `{hostname}`，是否使用该站点？回复其它域名可切换，回复 `n` 可取消。30 秒内无反馈将自动继续。"
+- **30 秒超时处理**：若用户在 30 秒内未反馈，自动按确认继续（使用检测到的 hostname）
+- 若用户回复其它域名，使用用户提供的域名
+- 若检测到多个候选域名，列出让用户选择
+
+如果未检测到任何 hostname，提示用户手动输入：
+`未检测到站点域名，请提供 --hostname，例如 auditmycareer.com`
+
 ## 流程
 
-1. 加载凭据：先读 `~/.config/skills/jz-check-metrics/.env`，缺失的变量 fallback 到 skill 根目录 `.env`
-2. **先跑脚本**：`python3 <skill-dir>/scripts/check_metrics.py --hostname <hostname> --days <N> --providers gsc,cloudflare,umami,clarity`
-3. **逐 provider 检查结果**：脚本输出为 JSON，遍历 `.providers` 和 `.errors` 中每个 provider
-4. **任何 provider 失败，必须尝试 fallback 后继续**：见下方 fallback 策略
-5. 汇总输出，标注每个 provider 的成功/失败状态和使用的获取方式
+1. 解析参数：若 `--hostname` 为空，执行站点自动发现
+2. 确认检测到的 hostname，或等待 30 秒超时
+3. 加载凭据：先读 `~/.config/skills/jz-check-metrics/.env`，缺失的变量 fallback 到 skill 根目录 `.env`
+4. **先跑脚本**：`python3 <skill-dir>/scripts/check_metrics.py --hostname <hostname> --days <N> --providers gsc,cloudflare,umami,clarity`
+5. **逐 provider 检查结果**：脚本输出为 JSON，遍历 `.providers` 和 `.errors` 中每个 provider
+6. **任何 provider 失败，必须尝试 fallback 后继续**：见下方 fallback 策略
+7. 汇总输出，标注每个 provider 的成功/失败状态和使用的获取方式
 
 ## 完整性保证（CRITICAL）
 
@@ -60,11 +85,15 @@ curl -s "$UMAMI_BASE_URL/api/websites/$ID/stats?startAt=$START&endAt=$END" -H "A
 # 5. 获取 pageviews 序列和常用 metrics（referrer/path/browser/device/country）
 ```
 
-**Cloudflare fallback**：如果 SSL 被阻断，直接用 `curl` 轮询 `api.cloudflare.com`；如仍失败，标记为网络不可达并说明原因（如 GFW 阻断）。
+**Cloudflare fallback**：
+1. 如果 SSL 被阻断，直接用 `curl` 轮询 `api.cloudflare.com`；如仍失败，标记为网络不可达并说明原因（如 GFW 阻断）。
+2. 如果报错提示免费版 zone 只能查询 7 天内数据（`cannot request data older than 1w1d`），将 `--days` 降到 7 重新获取，并在汇报中注明这是 7 天 fallback 数据。
 
 **GSC fallback**：如果 ADC 失败，检查 `gcloud auth application-default login` 是否过期，提示用户重新认证。
 
-**Clarity fallback**：如果 SSL 不稳定，重试 3 次间隔 2s；如仍部分维度失败，已获取的 summary 数据仍然汇报。
+**Clarity fallback**：
+1. 如果 SSL 不稳定，重试 3 次间隔 2s；如仍部分维度失败，已获取的 summary 数据仍然汇报。
+2. 如果提示 token 缺失，检查 `~/.config/skills/jz-check-metrics/site-integrations.json` 是否存在并按 hostname 匹配。
 
 ### 汇报模板
 
@@ -130,7 +159,10 @@ curl -s "$UMAMI_BASE_URL/api/websites/$ID/stats?startAt=$START&endAt=$END" -H "A
 - 项目 summary
 - 维度 breakdown：Browser、Device、Country/Region、Source、URL
 
-凭据：`CLARITY_EXPORT_TOKEN`（全局 fallback），或从 `site-integrations.json` 按 hostname 匹配。
+凭据：`CLARITY_EXPORT_TOKEN`（全局 fallback），或从 `site-integrations.json` 按 hostname 匹配。优先查找路径：
+
+- `~/.config/skills/jz-check-metrics/site-integrations.json`
+- 环境变量 `SITE_INTEGRATIONS_CONFIG` 指定的路径
 
 ## 凭据加载
 
@@ -146,12 +178,19 @@ curl -s "$UMAMI_BASE_URL/api/websites/$ID/stats?startAt=$START&endAt=$END" -H "A
 
 ## 脚本
 
-脚本嵌入在 skill 中，不依赖外部仓库。
+脚本嵌入在 skill 中，不依赖外部仓库。`--hostname` 未提供时会自动从项目配置中检测。
 
 调用方式：
 ```bash
 python3 <skill-dir>/scripts/check_metrics.py \
   --hostname growagardencalculate.com \
+  --days 28 \
+  --providers gsc,cloudflare,umami,clarity
+```
+
+或省略 hostname（自动检测）：
+```bash
+python3 <skill-dir>/scripts/check_metrics.py \
   --days 28 \
   --providers gsc,cloudflare,umami,clarity
 ```
