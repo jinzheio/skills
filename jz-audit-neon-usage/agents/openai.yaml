@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Neon Usage"
+  short_description: "分析 Neon 请求来源和无法休眠原因"
+  default_prompt: "使用 $jz-audit-neon-usage 分析当前项目的 Neon 数据库请求来源，结合平台日志、代码路径和只读数据库统计给出证据。"
