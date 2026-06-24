@@ -1,6 +1,6 @@
 ---
 name: jz-audit-cf-cost
-description: "当需要在某个 Cloudflare Workers/Pages 项目中读取、解释或核对 Cloudflare 账单、usage、计费周期费用、运行中资源成本时使用。适用于从当前项目的 wrangler 配置、package.json、源码引用、.dev.vars 或 .env 认证字段识别资源，并用 Cloudflare GraphQL schema/probe、PayGo usage、手工 quota 输入或本地估算核对 Durable Objects/Workers/D1/R2/KV/Queues/Images/Workers AI 等付费资源和异常计费。"
+description: "当需要在某个 Cloudflare Workers/Pages 项目中读取、解释或核对 Cloudflare 账单、usage、计费周期费用、运行中资源成本时使用。适用于从当前项目的 wrangler 配置、package.json、源码引用、.dev.vars 或 .env 认证字段识别资源，并用 Cloudflare GraphQL schema/probe、PayGo usage、手工 quota 输入或本地估算核对 Durable Objects/Workers/D1/R2/KV/Queues/Images/Workers AI 等付费资源和异常计费。也适用于审计 Cloudflare D1 rows read 异常、SQL 查询计划、未加索引的全表扫描、公开页面实时聚合查询和 D1 索引设计风险。"
 ---
 
 # Cloudflare 账单核算
@@ -58,6 +58,7 @@ dry-run 也会输出 `riskFindings`。这些不是已确认 bug，而是需要�
 - 同一个 Durable Object 文件里出现多处 `storage.put()`，尤其是状态流转、ack、mirror 写入。
 - API key、auth、legacy fallback 路径里出现 KV `list()`。
 - Wrangler 同时包含 Queues、Durable Objects 和 KV。
+- 项目使用 D1，且用户问到 rows read、全表扫描、索引、查询计划、公开统计页或 D1 成本异常。
 
 ### 2. 读取凭据
 
@@ -257,3 +258,10 @@ node <skill-dir>/scripts/audit-cf-usage.mjs \
 ## 什么时候读 reference
 
 只有在识别到某个产品已经产生费用、即将产生费用，或用户要求给排查建议时，才读取 `references/cost-advice.md` 的相关段落。不要在正常核账流程里先读建议材料。
+
+当项目使用 D1，且出现以下任一情况时，读取 `references/d1-full-scan-audit.md`：
+
+- Cloudflare usage 或用户提供的数据里 D1 rows read 异常。
+- 用户明确要求确认 D1 是否有全表扫描、缺索引、查询计划或 rows read 风险。
+- 公开页面、API、Cron、Queue consumer、Webhook、Analytics 页面里有实时 D1 查询。
+- 准备上线新的 D1 查询或 migration，需要判断索引是否覆盖热路径。
