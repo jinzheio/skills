@@ -1,0 +1,4 @@
+interface:
+  display_name: "JZ CF AI Gateway Ops"
+  short_description: "查询和配置 Cloudflare AI Gateway"
+  default_prompt: "Use $jz-cf-ai-gateway-ops to inspect a Cloudflare AI Gateway request path and latency."
