@@ -1,7 +1,7 @@
 ---
 name: jz-push-code
-version: "1.5.0"
-description: "当用户要求验证并推送仓库时使用，包括 push this、发布代码、推送到远端。必须优先分派 worker subagent 在独立 context window 中执行验证、提交和推送流程。运行适用检查，确保目标变更已提交，然后 push。Cloudflare 公开站点优先使用 GitHub Actions 自动部署；只有缺 workflow 时才读取自动部署 reference 并补齐。用 [skip deploy] 跳过部署。部署完成后再执行 IndexNow。后端仓库、私有工具、API-only 改动或没有公开 URL 的改动不要运行 IndexNow。当带有 force 参数时（如 push-code force），跳过所有确认，自动按功能拆分提交并直接 push。"
+version: "1.6.0"
+description: "当用户要求验证并推送仓库时使用，包括 push this、发布代码、推送到远端。必须优先分派 worker subagent 在独立 context window 中执行验证（lint、test、build）、提交和推送流程。运行适用检查，确保目标变更已提交，然后 push。只有缺 workflow 时才读取自动部署 reference 并补齐。用 [skip deploy] 跳过部署。部署完成后再执行 IndexNow。后端仓库、私有工具、API-only 改动或没有公开 URL 的改动不要运行 IndexNow。当带有 force 参数时（如 push-code force），跳过所有确认，自动按功能拆分提交并直接 push。"
 ---
 
 # 验证并推送代码
@@ -28,7 +28,7 @@ worker subagent 的初始任务必须包含：
 先阅读仓库内 AGENTS.md 和 push-code/SKILL.md。
 保持脏工作区现状，不要还原用户变更。
 [CONFIRMATION_MODE]。
-推送前确保目标变更已提交、适用检查通过、工作区干净。
+推送前确保目标变更已提交、适用检查通过、工作区干净。适用检查包括 lint、test、build。只有仓库有此命令时才执行。
 如果是 Cloudflare 公开站点，推送前先确认 GitHub Actions 自动部署 workflow 存在；没有则读取 references/cloudflare-auto-deploy.md 并补齐。缺少 Cloudflare GitHub secrets 时，先找当前项目 `.dev.vars` / `.env.local` 里的项目最小权限 token；没有或权限不足时，再通过 `jz-create-cf-token` 本地配置读取共享 `CLOUDFLARE_ACCOUNT_ID` 和具备 Account API Tokens Write 权限的 bootstrap token，为当前项目创建专属最小权限 token，或给已有项目 token 增加必要权限，再写入 GitHub Secrets；只有共享凭据不可用、无法创建或更新项目 token、或权限验证失败时，才使用本机 `infra-credential-lookup` skill 继续查找。不要在 push 后询问本地 wrangler 发布。
 本次 push 的 commit range 中任一 commit message 包含 `[skip deploy]` 时跳过自动部署，也不要执行 IndexNow 提交。
 公开站点的公开页面改动按 references/post-push-indexing.md 执行 post-deploy IndexNow；Cloudflare 站点必须在 GitHub Actions 部署完成并验证后再提交 IndexNow。不适用时说明原因。
@@ -37,7 +37,7 @@ worker subagent 的初始任务必须包含：
 
 父 agent 负责将上述 `[CONFIRMATION_MODE]` 替换为：
 - force 模式（用户请求包含 `force`）：`"跳过所有确认。如果工作区有未提交变更，先自动按功能拆分并提交（参考 commit-code skill 的分组逻辑），然后直接验证并 push。不要询问用户确认。"`
-- 正常模式：`"先请求确认，等待用户明确确认后再 lint、build、提交或 push。"`
+- 正常模式：`"先请求确认，等待用户明确确认后再 lint、test、build、提交或 push。"`
 
 如果当前环境没有 subagent 工具，才在父 agent 当前 context 中执行本流程，并在汇报中说明已降级为本地执行。
 
@@ -57,7 +57,7 @@ worker subagent 的初始任务必须包含：
 
 执行任何动作前，必须询问：
 
-**”是否确认继续 lint、build 并推送代码？”**
+**”是否确认继续 lint、test、build 并推送代码？”**
 
 必须等用户明确确认后继续。
 
@@ -73,6 +73,7 @@ worker subagent 的初始任务必须包含：
 
 - 只有存在 lint script 或等价检查时才跑 lint
 - 只有存在 build script 或等价检查时才跑 build
+- 只有存在 test script（`test:ci`、`test` 或等价命令）时才跑 test
 - 没有适用命令时标记为 `not applicable`
 
 ### 3. 判断是否需要索引
@@ -126,6 +127,7 @@ Cloudflare 托管条件，满足任一项：
 ### 5. 自动验证
 
 - 跑适用的 lint / check
+- 跑适用的 test
 - 跑适用的 build
 - 如果命令失败，不要 push
 - 失败时阅读 `references/failure-policy.md`

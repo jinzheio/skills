@@ -10,6 +10,7 @@ lint、build、commit、push 或 push 后 indexing 失败时读取。
 - 可确定修复的 formatting 或 lint 错误
 - 当前 diff 引起的 type error
 - 仓库本来就要求的缺失生成文件
+- 当前 diff 引起的测试失败
 - IndexNow collector 明显误包含 private 或 internal route
 
 修复后，只重跑刚才失败的相关命令。
