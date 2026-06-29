@@ -2,11 +2,11 @@
 
 [English](README.md) | 中文
 
-一人公司工作流里复用的 agent skills。根目录主要放开发和建站相关的 skills；子目录放其它课题，比如内容生产、基础设施运维等。
+一人公司工作流里复用的 agent skills。`ship/` 放建站、发布、增长和站点运维相关 skills；其它子目录放内容生产、基础设施运维等课题。
 
 这是一个公开 skill pack。每个 skill 目录都是独立 skill，包含自己的 `SKILL.md` 和可选资源文件。
 
-## 根目录 Skills
+## Ship Skills
 
 | Skill | 用途 |
 | --- | --- |
@@ -14,34 +14,40 @@
 | `jz-create-cf-site` | 把本地 Web 项目发布到 Cloudflare Workers。 |
 | `jz-migrate-to-cf` | 把 Web 项目从 Vercel 迁移到 Cloudflare。 |
 | `jz-launch-domain` | 为已部署的网站绑定自定义域名、DNS、HTTPS 和跳转。 |
-| `jz-setup-site-analytics` | 在正式域名可访问后，接入统计和搜索索引。 |
+| `jz-setup-analytics` | 在正式域名可访问后，接入统计和搜索索引。 |
 | `jz-add-search-index` | 为已有网站添加 IndexNow 验证 key、URL 收集脚本和提交脚本。 |
 | `jz-track-conversion` | 为网站设计和实现转化漏斗事件埋点。 |
-| `jz-check-metrics` | 查看 GSC、Cloudflare、Umami、Clarity 的站点实时数据。 |
+| `jz-get-analytics` | 查看 GSC、Cloudflare、Umami、Clarity 的站点实时数据。 |
 | `jz-check-pagespeed` | 查看 PageSpeed、CrUX 和 Cloudflare RUM 数据。 |
 | `jz-add-gh-collaborator` | 为 cloud-agent 开发账号准备 fork-only GitHub 权限。 |
 | `jz-commit-code` | Review 工作区变更，确认后按范围提交。 |
 | `jz-push-code` | 验证、推送代码，并同步变更页面的索引。 |
+| `jz-test` | 搭建或增强测试基础设施——vitest、覆盖率、CI、E2E。支持 Next.js、Astro、TanStack Start。 |
 | `jz-audit-vercel-cost` | 解释 Vercel usage、billed cost、Pro 固定费和信用卡扣款差异。 |
 | `jz-audit-cf-cost` | 读取 Cloudflare 账单和 GraphQL usage，检查当前计费周期运行中资源的按量费用，识别异常计费。 |
+| `jz-audit-neon-usage` | 分析 Neon 请求来源和无法休眠原因。 |
 | `jz-create-cf-token` | 为项目创建或更新最小权限 Cloudflare token。 |
 | `jz-build-personal-context` | 通过访谈生成个人上下文和写作风格文件，供 Codex、ChatGPT、Claude、Claude Code 使用。 |
 | `jz-init-tailwind-theme` | 初始化或调整 Tailwind v4 主题 token。 |
 | `jz-find-revenue-site` | 按域名或产品类别查找相似的高收入网站。 |
+| `jz-market-prospect` | 验证一个产品 idea 是否有搜索需求、付费竞品和可触达买家。 |
 | `jz-make-viral` | 综合 32 条 viral product 原则 + 5 条 landing page 设计规律，分话题路由：landing page 设计、文案、定价、产品定位、视觉品牌。 |
 | `jz-check-cloud-agent` | 诊断和运维云端 agent 部署。 |
+| `jz-cloud-agent` | 诊断云端 agent 部署，并把 skill 同步到 Hermes/OpenClaw。 |
 
 ## 其它课题
 
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
-| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-transcribe-audio`、`jz-wechat-archive-sync` |
-| `infra/` | 基础设施运维 | `jz-litellm-ops` |
+| `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
+| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review` |
+| `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
+| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-mac-remote` |
 
 新网站的推荐顺序：
 
 ```text
-jz-create-site -> jz-launch-domain -> jz-setup-site-analytics
+jz-create-site -> jz-launch-domain -> jz-setup-analytics
 ```
 
 `jz-add-search-index` 单独保留，因为已有网站可能只需要补 IndexNow。
@@ -68,36 +74,51 @@ git clone https://github.com/<owner>/<repo>.git
 
 然后把需要的 skills 复制或软链接到你的 agent/runner 支持的 skills 目录。
 
-根目录下的 skill 是开发和建站主线：发布、域名、统计、搜索索引、代码 review、账单和产品/站点相关工作。子目录是一人公司的其它课题。例如 `content/` 放内容生产与分发，`infra/` 放基础设施运维。它们都遵循相同的 `SKILL.md` 规范；目录只表示主题。
+`ship/` 是开发和建站主线：发布、域名、统计、搜索索引、代码 review、账单和产品/站点相关工作。其它子目录是一人公司的其它课题。例如 `content/` 放内容生产与分发，`infra/` 放基础设施运维。它们都遵循相同的 `SKILL.md` 规范；目录只表示主题。
 
 Codex 示例：
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R jz-create-site ~/.codex/skills/
-cp -R jz-create-cf-site ~/.codex/skills/
-cp -R jz-migrate-to-cf ~/.codex/skills/
-cp -R jz-launch-domain ~/.codex/skills/
-cp -R jz-setup-site-analytics ~/.codex/skills/
-cp -R jz-add-search-index ~/.codex/skills/
-cp -R jz-track-conversion ~/.codex/skills/
-cp -R jz-check-metrics ~/.codex/skills/
-cp -R jz-check-pagespeed ~/.codex/skills/
-cp -R jz-add-gh-collaborator ~/.codex/skills/
-cp -R jz-commit-code ~/.codex/skills/
-cp -R jz-push-code ~/.codex/skills/
-cp -R jz-audit-vercel-cost ~/.codex/skills/
-cp -R jz-audit-cf-cost ~/.codex/skills/
-cp -R jz-create-cf-token ~/.codex/skills/
-cp -R jz-build-personal-context ~/.codex/skills/
-cp -R jz-init-tailwind-theme ~/.codex/skills/
-cp -R jz-find-revenue-site ~/.codex/skills/
-cp -R jz-make-viral ~/.codex/skills/
-cp -R jz-check-cloud-agent ~/.codex/skills/
+cp -R ship/jz-create-site ~/.codex/skills/
+cp -R ship/jz-create-cf-site ~/.codex/skills/
+cp -R ship/jz-migrate-to-cf ~/.codex/skills/
+cp -R ship/jz-launch-domain ~/.codex/skills/
+cp -R ship/jz-setup-analytics ~/.codex/skills/
+cp -R ship/jz-add-search-index ~/.codex/skills/
+cp -R ship/jz-track-conversion ~/.codex/skills/
+cp -R ship/jz-get-analytics ~/.codex/skills/
+cp -R ship/jz-check-pagespeed ~/.codex/skills/
+cp -R ship/jz-add-gh-collaborator ~/.codex/skills/
+cp -R ship/jz-commit-code ~/.codex/skills/
+cp -R ship/jz-push-code ~/.codex/skills/
+cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
+cp -R ship/jz-audit-cf-cost ~/.codex/skills/
+cp -R ship/jz-audit-neon-usage ~/.codex/skills/
+cp -R ship/jz-create-cf-token ~/.codex/skills/
+cp -R ship/jz-build-personal-context ~/.codex/skills/
+cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
+cp -R ship/jz-find-revenue-site ~/.codex/skills/
+cp -R ship/jz-market-prospect ~/.codex/skills/
+cp -R ship/jz-make-viral ~/.codex/skills/
+cp -R ship/jz-check-cloud-agent ~/.codex/skills/
+cp -R ship/jz-cloud-agent ~/.codex/skills/
+cp -R ship/jz-test ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
+cp -R content/jz-feishu-doc-download ~/.codex/skills/
+cp -R content/jz-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-audio ~/.codex/skills/
+cp -R content/jz-douyin-transcript ~/.codex/skills/
 cp -R content/jz-wechat-archive-sync ~/.codex/skills/
+cp -R content/jz-readest-review ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
+cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
+cp -R infra/jz-newapi-ops ~/.codex/skills/
+cp -R infra/jz-ovh-server ~/.codex/skills/
+cp -R infra/jz-hetzner-server ~/.codex/skills/
+cp -R local/jz-browser-automation ~/.codex/skills/
+cp -R local/jz-chrome-launcher ~/.codex/skills/
+cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 如果 runner 能直接读取这个仓库，不需要复制。
@@ -125,7 +146,7 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-setup-site-analytics 为 example.com 接入统计和搜索索引。
+使用 $jz-setup-analytics 为 example.com 接入统计和搜索索引。
 ```
 
 ```text
@@ -137,7 +158,7 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-check-metrics 查看 example.com 的 GSC、Cloudflare、Umami 和 Clarity 数据。
+使用 $jz-get-analytics 查看 example.com 的 GSC、Cloudflare、Umami 和 Clarity 数据。
 ```
 
 ```text
@@ -165,6 +186,10 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-audit-neon-usage 分析这个 Neon 数据库为什么仍然有请求。
+```
+
+```text
 使用 $jz-create-cf-token 为这个项目创建最小权限 Cloudflare token。
 ```
 
@@ -181,6 +206,10 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-market-prospect 验证这个产品 idea 是否有搜索需求、付费竞品和可触达买家。
+```
+
+```text
 使用 $jz-make-viral 检查这个产品页的定位、定价、文案和传播性。
 ```
 
@@ -189,7 +218,23 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-cloud-agent 检查云端 agent 状态，或把 skill 同步到 Hermes/OpenClaw。
+```
+
+```text
+使用 $jz-test 在上线前为这个站点补测试。
+```
+
+```text
 使用 $jz-fetch-x 抓取 @mercor_ai 最近 100 条 X 帖子，并保存为 Markdown 和 JSON。
+```
+
+```text
+使用 $jz-feishu-doc-download 下载这个飞书 wiki 文章，保存为本地 Markdown clipping，并把图片下载到本地 assets。
+```
+
+```text
+使用 $jz-video-transcript 获取这个 YouTube 或 X 视频字幕，并生成英文、中文和双语 Markdown。
 ```
 
 ```text
@@ -197,11 +242,27 @@ cp -R infra/jz-litellm-ops ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-douyin-transcript 转写这个抖音作者主页，channel 为 jinqiangdashu，默认最新 30 条。
+```
+
+```text
 使用 $jz-wechat-archive-sync 更新这个公众号的文章归档。
 ```
 
 ```text
+使用 $jz-readest-review 查询 Readest 书籍列表，或按第 3 本书导出 text 和 note，生成「书名 阅读笔记.md」。
+```
+
+```text
 使用 $jz-litellm-ops 查看 LiteLLM 模型价格、key 状态和最近消费记录。
+```
+
+```text
+使用 $jz-cf-ai-gateway-ops 查看 Cloudflare AI Gateway 请求路径、延迟、custom provider、spend limit 和 facade 协议路由。
+```
+
+```text
+使用 $jz-chrome-launcher 打开日常 Chrome profile，或打开 9333 端口的隔离 Agent Chrome。
 ```
 
 ## 配置
@@ -216,6 +277,9 @@ cp .env.example .env
 
 只准备要运行的流程需要的凭证。
 
+各 skill 的本机配置统一放在 `~/.config/skills/<skill-name>/`。
+环境变量使用 `.env`，结构化配置使用 `config.yml`。
+
 ### 各 skill 使用的凭证
 
 | Skill | 主流程需要 | 可选分支 |
@@ -224,26 +288,36 @@ cp .env.example .env
 | `jz-create-cf-site` | Wrangler 或 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` | 需要创建或连接 repo 时使用 GitHub CLI 登录 |
 | `jz-migrate-to-cf` | 当前项目 checkout 和 Cloudflare 凭证 | 读取现有 Vercel 设置时需要 Vercel 登录 |
 | `jz-launch-domain` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
-| `jz-setup-site-analytics` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG`，或 `CLARITY_ID` 和 `CLARITY_TOKEN` |
+| `jz-setup-analytics` | 正式可访问的域名 | 统计服务凭证、Google OAuth/ADC、Cloudflare DNS token、`BING_WEBMASTER_API_KEY`、带各域名 Clarity 配置的 `SITE_INTEGRATIONS_CONFIG`，或 `CLARITY_ID` 和 `CLARITY_TOKEN` |
 | `jz-add-search-index` | 可写的项目仓库和已确定的正式域名 | 只有在覆盖自动生成 key 时才需要 `INDEXNOW_KEY` |
 | `jz-track-conversion` | 已有统计接入和可编辑的应用代码 | 需要实现支付/注册事件时读取 Stripe 或 auth 相关代码 |
-| `jz-check-metrics` | 所选 provider 的凭证 | 根据 provider 需要 Google ADC、Cloudflare token、Umami 凭证或 Clarity token |
+| `jz-get-analytics` | 所选 provider 的凭证 | 根据 provider 需要 Google ADC、Cloudflare token、Umami 凭证或 Clarity token |
 | `jz-check-pagespeed` | PageSpeed API key（提高额度） | Cloudflare RUM 数据需要 Cloudflare token |
 | `jz-add-gh-collaborator` | `OWNER_ACCOUNT` 的 GitHub CLI 登录；agent 账号信息来自本机配置或用户输入 | `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`、`AGENT_GITHUB`、`AGENT_EMAIL` |
 | `jz-commit-code` | 有本地变更的 Git 仓库 | 无 |
 | `jz-push-code` | 已提交的干净分支和远端 push 权限 | 只有公开站点 URL 同步需要 IndexNow/Search Console 凭证 |
 | `jz-audit-vercel-cost` | Vercel CLI 登录，并有目标 team/project usage 权限 | receipt 日期、billing cycle day、平台费覆盖值 |
 | `jz-audit-cf-cost` | Cloudflare API Token（Account: Analytics: Read），`CLOUDFLARE_ACCOUNT_ID` | 可选依赖已部署的每小时成本监控 |
+| `jz-audit-neon-usage` | 平台请求日志、cron-job.org 定时任务和只读数据库统计 | Vercel CLI 登录、Neon/Postgres 只读凭证、可选 `CRON_JOB_API_KEY`、项目源码 |
 | `jz-create-cf-token` | 有创建或编辑账号 token 权限的 Cloudflare bootstrap token | 项目 repo 信息用于缩小 token 权限 |
 | `jz-build-personal-context` | 可写的 profile 目录 | 用 `-g` 接入支持的工具 |
 | `jz-init-tailwind-theme` | 可编辑的 Tailwind 前端项目 | 项目已有 design system 时读取现有主题文件 |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR 凭证或本地缓存数据 | 复用本地 SQLite/CSV 历史数据 |
+| `jz-market-prospect` | 产品 idea、目标买家、产品页或仓库上下文 | 可选使用付费验证工具、SEO API、Exa、抓取 API 或本地缓存调研 |
 | `jz-make-viral` | 产品、网站、页面或定位上下文 | 按话题读取对应 reference |
 | `jz-check-cloud-agent` | 本机未跟踪 deployment 配置和 SSH 权限 | 只有打开远程浏览器时需要 remote desktop/noVNC 配置 |
+| `jz-cloud-agent` | 本机未跟踪 deployment 配置和 SSH 权限 | 需要时读取 skill 同步目标和远程浏览器配置 |
+| `jz-test` | 可编辑的 Web 项目 | 根据项目读取现有测试栈、CI 配置或浏览器依赖 |
+| `jz-chrome-launcher` | 本机 Chrome app | 可选 `JZ_DAILY_CHROME_PROFILE`、`JZ_AGENT_CHROME_PORT`、`JZ_AGENT_CHROME_USER_DATA_DIR` 覆盖 |
 | `jz-fetch-x` | Twittr X API 的 RapidAPI key | 可选的 skill 目录本地 `.env` 回退 |
+| `jz-feishu-doc-download` | `lark-cli` 配置和有文档读取、素材访问权限的用户授权 | 飞书文档 URL 或 token；目标 clipping 目录可写 |
+| `jz-video-transcript` | `yt-dlp` 和 YouTube 或 X 视频字幕访问 | 需要中文机器翻译时访问 `translate.googleapis.com` |
 | `jz-transcribe-audio` | `GLM_API_KEY` 和 `ffmpeg`/`ffprobe` | skill 目录本地 `.env` 回退 |
+| `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
+| `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
 | `jz-litellm-ops` | 本机未跟踪 LiteLLM 运维配置和 SSH/数据库权限 | 修改价格、fallback、预算或 key 状态时需要写权限 |
+| `jz-cf-ai-gateway-ops` | 有 AI Gateway 读取权限的 Cloudflare API token 和 account id | 修改 custom provider、spend limit、Worker secret 或 facade 路由时需要写权限 |
 
 常用变量：
 
@@ -256,7 +330,7 @@ cp .env.example .env
 - `UMAMI_API_KEY`：仅作 fallback，用于 Umami Cloud 或明确支持 API-key auth 的兼容服务。
 - Google OAuth/ADC：用于 Search Console 和 Site Verification，授权账号需要拥有站点权限。常见本地方式包括 `gcloud auth application-default login`、`GOOGLE_APPLICATION_CREDENTIALS`，或其他已认证的 Google API 会话。
 - `BING_WEBMASTER_API_KEY`：Bing Webmaster Tools 站点验证和 sitemap 提交。
-- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 先读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，或目标域名没有 Clarity 配置，`jz-setup-site-analytics` 会检查当前环境变量里的 `CLARITY_ID` 和 `CLARITY_TOKEN`。两个来源都缺少完整信息时，跳过 Clarity 并在汇总里说明。
+- `SITE_INTEGRATIONS_CONFIG`：可选的域名到仓库和集成元数据映射。Clarity 先读取这里的各域名 `clarity.project_id` 和 `clarity.token`。如果映射不存在，或目标域名没有 Clarity 配置，`jz-setup-analytics` 会检查当前环境变量里的 `CLARITY_ID` 和 `CLARITY_TOKEN`。两个来源都缺少完整信息时，跳过 Clarity 并在汇总里说明。
 - `CLARITY_ID` 和 `CLARITY_TOKEN`：可选的 Clarity project ID 和项目级 Data Export API token，用于当前运行。
 - `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`：cloud-agent GitHub 权限设置使用的本机 env 文件路径。
 
@@ -298,7 +372,7 @@ export CLARITY_TOKEN=<clarity-token>
 
 ## Index onboarding 数据源
 
-`jz-setup-site-analytics` 组合多个数据源，因为它们回答的是同一个网站的不同问题。
+`jz-setup-analytics` 组合多个数据源，因为它们回答的是同一个网站的不同问题。
 
 | 数据源 | 主要用途 | 重复之处 | 独特价值 |
 | --- | --- | --- | --- |

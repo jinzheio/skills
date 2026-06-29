@@ -2,11 +2,11 @@
 
 English | [中文](README.zh.md)
 
-Reusable agent skills for one-person company work. Root-level skills focus on development and site-building work. Subdirectories group other topics such as content production and infrastructure operations.
+Reusable agent skills for one-person company work. `ship/` contains site-building, launch, growth, and site-operations skills. Other subdirectories group topics such as content production and infrastructure operations.
 
 This repository is a public skill pack. Each skill folder contains its own `SKILL.md` and optional bundled resources.
 
-## Root Skills
+## Ship Skills
 
 | Skill | Use it for |
 | --- | --- |
@@ -14,34 +14,40 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | `jz-create-cf-site` | Publish a local web project to Cloudflare Workers. |
 | `jz-migrate-to-cf` | Move a web project from Vercel to Cloudflare. |
 | `jz-launch-domain` | Connect a deployed site to a custom domain with DNS, HTTPS, and redirects. |
-| `jz-setup-site-analytics` | Set up analytics and search indexing after the final domain works. |
+| `jz-setup-analytics` | Set up analytics and search indexing after the final domain works. |
 | `jz-add-search-index` | Add IndexNow key verification, URL collection, and submission scripts to an existing site. |
 | `jz-track-conversion` | Design and implement conversion funnel event tracking. |
-| `jz-check-metrics` | Check live site metrics across GSC, Cloudflare, Umami, and Clarity. |
+| `jz-get-analytics` | Check live site metrics across GSC, Cloudflare, Umami, and Clarity. |
 | `jz-check-pagespeed` | Check PageSpeed, CrUX, and Cloudflare RUM data. |
 | `jz-add-gh-collaborator` | Prepare fork-only GitHub permissions for a cloud-agent developer account. |
 | `jz-commit-code` | Review workspace changes and create scoped commits after confirmation. |
 | `jz-push-code` | Verify, push, and run post-push indexing sync. |
+| `jz-test` | Set up or improve test infrastructure — vitest, coverage, CI, E2E. Supports Next.js, Astro, TanStack Start. |
 | `jz-audit-vercel-cost` | Explain Vercel usage, billed cost, Pro fees, and receipt/card charge differences. |
 | `jz-audit-cf-cost` | Read Cloudflare bills and GraphQL usage, check running resource costs in the current billing cycle, and identify billing anomalies. |
+| `jz-audit-neon-usage` | Find why a Neon database is receiving requests or cannot scale to zero. |
 | `jz-create-cf-token` | Create or update a minimal Cloudflare token for a project. |
 | `jz-build-personal-context` | Interview the user to create persistent profile and writing-style files for Codex, ChatGPT, Claude, and Claude Code. |
 | `jz-init-tailwind-theme` | Initialize or adjust Tailwind v4 theme tokens. |
 | `jz-find-revenue-site` | Find high-revenue sites similar to a given domain or product category. |
+| `jz-market-prospect` | Validate whether a product idea has search demand, paid competitors, and a reachable buyer path. |
 | `jz-make-viral` | 32 viral product principles + 5 landing page design laws, topic-routed: landing page design, copywriting, pricing, product positioning, visual branding. |
 | `jz-check-cloud-agent` | Diagnose and operate cloud agent deployments. |
+| `jz-cloud-agent` | Diagnose cloud agent deployments and sync skills to Hermes/OpenClaw. |
 
 ## Other Topics
 
 | Path | Topic | Skills |
 | --- | --- | --- |
-| `content/` | Content production and distribution | `jz-fetch-x`, `jz-transcribe-audio`, `jz-wechat-archive-sync` |
-| `infra/` | Infrastructure operations | `jz-litellm-ops` |
+| `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
+| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review` |
+| `infra/` | Infrastructure operations | `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
+| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-mac-remote` |
 
 Recommended sequence for a new site:
 
 ```text
-jz-create-site -> jz-launch-domain -> jz-setup-site-analytics
+jz-create-site -> jz-launch-domain -> jz-setup-analytics
 ```
 
 `jz-add-search-index` is separate because it is also useful for existing sites that only need IndexNow support.
@@ -68,36 +74,51 @@ git clone https://github.com/<owner>/<repo>.git
 
 Then copy or symlink the skills you want into the skills directory supported by your agent or runner.
 
-Skill directories at the repository root are the development and site-building set: publishing, domains, analytics, search indexing, code review, billing, and related product/site work. Subdirectories are other one-person company topics. For example, `content/` contains content production and distribution skills, and `infra/` contains infrastructure operations skills. All of them are valid skills and follow the same `SKILL.md` convention; the directory only tells you the topic.
+The `ship/` directory is the development and site-building set: publishing, domains, analytics, search indexing, code review, billing, and related product/site work. Other subdirectories are other one-person company topics. For example, `content/` contains content production and distribution skills, and `infra/` contains infrastructure operations skills. All of them are valid skills and follow the same `SKILL.md` convention; the directory only tells you the topic.
 
 Codex example:
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R jz-create-site ~/.codex/skills/
-cp -R jz-create-cf-site ~/.codex/skills/
-cp -R jz-migrate-to-cf ~/.codex/skills/
-cp -R jz-launch-domain ~/.codex/skills/
-cp -R jz-setup-site-analytics ~/.codex/skills/
-cp -R jz-add-search-index ~/.codex/skills/
-cp -R jz-track-conversion ~/.codex/skills/
-cp -R jz-check-metrics ~/.codex/skills/
-cp -R jz-check-pagespeed ~/.codex/skills/
-cp -R jz-add-gh-collaborator ~/.codex/skills/
-cp -R jz-commit-code ~/.codex/skills/
-cp -R jz-push-code ~/.codex/skills/
-cp -R jz-audit-vercel-cost ~/.codex/skills/
-cp -R jz-audit-cf-cost ~/.codex/skills/
-cp -R jz-create-cf-token ~/.codex/skills/
-cp -R jz-build-personal-context ~/.codex/skills/
-cp -R jz-init-tailwind-theme ~/.codex/skills/
-cp -R jz-find-revenue-site ~/.codex/skills/
-cp -R jz-make-viral ~/.codex/skills/
-cp -R jz-check-cloud-agent ~/.codex/skills/
+cp -R ship/jz-create-site ~/.codex/skills/
+cp -R ship/jz-create-cf-site ~/.codex/skills/
+cp -R ship/jz-migrate-to-cf ~/.codex/skills/
+cp -R ship/jz-launch-domain ~/.codex/skills/
+cp -R ship/jz-setup-analytics ~/.codex/skills/
+cp -R ship/jz-add-search-index ~/.codex/skills/
+cp -R ship/jz-track-conversion ~/.codex/skills/
+cp -R ship/jz-get-analytics ~/.codex/skills/
+cp -R ship/jz-check-pagespeed ~/.codex/skills/
+cp -R ship/jz-add-gh-collaborator ~/.codex/skills/
+cp -R ship/jz-commit-code ~/.codex/skills/
+cp -R ship/jz-push-code ~/.codex/skills/
+cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
+cp -R ship/jz-audit-cf-cost ~/.codex/skills/
+cp -R ship/jz-audit-neon-usage ~/.codex/skills/
+cp -R ship/jz-create-cf-token ~/.codex/skills/
+cp -R ship/jz-build-personal-context ~/.codex/skills/
+cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
+cp -R ship/jz-find-revenue-site ~/.codex/skills/
+cp -R ship/jz-market-prospect ~/.codex/skills/
+cp -R ship/jz-make-viral ~/.codex/skills/
+cp -R ship/jz-check-cloud-agent ~/.codex/skills/
+cp -R ship/jz-cloud-agent ~/.codex/skills/
+cp -R ship/jz-test ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
+cp -R content/jz-feishu-doc-download ~/.codex/skills/
+cp -R content/jz-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-audio ~/.codex/skills/
+cp -R content/jz-douyin-transcript ~/.codex/skills/
 cp -R content/jz-wechat-archive-sync ~/.codex/skills/
+cp -R content/jz-readest-review ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
+cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
+cp -R infra/jz-newapi-ops ~/.codex/skills/
+cp -R infra/jz-ovh-server ~/.codex/skills/
+cp -R infra/jz-hetzner-server ~/.codex/skills/
+cp -R local/jz-browser-automation ~/.codex/skills/
+cp -R local/jz-chrome-launcher ~/.codex/skills/
+cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 If your runner can read this repository directly, no copy step is needed.
@@ -125,7 +146,7 @@ Use $jz-launch-domain to connect example.com to this deployed site.
 ```
 
 ```text
-Use $jz-setup-site-analytics to set up analytics and search indexing for example.com.
+Use $jz-setup-analytics to set up analytics and search indexing for example.com.
 ```
 
 ```text
@@ -137,7 +158,7 @@ Use $jz-track-conversion to add signup and checkout funnel events.
 ```
 
 ```text
-Use $jz-check-metrics to check example.com metrics from GSC, Cloudflare, Umami, and Clarity.
+Use $jz-get-analytics to check example.com metrics from GSC, Cloudflare, Umami, and Clarity.
 ```
 
 ```text
@@ -165,6 +186,10 @@ Use $jz-audit-cf-cost to check running resource costs in the current Cloudflare 
 ```
 
 ```text
+Use $jz-audit-neon-usage to find why this Neon database is still receiving requests.
+```
+
+```text
 Use $jz-create-cf-token to create a minimal Cloudflare token for this project.
 ```
 
@@ -181,6 +206,10 @@ Use $jz-find-revenue-site to find high-revenue sites similar to example.com.
 ```
 
 ```text
+Use $jz-market-prospect to validate whether this product idea has search demand, paid competitors, and a reachable buyer path.
+```
+
+```text
 Use $jz-make-viral to review this product page for positioning, pricing, copy, and shareability.
 ```
 
@@ -189,7 +218,31 @@ Use $jz-check-cloud-agent to diagnose the Hermes agent deployment.
 ```
 
 ```text
+Use $jz-cloud-agent to check cloud agent status or sync skills to Hermes/OpenClaw.
+```
+
+```text
+Use $jz-test to add tests for this site before shipping.
+```
+
+```text
+Use $jz-ovh-server to create an OVH VPS and get SSH access.
+```
+
+```text
+Use $jz-hetzner-server to create a Hetzner Cloud server and harden SSH.
+```
+
+```text
 Use $jz-fetch-x to fetch the latest 100 X posts for @mercor_ai and save them as Markdown and JSON.
+```
+
+```text
+Use $jz-feishu-doc-download to download this Feishu wiki article as a local Markdown clipping and save its images under local assets.
+```
+
+```text
+Use $jz-video-transcript to fetch this YouTube or X video transcript and create English, Chinese, and bilingual Markdown files.
 ```
 
 ```text
@@ -197,11 +250,27 @@ Use $jz-transcribe-audio to transcribe this meeting recording.
 ```
 
 ```text
+Use $jz-douyin-transcript to transcribe this Douyin profile, channel jinqiangdashu, latest 30 videos.
+```
+
+```text
 Use $jz-wechat-archive-sync to update the WeChat article archive for this account.
 ```
 
 ```text
+Use $jz-readest-review to list Readest books, or export text and note for the third book into "<book title> 阅读笔记.md".
+```
+
+```text
 Use $jz-litellm-ops to check LiteLLM model prices, key status, and recent spend logs.
+```
+
+```text
+Use $jz-cf-ai-gateway-ops to inspect Cloudflare AI Gateway request paths, latency, custom providers, spend limits, and facade protocol routing.
+```
+
+```text
+Use $jz-chrome-launcher to open my daily Chrome profile or the isolated Agent Chrome on port 9333.
 ```
 
 ## Configuration
@@ -216,6 +285,9 @@ cp .env.example .env
 
 Prepare only the credentials needed for the skills you run.
 
+Per-skill local configuration should live under `~/.config/skills/<skill-name>/`.
+Use `.env` for environment variables and `config.yml` for structured settings.
+
 ### Credentials by skill
 
 | Skill | Required for the core path | Optional branches |
@@ -224,26 +296,39 @@ Prepare only the credentials needed for the skills you run.
 | `jz-create-cf-site` | Cloudflare auth through Wrangler or `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub CLI auth when creating or connecting a repo |
 | `jz-migrate-to-cf` | Existing project checkout and Cloudflare auth | Vercel auth only when reading current Vercel settings |
 | `jz-launch-domain` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |
-| `jz-setup-site-analytics` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config, or `CLARITY_ID` and `CLARITY_TOKEN` |
+| `jz-setup-analytics` | Final public domain | Analytics credentials, Google OAuth/ADC for Search Console and Site Verification, Cloudflare DNS token for verification TXT records, `BING_WEBMASTER_API_KEY`, `SITE_INTEGRATIONS_CONFIG` with per-domain Clarity config, or `CLARITY_ID` and `CLARITY_TOKEN` |
 | `jz-add-search-index` | Writable repo with a known final host | `INDEXNOW_KEY` only if overriding the generated key; otherwise the skill creates a fresh key |
 | `jz-track-conversion` | Existing analytics setup and editable app code | Stripe or auth code access only when checkout/signup events need implementation |
-| `jz-check-metrics` | Provider credentials for selected sources | Google ADC, Cloudflare token, Umami credentials, Clarity token depending on providers |
+| `jz-get-analytics` | Provider credentials for selected sources | Google ADC, Cloudflare token, Umami credentials, Clarity token depending on providers |
 | `jz-check-pagespeed` | PageSpeed API key for higher quota | Cloudflare token for RUM data |
 | `jz-add-gh-collaborator` | GitHub CLI auth for `OWNER_ACCOUNT`; agent account details from local config or user input | `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`, `AGENT_GITHUB`, `AGENT_EMAIL` |
 | `jz-commit-code` | Git repository with local changes | None |
 | `jz-push-code` | Clean committed branch and remote push access | IndexNow/Search Console credentials only for public site URL sync |
 | `jz-audit-vercel-cost` | Vercel CLI auth and access to the relevant team/project usage | Receipt date, billing cycle day, platform fee override |
 | `jz-audit-cf-cost` | Cloudflare API Token (Account: Analytics: Read), `CLOUDFLARE_ACCOUNT_ID` | Optional existing hourly cost monitor |
+| `jz-audit-neon-usage` | Platform request logs, cron-job.org schedules, and read-only database statistics | Vercel CLI auth, Neon/Postgres read credentials, optional `CRON_JOB_API_KEY`, project source code |
 | `jz-create-cf-token` | Bootstrap Cloudflare token with permission to create or edit account tokens | Project repo metadata for tighter token scoping |
 | `jz-build-personal-context` | Writable profile directory | `-g` when installing the generated profile into supported tools |
 | `jz-init-tailwind-theme` | Editable frontend project using Tailwind | Existing design-system files if the project already has one |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR credentials or local cached exports | Local SQLite/CSV data paths for prior research |
+| `jz-market-prospect` | Product idea, target buyer, product page, or repository context | Optional accounts for paid validation tools, SEO APIs, Exa, scraping APIs, or local cached research |
 | `jz-make-viral` | Product, site, page, or positioning context | Topic-specific reference files are loaded as needed |
 | `jz-check-cloud-agent` | Local untracked deployment config and SSH access | Remote desktop/noVNC config only when opening a browser session |
+| `jz-cloud-agent` | Local untracked deployment config and SSH access | Skill sync targets and remote browser config when needed |
+| `jz-test` | Editable web project | Existing test stack, CI config, or browser dependencies depending on project |
 | `jz-fetch-x` | RapidAPI key for the Twittr X API | Optional local `.env` fallback inside the skill directory |
+| `jz-feishu-doc-download` | `lark-cli` config and user auth with doc read/media access | Feishu document URL or token; write access to the target clipping directory |
+| `jz-video-transcript` | `yt-dlp` and network access to YouTube or X video captions | `translate.googleapis.com` access for Chinese machine translation |
 | `jz-transcribe-audio` | `GLM_API_KEY` and `ffmpeg`/`ffprobe` | Skill-local `.env` fallback |
+| `jz-douyin-transcript` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
 | `jz-wechat-archive-sync` | API key for the archive provider | Existing state/cache files when resuming a sync |
+| `jz-readest-review` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
 | `jz-litellm-ops` | Local untracked LiteLLM ops config and SSH/database access | Write access only when changing prices, fallback, budgets, or key state |
+| `jz-cf-ai-gateway-ops` | Cloudflare API token and account id with AI Gateway read access | Write access only when changing custom providers, spend limits, Worker secrets, or facade routing |
+| `jz-newapi-ops` | Local untracked NewAPI ops config and database access | Write access only when changing model prices, key state, or channel routing |
+| `jz-ovh-server` | OVH API credentials (application key, secret, consumer key) and SSH key | Write access for creating and terminating VPS |
+| `jz-hetzner-server` | Hetzner Cloud API token | Write access for creating and deleting servers; SSH key for hardening |
+| `jz-chrome-launcher` | Local Chrome app | Optional `JZ_DAILY_CHROME_PROFILE`, `JZ_AGENT_CHROME_PORT`, `JZ_AGENT_CHROME_USER_DATA_DIR` overrides |
 
 Common variables:
 
@@ -256,7 +341,7 @@ Common variables:
 - `UMAMI_API_KEY`: fallback only, for Umami Cloud or compatible providers that explicitly support API-key auth.
 - Google OAuth/ADC: Search Console and Site Verification access for the Google account that owns the site. Common local options are `gcloud auth application-default login`, `GOOGLE_APPLICATION_CREDENTIALS`, or another authenticated Google API session.
 - `BING_WEBMASTER_API_KEY`: Bing Webmaster Tools site verification and sitemap submission.
-- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity first reads per-domain `clarity.project_id` and `clarity.token` entries from this map. If the map is missing or lacks Clarity for the target domain, `jz-setup-site-analytics` checks `CLARITY_ID` and `CLARITY_TOKEN` in the current environment. If neither source has both values, Clarity is skipped and reported.
+- `SITE_INTEGRATIONS_CONFIG`: optional domain-to-repo and integration metadata map. Clarity first reads per-domain `clarity.project_id` and `clarity.token` entries from this map. If the map is missing or lacks Clarity for the target domain, `jz-setup-analytics` checks `CLARITY_ID` and `CLARITY_TOKEN` in the current environment. If neither source has both values, Clarity is skipped and reported.
 - `CLARITY_ID` and `CLARITY_TOKEN`: optional Clarity project id and project-level Data Export API token for the current run.
 - `ADD_CLOUD_AGENT_COLLABORATOR_CONFIG`: optional local env file for cloud-agent GitHub permission setup.
 
@@ -298,7 +383,7 @@ Missing optional credentials or config files should not stop unrelated steps. Fo
 
 ## Index onboarding data sources
 
-`jz-setup-site-analytics` combines several sources because they answer different questions about the same site.
+`jz-setup-analytics` combines several sources because they answer different questions about the same site.
 
 | Source | Main use | Overlap | Unique value |
 | --- | --- | --- | --- |
