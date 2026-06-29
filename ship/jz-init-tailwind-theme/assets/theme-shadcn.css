@@ -1,0 +1,148 @@
+/* ============================================================
+   Tailwind v4 主题（shadcn/ui 命名版）
+   当项目已用 shadcn/ui（--background / --foreground / --primary /
+   --primary-foreground / --card / --muted …）时用这份。
+   配色仍遵循 Marc 的 4 色法则，并补上 shadcn 模板通常缺的【排版】。
+   角色映射见 references/color-systems.md。
+   ============================================================ */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* 排版：Marc 的准确值（shadcn 模板默认没有，必须自己加） */
+  --text-h1: clamp(2.25rem, 6vw, 3.75rem);     /* 36→60px */
+  --text-h1--line-height: 1;
+  --text-h1--letter-spacing: -0.4px;
+  --text-h1--font-weight: 800;
+  --text-h2: clamp(2rem, 4.5vw, 3rem);         /* 32→48px */
+  --text-h2--line-height: 1;
+  --text-h2--letter-spacing: -0.4px;
+  --text-h2--font-weight: 800;
+  --tracking-headline: -0.4px;
+  --leading-headline: 1;
+}
+
+/* Marc 4 色法则映射到 shadcn：
+   Primary       → --primary / --primary-foreground（唯一主 CTA）
+   Base          → --background（+ --card / --secondary / --muted 做层次）
+   Base Content  → --foreground（标题、主文字）
+   Base Content Secondary → --muted-foreground（段落、辅助文字）
+   规则：避免纯黑（用深灰/夜蓝）；强调色保持一种，别滥用。 */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.02 260);        /* 深灰蓝，非纯黑 */
+  --card: oklch(0.99 0 0);
+  --card-foreground: oklch(0.21 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 260);
+  --primary: oklch(0.55 0.22 264);           /* 品牌主色，仅主 CTA */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.97 0.01 260);
+  --secondary-foreground: oklch(0.21 0.02 260);
+  --muted: oklch(0.97 0.01 260);
+  --muted-foreground: oklch(0.55 0.02 260);  /* 段落：对比弱于 foreground */
+  --accent: oklch(0.97 0.01 260);
+  --accent-foreground: oklch(0.21 0.02 260);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.92 0.01 260);
+  --ring: oklch(0.55 0.22 264);
+}
+
+.dark {
+  --background: oklch(0.16 0.02 260);        /* 夜蓝，非纯黑 */
+  --foreground: oklch(0.97 0.01 260);
+  --card: oklch(0.21 0.02 260);
+  --card-foreground: oklch(0.97 0.01 260);
+  --popover: oklch(0.21 0.02 260);
+  --popover-foreground: oklch(0.97 0.01 260);
+  --primary: oklch(0.62 0.2 264);
+  --primary-foreground: oklch(0.16 0.02 260);
+  --secondary: oklch(0.27 0.02 260);
+  --secondary-foreground: oklch(0.97 0.01 260);
+  --muted: oklch(0.27 0.02 260);
+  --muted-foreground: oklch(0.71 0.02 260);
+  --accent: oklch(0.27 0.02 260);
+  --accent-foreground: oklch(0.97 0.01 260);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.62 0.2 264);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.6;
+  }
+  /* 兜底排版：没显式设类的标题也大、粗、紧 */
+  h1, h2, h3 {
+    letter-spacing: -0.4px;
+    line-height: 1.05;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* 强调效果（关键词重音）：与 theme.css 相同，改用 shadcn 的 primary token */
+@utility em-mark {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  padding-inline: 0.2em;
+  color: var(--primary-foreground);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0.05em -0.1em;
+    z-index: -1;
+    background-color: var(--primary);
+    border-radius: 0.15em;
+    transform: skewX(-12deg) rotate(-1.5deg);
+  }
+}
+
+@utility em-underline {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+@utility em-highlight {
+  background-image: linear-gradient(to top, var(--primary) 0%, var(--primary) 100%);
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+  background-size: 100% 0.4em;
+  padding-bottom: 0.02em;
+}

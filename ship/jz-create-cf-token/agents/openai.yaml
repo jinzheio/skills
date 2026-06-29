@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloudflare Token"
+  short_description: "为项目创建或更新最小权限 Cloudflare API token。"
+  default_prompt: "使用 $jz-create-cf-token 为当前项目创建或更新最小权限 Cloudflare token，验证权限，不输出 secret。"

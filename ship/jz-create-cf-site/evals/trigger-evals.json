@@ -1,0 +1,34 @@
+{
+  "skill_name": "create-cf-site",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "把这个本地网站上线到 Cloudflare，并创建 GitHub repo",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Publish this local Next.js app through GitHub and Cloudflare Workers.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Deploy this SPA to Cloudflare Workers Static Assets.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "我的 GitHub 不能关联 Cloudflare，用 wrangler deploy 直接发布这个站点",
+      "should_trigger": true
+    },
+    {
+      "prompt": "把这个 Vercel 项目迁移到 Cloudflare，并切生产域名",
+      "should_trigger": false
+    },
+    {
+      "prompt": "域名已经好了，帮我接 GSC 和统计",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Push this existing repo to origin.",
+      "should_trigger": false
+    }
+  ]
+}

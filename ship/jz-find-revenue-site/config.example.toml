@@ -1,0 +1,27 @@
+# find-revenue-site configuration
+# Copy this to ~/.config/skills/jz-find-revenue-site/config.toml and fill in your paths.
+
+[paths]
+# Directory containing the ptr CLI code (the SKILL.md directory)
+skill_root = "~/.claude/skills/jz-find-revenue-site"
+# Data directory for sqlite, csv, raw cache, and reports
+data_root = "~/Projects/paid-traction-radar"
+# SQLite database path
+sqlite = "~/Projects/paid-traction-radar/paid_traction_radar.sqlite3"
+# TrustMRR CSV export path
+trustmrr_csv = "~/Projects/paid-traction-radar/data/trustmrr_export.csv"
+# Reports output directory
+reports = "~/Projects/paid-traction-radar/reports"
+
+[credentials]
+# Path to .env file with API keys
+# Must contain: SIMILARWEB_API_KEY, SEMRUSH_API_KEY, TRUSTMRR_API_TOKEN
+env_file = "~/.config/skills/jz-find-revenue-site/.env"
+
+[thresholds]
+# Minimum global rank to consider a site "high traffic" (Similarweb)
+min_global_rank = 100000
+# Minimum monthly visits
+min_monthly_visits = 10000
+# Minimum TrustMRR revenue estimate
+min_trustmrr = 5000

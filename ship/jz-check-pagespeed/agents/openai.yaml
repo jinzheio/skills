@@ -1,0 +1,4 @@
+interface:
+  display_name: "页面速度诊断"
+  short_description: "查看 PageSpeed、CrUX 和 Cloudflare RUM Web Vitals。"
+  default_prompt: "使用 $jz-check-pagespeed 检查目标 URL 的速度和 Web Vitals，给出可执行的优化建议。"

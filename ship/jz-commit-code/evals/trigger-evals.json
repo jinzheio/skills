@@ -1,0 +1,30 @@
+{
+  "skill_name": "commit-code",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "帮我 commit 一下这几个文件，先看一下有没有风险",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Review the current diff and split it into clean commits.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "确认提交，按功能分批提交",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Push the branch to origin after running build.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Create a GitHub repo and deploy this site to Vercel.",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Explain what changed in the last commit.",
+      "should_trigger": false
+    }
+  ]
+}

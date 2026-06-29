@@ -1,0 +1,61 @@
+{
+  "skill_name": "jz-init-tailwind-theme",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我给这个新 Next.js 项目初始化一个 tailwind 主题，配色干净一点的 SaaS 风格",
+      "expected_output": "触发；产出 v4 CSS-first 主题（@import + @theme 四色），写入 CSS 入口",
+      "should_trigger": true,
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "新建一个 tailwind 配置文件，设置主色和背景色",
+      "expected_output": "触发；默认 v4 @theme 写法而非 tailwind.config.js",
+      "should_trigger": true,
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我想给落地页标题里的关键词加那种平行四边形高亮和虚线下划线效果",
+      "expected_output": "触发；提供 em-mark / em-underline 等强调 utilities",
+      "should_trigger": true,
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "给我整个落地页配色方案，按少用颜色的原则来",
+      "expected_output": "触发；按 Marc 4 色法则给 primary/base 调色板",
+      "should_trigger": true,
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "帮我把现有 tailwind.config.js 里的颜色改一下，加个新的灰度",
+      "expected_output": "可触发但需注意：用户在用 v3 config，应确认后按其现有格式改，不强行换 v4",
+      "should_trigger": true,
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "tailwind 装好了但 build 报错说找不到 @tailwindcss/postcss，帮我修一下",
+      "expected_output": "不触发；这是安装/构建工具链问题，不是主题初始化",
+      "should_trigger": false,
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "用 tailwind 帮我写一个响应式的定价表组件",
+      "expected_output": "不触发；这是组件/布局任务，不是主题配色初始化",
+      "should_trigger": false,
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "把这张设计稿的配色提取成 16 进制色值列表",
+      "expected_output": "不触发；只是取色，不涉及生成 tailwind 主题",
+      "should_trigger": false,
+      "files": []
+    }
+  ]
+}

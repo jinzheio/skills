@@ -1,0 +1,8 @@
+[bootstrap]
+env_file = "<path-to-local-bootstrap-env>"
+account_id_var = "CLOUDFLARE_ACCOUNT_ID"
+token_var = "CLOUDFLARE_API_TOKEN"
+
+[project]
+token_files = [".dev.vars", ".env.local", ".env", ".env.production", ".env.development"]
+preferred_token_file = ".dev.vars"

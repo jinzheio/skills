@@ -1,0 +1,4 @@
+interface:
+  display_name: "让产品传播起来"
+  short_description: "综合 32 条 viral product 原则 + 5 条 landing page 设计规律 + 已验证文案规则，分话题路由读取对应 reference"
+  default_prompt: "使用 $jz-make-viral 分析这个产品在传播力、转化、定价和定位上的改进空间，对照原则给出具体建议。"

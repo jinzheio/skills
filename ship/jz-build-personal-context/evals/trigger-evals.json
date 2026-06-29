@@ -1,0 +1,42 @@
+{
+  "skill_name": "build-personal-context",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "根据这篇文章，通过苏格拉底提问帮我创建 about、voice 和 anti-style，并全局启用",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Use -g to create my AI profile files for Codex, ChatGPT, Claude, and Claude Code.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "帮我生成个人上下文文件，让 Claude Code 每次都能读取我的写作偏好",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Interview me to build a voice profile and anti AI writing rules.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "回顾这次对话，看看 aboutme 下的文件有没有需要更新的地方。",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Review my personal context and update about.md, voice.md, or anti-style.md if this session changed anything.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "帮我把这篇公众号文章润色一下，去掉 AI 味",
+      "should_trigger": false
+    },
+    {
+      "prompt": "给这个项目写 README 和 AGENTS.md",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Analyze whether this paragraph sounds AI-generated.",
+      "should_trigger": false
+    }
+  ]
+}

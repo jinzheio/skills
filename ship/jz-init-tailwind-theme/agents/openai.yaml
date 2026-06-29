@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tailwind 主题"
+  short_description: "初始化或调整 Tailwind v4 CSS-first 主题 token。"
+  default_prompt: "使用 $jz-init-tailwind-theme 检查当前前端项目的 Tailwind 配置，初始化或调整主题 token。"

@@ -1,0 +1,63 @@
+[targets.checkout]
+items = [
+  "checkout.stripe.com",
+  "buy.stripe.com",
+  { domain = "pay.paddle.io", platform = "paddle" },
+  "checkout.paddle.com",
+  "lemonsqueezy.com",
+  "buy.polar.sh",
+  "creem.io",
+  "checkout.freemius.com",
+  "checkout.dodopayments.com",
+]
+
+[targets.mor_software]
+items = [
+  { domain = "onfastspring.com", platform = "fastspring" },
+  { domain = "sites.fastspring.com", platform = "fastspring" },
+  { domain = "secure.2checkout.com", platform = "2checkout" },
+  "payproglobal.com",
+]
+
+[targets.creator_commerce]
+items = [
+  "thrivecart.com",
+  "payhip.com",
+  "gumroad.com",
+  "ko-fi.com",
+  "buymeacoffee.com",
+  "fourthwall.com",
+  "stan.store",
+  "podia.com",
+  "samcart.com",
+  "sendowl.com",
+]
+
+[targets.marketplace]
+items = [
+  "whop.com",
+  "xsolla.com",
+  "tebex.io",
+]
+
+[targets.noisy_low_confidence]
+items = [
+  "billing.stripe.com",
+  "paypal.me",
+  "sellix.io",
+  "buy.paddle.com",
+  { domain = "pay.paddle.com", platform = "paddle" },
+]
+
+[targets.platform_home]
+enabled = false
+items = [
+  "stripe.com",
+  "paddle.com",
+  "lemonsqueezy.com",
+  "paypal.com",
+  "fastspring.com",
+  "payproglobal.com",
+  "chargebee.com",
+  "recurly.com",
+]

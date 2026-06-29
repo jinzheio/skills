@@ -1,0 +1,18 @@
+[project]
+name = "ptr"
+version = "0.1.0"
+description = "Paid Traction Radar — discover early commercial traction from payment gateway referrers and referring domains"
+requires-python = ">=3.11"
+dependencies = [
+  "requests>=2.31",
+]
+
+[project.scripts]
+ptr = "ptr.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ptr*"]

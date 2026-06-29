@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vercel 到 Cloudflare 迁移"
+  short_description: "把 Web 项目从 Vercel 迁移到 Cloudflare。"
+  default_prompt: "使用 $jz-migrate-to-cf 评估当前项目，列出迁移步骤，确认后处理 Cloudflare 迁移和验证。"

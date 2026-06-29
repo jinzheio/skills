@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review 并提交代码"
+  short_description: "先 review 工作区变更，确认后按功能拆分提交"
+  default_prompt: "使用 $jz-commit-code review 当前工作区变更，报告风险，等我确认后按功能创建 commit。"

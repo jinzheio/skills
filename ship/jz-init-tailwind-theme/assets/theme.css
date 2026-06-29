@@ -1,0 +1,142 @@
+/* ============================================================
+   Tailwind v4 主题文件（CSS-first，无 tailwind.config.js）
+   设计法则来自 Marc Lou《Design beautiful websites》系列：
+   - Colors：少用颜色，4 色起步
+   - Headlines：标题要大、粗、紧、短
+   "Forget creativity, design is about rules."
+
+   用法：
+   1. 作为应用的 CSS 入口（如 src/app.css / app/globals.css）。
+   2. 按 references/palette-recipes.md 替换 @theme 里的占位色。
+   3. 用生成的工具类：bg-primary、text-base-content、text-h1 等。
+
+   命名说明：本模板用 daisyUI 风格的角色名（primary / base-100 /
+   base-content）。若项目已用 shadcn/ui（background / foreground /
+   primary-foreground …）或其它体系，先读 references/color-systems.md
+   做映射，或改用 assets/theme-shadcn.css。
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* ------------------------------------------------------------
+   配色：少即是美（4 色起步）
+   角色 → Marc 原文 → 本 token：
+     主 CTA 底 / 字 → Primary / Primary Content → primary / primary-content
+     通用底         → Base                      → base-100（+200/300 扩展）
+     通用字         → Base Content              → base-content
+     次级字         → Base Content Secondary    → base-content-secondary
+   规则：内容色与背景充分对比；避免纯黑 #000000；扩展只在 Base 上做同色相
+   明暗，最多 3 档。下面是占位色（indigo + zinc），请替换。
+   ------------------------------------------------------------ */
+@theme {
+  --color-primary: #4f46e5;          /* 示例：indigo-600，留给唯一主 CTA */
+  --color-primary-content: #ffffff;
+
+  --color-base-100: #ffffff;         /* 主背景 */
+  --color-base-200: #f4f4f5;         /* 次级区块 / 卡片 */
+  --color-base-300: #e4e4e7;         /* 边框 / 分隔线 */
+
+  --color-base-content: #18181b;            /* 标题、主文字（最高对比） */
+  --color-base-content-secondary: #52525b;  /* 段落、辅助说明（对比弱于主文字） */
+
+  /* ----------------------------------------------------------
+     排版（Rule #2：标题要大、粗、紧、短）
+     Marc 的准确值：
+     - 字号：h1 60px / h2 48px（桌面），移动端 32–40px → 用 clamp 流式
+     - 字重：700–900，全站统一（这里取 800）
+     - 字距：标题 letter-spacing 减 -0.4px
+     - 行高：标题 line-height 收到 1
+     text-h1 / text-h2 一次性带上 字号+行高+字距+字重。
+     ---------------------------------------------------------- */
+  --text-h1: clamp(2.25rem, 6vw, 3.75rem);     /* 36px → 60px */
+  --text-h1--line-height: 1;
+  --text-h1--letter-spacing: -0.4px;
+  --text-h1--font-weight: 800;
+
+  --text-h2: clamp(2rem, 4.5vw, 3rem);         /* 32px → 48px */
+  --text-h2--line-height: 1;
+  --text-h2--letter-spacing: -0.4px;
+  --text-h2--font-weight: 800;
+
+  /* 独立 helper，用于手动微调（tracking-headline / leading-headline） */
+  --tracking-headline: -0.4px;
+  --leading-headline: 1;
+}
+
+/* 一般规则：
+   - 标题 text-h1 / text-h2 text-base-content（不要给标题再上别的颜色，
+     会打断阅读、和主 CTA 抢注意；要点缀关键词用下面的 emphasis）
+   - 段落 text-base-content-secondary
+   - CTA  bg-primary text-primary-content
+   - 每个 section 只放 1 个标题；标题 ≤ 70 字符、≤ 2 行 */
+
+/* ------------------------------------------------------------
+   基础排版默认值（让没显式设类的元素也不难看）
+   body 行高 1.6 是通用易读默认（非 Marc 标题规则）；
+   标题元素默认收紧字距/行高，作为兜底，组件用工具类可覆盖。
+   ------------------------------------------------------------ */
+@layer base {
+  body {
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.4px;
+    line-height: 1.05;
+    font-weight: 800;
+    text-wrap: balance;   /* 多行标题更均衡，配合"语义换行" */
+  }
+  p {
+    text-wrap: pretty;
+    max-width: 65ch;      /* 限制每行字数，提升可读性 */
+  }
+}
+
+/* ------------------------------------------------------------
+   强调（Emphasis）：给标题里的关键词加视觉重音
+   就是 Marc 插图里那种"重点词"效果。三选一，别叠太多。
+   默认都用 --color-primary，想换强调色可改成别的变量。
+   ------------------------------------------------------------ */
+
+/* 1) 平行四边形高亮：关键词后面铺一块斜切的主色块（马克笔涂抹感）
+   <h1 class="text-h1">Ship <span class="em-mark">faster</span></h1> */
+@utility em-mark {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  padding-inline: 0.2em;
+  color: var(--color-primary-content);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0.05em -0.1em;
+    z-index: -1;
+    background-color: var(--color-primary);
+    border-radius: 0.15em;
+    transform: skewX(-12deg) rotate(-1.5deg);
+  }
+}
+
+/* 2) 虚线下划线：关键词下方一条主色虚线
+   <span class="em-underline">only</span> */
+@utility em-underline {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--color-primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* 3) 荧光笔涂抹：关键词底部一道粗主色高亮（背景在文字之后）
+   <span class="em-highlight">revenue</span> */
+@utility em-highlight {
+  background-image: linear-gradient(
+    to top,
+    var(--color-primary) 0%,
+    var(--color-primary) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+  background-size: 100% 0.4em;
+  padding-bottom: 0.02em;
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "转化事件追踪"
+  short_description: "设计和实现网站转化漏斗事件埋点"
+  default_prompt: "使用 $jz-track-conversion 为这个站点设计转化漏斗事件体系，实现埋点代码并验证事件到达。"

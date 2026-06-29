@@ -1,0 +1,8 @@
+{
+  "name": "build-personal-context",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "build-personal-context": "./scripts/install-profile.mjs"
+  }
+}

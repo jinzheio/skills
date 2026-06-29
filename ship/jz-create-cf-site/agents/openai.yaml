@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布到 Cloudflare"
+  short_description: "用 Wrangler 把本地 Web 项目发布到 Cloudflare Workers"
+  default_prompt: "使用 $jz-create-cf-site 检查当前项目，配置 Cloudflare Workers 一级支持技术栈，通过 Wrangler 直接发布，并验证部署。"
