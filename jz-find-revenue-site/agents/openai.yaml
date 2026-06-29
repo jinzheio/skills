@@ -1,7 +1,0 @@
-interface:
-  display_name: "High Revenue Site Finder"
-  short_description: "按收入和流量发现相似或最新高收入网站。"
-  default_prompt: "Use $jz-find-revenue-site to find high-revenue sites similar to a given domain, with Similarweb, TrustMRR, Semrush, and source-backed thresholds."
-
-policy:
-  allow_implicit_invocation: true

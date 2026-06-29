@@ -1,4 +1,0 @@
-interface:
-  display_name: "Test Setup & Enhancement"
-  short_description: "Set up or improve test infrastructure for Next.js, Astro, and TanStack Start projects"
-  default_prompt: "Uses the $jz-test skill to assess testing infrastructure, add tests for critical paths, configure coverage, and set up CI pipelines."

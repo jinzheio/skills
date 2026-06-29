@@ -1,4 +1,0 @@
-interface:
-  display_name: "Vercel 成本核算"
-  short_description: "把 Vercel usage 解析成 Pro 固定费、额外用量和账单金额"
-  default_prompt: "使用 $jz-audit-vercel-cost 核对 Vercel receipt/card charge，区分 effectiveCost、billedCost、Pro 固定费和 non-Pro 额外用量。"

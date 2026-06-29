@@ -1,4 +1,0 @@
-interface:
-  display_name: "Vercel 到 Cloudflare 迁移"
-  short_description: "把 Web 项目从 Vercel 迁移到 Cloudflare。"
-  default_prompt: "评估并迁移当前项目：先检查是否依赖 Vercel 平台资源，列出迁移步骤并请我确认，再处理域名交接、Cloudflare 资源、部署和验证。"
