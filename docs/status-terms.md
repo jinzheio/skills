@@ -21,6 +21,6 @@ All skills in this pack use a shared set of status terms when reporting the outc
 
 ## Skills that use these terms
 
-- `setup-site-analytics` — reports status for each of: analytics, Search Console, robots/sitemap, IndexNow, Bing Webmaster Tools, Clarity
+- `setup-analytics` — reports status for each of: analytics, Search Console, robots/sitemap, IndexNow, Bing Webmaster Tools, Clarity
 - `push-code` — reports status for: IndexNow URL submission, Search Console sitemap check
 - `launch-domain` — reports status for: nameserver delegation, domain binding, TLS, redirect, email forwarding

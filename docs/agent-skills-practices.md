@@ -138,7 +138,7 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 | Prompt | 预期行为 |
 |---|---|
 | "帮我 push 这个后端 API 库" | 触发 `push-code` 但**不**运行 IndexNow |
-| "域名解析好了，帮我接 GSC" | 触发 `setup-site-analytics`，**不**触发 `launch-domain` |
+| "域名解析好了，帮我接 GSC" | 触发 `setup-analytics`，**不**触发 `launch-domain` |
 | "部署到 Vercel 临时域名就行" | 触发 `create-site`，**不**继续进入 domain/index onboarding |
 | "帮我 commit 一下这几个文件" | 触发 `commit-code`，**不**触发 `push-code` |
 

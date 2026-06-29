@@ -1,4 +1,4 @@
 interface:
   display_name: "New API 运维"
   short_description: "查询和配置 New API 渠道、额度、fallback 与 Claude Code 接入。"
-  default_prompt: "检查 New API 当前模型、额度、fallback 和 cc-switch 接入格式。"
+  default_prompt: "使用 $jz-newapi-ops 检查 New API 当前模型、额度、fallback 和 cc-switch 接入格式。"

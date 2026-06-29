@@ -21,6 +21,13 @@
 - `agents/openai.yaml` 存在且 `default_prompt` 使用 `$jz-*`。
 - 三个全局目录里的软链接没有断链、旧名残留或指向已删除目录。
 
+## Skill 本机配置
+
+- 新建或修改 skill 时，本机配置目录统一使用 `~/.config/skills/<skill-name>/`。
+- 环境变量放在 `~/.config/skills/<skill-name>/.env`。
+- 结构化配置放在 `~/.config/skills/<skill-name>/config.yml`、`config.yaml`、`config.toml` 或 skill 自己说明的格式。
+- 如果为了兼容旧安装需要读取其它位置，必须把 `~/.config/skills/<skill-name>/` 作为首选位置，并在文档中说明旧位置只是 fallback。
+
 不要把本机绝对路径写进文档或提交内容。需要举例时使用 `<repo-root>/<skill-name>`、`<skill-dir>` 这类占位符。
 
 ## Review 硬性要求
