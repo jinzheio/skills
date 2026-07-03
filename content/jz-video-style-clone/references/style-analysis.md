@@ -1,6 +1,28 @@
-# Stage 1: Analyzing the reference video
+# Stage 1: Analyzing reference videos
 
-The goal is a written **style sheet** — a compact spec you (and the user) can check the final video against. Don't skip writing it down; "I looked at the video" is not a spec.
+The goal is a written **style sheet** for each reference video, plus a short synthesis when there is more than one reference. Don't skip writing it down; "I looked at the video" is not a spec.
+
+## 0. Resolve reference inputs
+
+Reference input can be zero, one, or many videos.
+
+- If the user provided videos, analyze each one separately.
+- If the user provided no videos, list cached entries under the current project's `references/video-style-clone/` and ask the user to choose. Use `metadata.json` and `style-sheet.md` if they exist; do not re-analyze just to list choices.
+- If `references/video-style-clone/` has no usable cached videos, stop and ask the user for a reference video.
+- If a provided video matches a cached `metadata.json` file hash, reuse its cached `frames/`, `audio-analysis/`, and `style-sheet.md` unless the requested frame sampling rate is higher than the cached one.
+
+Use this cache layout in the current project:
+
+```text
+references/video-style-clone/<reference-id>/
+  source.<ext>
+  metadata.json
+  frames/
+  audio-analysis/
+  style-sheet.md
+```
+
+`metadata.json` should include source URL or original path, source filename, file size, hash, duration, resolution, native video fps, frame sampling rate, and analysis time.
 
 ## 1. Probe the container
 
@@ -13,9 +35,12 @@ Note resolution, aspect ratio (4:3 vs 16:9 changes layout decisions), fps, durat
 
 ## 2. Extract and view frames
 
+Use the user's requested frame sampling rate. Default to `1` frame per second; use `2` or `3` for fast-cut videos.
+
 ```bash
-mkdir -p frames
-ffmpeg -v error -i "<ref.mp4>" -vf fps=1 -q:v 3 frames/f%02d.jpg
+mkdir -p "references/video-style-clone/<reference-id>/frames"
+ffmpeg -v error -i "<ref.mp4>" -vf "fps=<frames-per-second>" -q:v 3 \
+  "references/video-style-clone/<reference-id>/frames/f%04d.jpg"
 ```
 
 View them (image-capable models: read ~10 frames spread across the video; more near scene changes). If you cannot view images, extract more frames and ask the user to describe key ones, or run OCR — but visual inspection is strongly preferred.
@@ -51,7 +76,8 @@ Map each reference scene to one of these roles; you'll re-instantiate the same r
 ## 5. Analyze the audio
 
 ```bash
-python3 scripts/analyze_audio.py "<ref.mp4>" --out-dir ./audio-analysis
+python3 scripts/analyze_audio.py "<ref.mp4>" \
+  --out-dir "references/video-style-clone/<reference-id>/audio-analysis"
 ```
 
 It prints duration, BPM candidates (autocorrelation of the onset envelope), and section boundaries from the energy envelope, and writes `spectrogram.png`. View the spectrogram and describe the arc in words, e.g.:
@@ -61,3 +87,14 @@ It prints duration, BPM candidates (autocorrelation of the onset envelope), and 
 Record: BPM, where the music "opens up", where it breaks down, whether the ending fades or hits a button. You will feed these numbers to `make_music.py` in Stage 4.
 
 If the video has a voiceover instead of/besides music, note it — this skill only reproduces the music bed; voiceover is out of scope unless the user asks.
+
+## 6. Save results
+
+Write the style sheet to `references/video-style-clone/<reference-id>/style-sheet.md`. Keep the original reference video as `source.<ext>` in the same directory.
+
+When there are multiple references, add a synthesis note in the final response or in `references/video-style-clone/synthesis.md`:
+
+- which reference supplies the timeline
+- which reference supplies typography/layout ideas
+- which reference supplies motion or music pacing
+- what conflicts were ignored

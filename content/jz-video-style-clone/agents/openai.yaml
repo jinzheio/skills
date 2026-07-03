@@ -1,4 +1,4 @@
 interface:
   display_name: "同款风格视频克隆"
   short_description: "分析参考视频的画面风格与配乐节奏，用 Remotion 为当前项目制作同风格宣传视频并合成配乐。"
-  default_prompt: "使用 $jz-video-style-clone 分析我提供的参考视频，提取它的视觉风格、场景结构和音乐节奏，然后结合当前项目的品牌色、文案和定价，用 Remotion 制作一支同风格的宣传视频（含合成配乐），渲染成 mp4 并把源码留在项目里。"
+  default_prompt: "使用 $jz-video-style-clone 分析我提供的一个或多个参考视频；如果我没有提供视频，就先列出项目 references/video-style-clone/ 里的已缓存参考视频让我选择。提取视觉风格、场景结构和音乐节奏，复用已有分析缓存，然后结合当前项目的品牌色、文案和定价，用 Remotion 制作一支同风格的宣传视频（含合成配乐），渲染成 mp4 并把源码留在项目里。"
