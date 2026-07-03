@@ -1,38 +1,38 @@
 ---
 name: jz-create-cf-token
-description: Create or update a project-scoped, minimal-permission Cloudflare API token. Use this skill whenever the user asks to set up Cloudflare authentication, create a Cloudflare API token, configure wrangler credentials, or mentions needing Cloudflare access for a project. Also trigger on phrases like "set up CF token", "create wrangler token", "Cloudflare API token for this project", or when a project needs Workers/D1/R2/KV/AI access.
+description: 为项目创建或更新项目范围、最小权限的 Cloudflare API Token。当用户要求设置 Cloudflare 认证、创建 Cloudflare API Token、配置 wrangler 凭证，或提到项目需要 Cloudflare 访问权限时使用。触发短语包括"set up CF token""create wrangler token""Cloudflare API token for this project"，以及项目需要 Workers/D1/R2/KV/AI 访问权限时。
 ---
 
 # Cloudflare 项目 API Token
 
-Use a project-scoped, minimal-permission Cloudflare API token for Cloudflare work.
+Cloudflare 相关工作时，使用项目范围、最小权限的 Cloudflare API Token。
 
-The shared token configured for this skill is a bootstrap token. Use it only to create a project token or update an existing project token's permissions. Do not use the shared token for project deploys, resource creation, GitHub Secrets, CI/CD, or routine Wrangler/API operations.
+本技能配置的共享 token 是引导 token。它仅用于创建项目 token 或更新已有项目 token 的权限。不要将共享 token 用于项目部署、资源创建、GitHub Secrets、CI/CD 或日常 Wrangler/API 操作。
 
-Store the project token in `.dev.vars` and, when needed, GitHub Secrets. Keep `CLOUDFLARE_ACCOUNT_ID` with it.
+将项目 token 存储在 `.dev.vars` 中，需要时也存入 GitHub Secrets。`CLOUDFLARE_ACCOUNT_ID` 一并保存。
 
-## Workflow
+## 工作流
 
-### Step 1: Determine required permissions
+### 第 1 步：确定所需权限
 
-Infer permissions from the project context. Read `wrangler.jsonc` or `wrangler.toml` if present to see which bindings are used (D1, R2, KV, AI, Workers, etc.). Ask the user to confirm the permission set.
+根据项目上下文推断权限。如果存在 `wrangler.jsonc` 或 `wrangler.toml`，读取以了解使用了哪些绑定（D1、R2、KV、AI、Workers 等）。向用户确认权限集。
 
-Common project profiles:
+常见项目权限配置：
 
-| Project type | Permissions needed |
+| 项目类型 | 所需权限 |
 |---|---|
-| Workers + D1 | Workers Scripts Write, D1 Read, D1 Write |
-| Workers + R2 | Workers Scripts Write, R2 Read, R2 Write |
-| Workers + D1 + R2 | Workers Scripts Write, D1 Read, D1 Write, R2 Read, R2 Write |
-| Workers + KV | Workers Scripts Write, KV Read, KV Write |
-| Workers + AI | Workers Scripts Write, AI Read, AI Write |
-| Full Workers stack | Scripts Write, D1 R/W, R2 R/W, KV R/W, Routes R/W |
+| Workers + D1 | Workers Scripts Write、D1 Read、D1 Write |
+| Workers + R2 | Workers Scripts Write、R2 Read、R2 Write |
+| Workers + D1 + R2 | Workers Scripts Write、D1 Read、D1 Write、R2 Read、R2 Write |
+| Workers + KV | Workers Scripts Write、KV Read、KV Write |
+| Workers + AI | Workers Scripts Write、AI Read、AI Write |
+| 完整 Workers 技术栈 | Scripts Write、D1 R/W、R2 R/W、KV R/W、Routes R/W |
 
-If there is no `wrangler` config or it's ambiguous, ask the user which services the project uses.
+如果没有 `wrangler` 配置或不明确，询问用户项目使用了哪些服务。
 
-### Step 2: Check for an existing project token
+### 第 2 步：检查是否已有项目 token
 
-Check current project files first:
+先检查当前项目文件：
 
 ```text
 .dev.vars
@@ -42,24 +42,24 @@ Check current project files first:
 .env.development
 ```
 
-If a project token exists, validate it against the concrete API needed for the task. If it already has the required permissions, use it.
+如果已存在项目 token，针对任务所需的具体 API 验证其有效性。如果已经具备所需权限，直接使用。
 
-If it exists but lacks permissions, prefer updating that project token's policy when the token id is available. If the token cannot be updated safely, create a new project token with the required minimum permissions and replace the project token in `.dev.vars`.
+如果存在但权限不足，当 token id 可用时，优先更新该项目 token 的策略。如果无法安全更新，创建具有所需最小权限的新项目 token，并替换 `.dev.vars` 中的项目 token。
 
-Never replace a project token with the shared bootstrap token.
+绝不要用共享引导 token 替换项目 token。
 
-### Step 3: Read bootstrap credentials only if needed
+### 第 3 步：仅在需要时读取引导凭证
 
-The config points to the bootstrap credential env file and names the variables to read. Look in **both** of these locations (first match wins):
+配置指向引导凭证的 env 文件，并指定要读取的变量名。按以下顺序查找（先匹配的优先）：
 
 1. `~/.config/skills/jz-create-cf-token/config.toml`
 2. `<skill-dir>/config.toml`
 
-If neither exists, ask the user for the missing config or values.
+如果都不存在，向用户询问缺失的配置或值。
 
-Config schema is tracked in `config.example.toml`. Copy that shape to a `config.toml` at the preferred location, then set `env_file` to the local bootstrap env file. Do **not** commit `config.toml` or the bootstrap env — both paths above are outside the skill's git repo by default.
+配置格式参考 `config.example.toml`。将该模板复制为 `config.toml` 放在首选位置，然后将 `env_file` 设为本地的引导 env 文件。**不要**提交 `config.toml` 或引导 env——上述两个路径默认都在本 skill 的 git 仓库之外。
 
-When calling the Python script, resolve the config path with the same two-location order and pass it via `CF_TOKEN_SKILL_CONFIG`. Example resolution logic:
+调用 Python 脚本时，按相同两位置顺序解析配置路径，并通过 `CF_TOKEN_SKILL_CONFIG` 传入。解析逻辑示例：
 
 ```bash
 if [ -f "$HOME/.config/skills/jz-create-cf-token/config.toml" ]; then
@@ -67,31 +67,31 @@ if [ -f "$HOME/.config/skills/jz-create-cf-token/config.toml" ]; then
 elif [ -f "<skill-dir>/config.toml" ]; then
     export CF_TOKEN_SKILL_CONFIG="<skill-dir>/config.toml"
 else
-    echo "No jz-create-cf-token config.toml found" >&2 && exit 1
+    echo "未找到 jz-create-cf-token config.toml" >&2 && exit 1
 fi
 ```
 
-Read the configured account id and bootstrap token only when the project has no usable token, or when the existing project token needs a permission update. If the config file, env file, or variables are missing after checking both locations, ask the user directly.
+仅在项目没有可用 token，或现有项目 token 需要权限更新时，才读取配置的 account id 和引导 token。如果在两个位置都找不到配置文件、env 文件或所需变量，直接询问用户。
 
-Use this function to extract values from env files:
+使用以下函数从 env 文件提取值：
 ```bash
 get_env() { awk -F= -v k="$1" '$1==k {sub(/^[^=]*=/, ""); gsub(/^"|"$/, ""); print; exit}' "$2"; }
 ```
 
-The bootstrap env file must define the variables named by `account_id_var` and `token_var`.
+引导 env 文件必须定义 `account_id_var` 和 `token_var` 所指定的变量。
 
-### Step 4: Create or update the project token
+### 第 4 步：创建或更新项目 token
 
-Use a Python script to avoid exposing secrets in shell output. The endpoints are:
+使用 Python 脚本以避免在 shell 输出中暴露密钥。涉及的端点：
 
-- List permission groups: `GET https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/permission_groups`
-- Create token: `POST https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens`
-- Update token when applicable: `PUT https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/${TOKEN_ID}`
-- Verify token: `GET https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/verify`
+- 列出权限组：`GET https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/permission_groups`
+- 创建 token：`POST https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens`
+- 更新 token（如适用）：`PUT https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/${TOKEN_ID}`
+- 验证 token：`GET https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tokens/verify`
 
-The token name should match the project name. Use `urllib` (stdlib) to avoid external dependencies. Policies should include only the permissions required by the current project.
+token 名称应与项目名称一致。使用 `urllib`（标准库）避免外部依赖。策略应仅包含当前项目所需的权限。
 
-Permission group ID reference (these are stable across accounts):
+权限组 ID 参考（这些 ID 跨账户稳定）：
 
 ```
 Workers Scripts Write  e086da7e2179491d91ee5f35b3ca210a
@@ -115,9 +115,9 @@ Observability Read     66c1ed49f4ed46098b75696a6d4ee3c9
 Observability Write    82c075da3f4647a2a03becd0fe240f8a
 ```
 
-Always resolve permission group IDs from the live API rather than relying solely on this table, in case Cloudflare adds or renames groups. Use the table only as a fallback mapping from name to expected group.
+始终通过实时 API 解析权限组 ID，不要仅依赖此表，以防 Cloudflare 新增或重命名权限组。此表仅用作从名称到预期组 ID 的回退映射。
 
-Script template (adjust project name and permission groups). If updating an existing project token, use the same `body` with `PUT /accounts/${ACCOUNT_ID}/tokens/${TOKEN_ID}` instead of the create request. If the existing token id cannot be confirmed, create a new project token and replace the project token in `.dev.vars`.
+脚本模板（调整项目名称和权限组）。如果更新已有项目 token，使用相同的 `body` 通过 `PUT /accounts/${ACCOUNT_ID}/tokens/${TOKEN_ID}` 替代创建请求。如果无法确认现有 token id，创建新项目 token 并替换 `.dev.vars` 中的项目 token。
 
 ```python
 import subprocess, json, os
@@ -134,7 +134,7 @@ config_path = os.environ.get("CF_TOKEN_SKILL_CONFIG")
 if config_path:
     config_path = os.path.expanduser(config_path)
 else:
-    # Two-location lookup: ~/.config/skills first, then skill dir
+    # 两位置查找：先 ~/.config/skills，再 skill 目录
     home_config = os.path.expanduser("~/.config/skills/jz-create-cf-token/config.toml")
     skill_dir_config = os.path.join(os.path.dirname(__file__), "config.toml")
     if os.path.exists(home_config):
@@ -142,7 +142,7 @@ else:
     elif os.path.exists(skill_dir_config):
         config_path = skill_dir_config
     else:
-        raise SystemExit("No jz-create-cf-token config.toml found at ~/.config/skills/jz-create-cf-token/ or skill directory")
+        raise SystemExit("未找到 jz-create-cf-token config.toml（~/.config/skills/jz-create-cf-token/ 和 skill 目录均无）")
 
 with open(config_path, "rb") as f:
     config = tomllib.load(f)
@@ -155,7 +155,7 @@ bootstrap_token = get_env(bootstrap.get("token_var", "CLOUDFLARE_API_TOKEN"), en
 headers = {"Authorization": f"Bearer {bootstrap_token}"}
 base = "https://api.cloudflare.com/client/v4"
 
-# 1. Resolve permission group IDs from live API
+# 1. 从实时 API 解析权限组 ID
 req = urllib.request.Request(f"{base}/accounts/{account_id}/tokens/permission_groups", headers=headers)
 perms = json.loads(urllib.request.urlopen(req).read())
 
@@ -163,16 +163,16 @@ def find_id(name):
     for g in perms["result"]:
         if g["name"] == name:
             return g["id"]
-    raise ValueError(f"permission group not found: {name}")
+    raise ValueError(f"未找到权限组: {name}")
 
 perm_ids = [
     find_id("Workers Scripts Write"),
     find_id("D1 Read"),
     find_id("D1 Write"),
-    # ... add more as needed
+    # ... 根据需要添加更多
 ]
 
-# 2. Create project token
+# 2. 创建项目 token
 project_name = os.path.basename(os.getcwd())
 body = json.dumps({
     "name": project_name,
@@ -188,20 +188,20 @@ req2 = urllib.request.Request(f"{base}/accounts/{account_id}/tokens",
 resp = json.loads(urllib.request.urlopen(req2).read())
 
 if not resp.get("success"):
-    print(f"ERROR: {json.dumps(resp, indent=2)}")
+    print(f"错误: {json.dumps(resp, indent=2)}")
     exit(1)
 
 new_token = resp["result"]["value"]
 token_id = resp["result"]["id"]
 
-# 3. Verify
+# 3. 验证
 req3 = urllib.request.Request(f"{base}/accounts/{account_id}/tokens/verify",
     headers={"Authorization": f"Bearer {new_token}"})
 verify = json.loads(urllib.request.urlopen(req3).read())
 status = verify.get("result", {}).get("status", "unknown")
-assert verify.get("success") and status == "active", f"verification failed: {status}"
+assert verify.get("success") and status == "active", f"验证失败: {status}"
 
-# 4. Write to .dev.vars
+# 4. 写入 .dev.vars
 dev_vars = ".dev.vars"
 existing = ""
 if os.path.exists(dev_vars):
@@ -231,32 +231,32 @@ new_content = "\n".join(new_lines).strip() + "\n"
 with open(dev_vars, "w") as f:
     f.write(new_content)
 
-# 5. Report (never print the token value)
+# 5. 报告（绝不打印 token 值）
 print(f"token_id={token_id}")
 print(f"verify_status={status}")
-print("updated .dev.vars")
+print("已更新 .dev.vars")
 ```
 
-### Step 5: Verify the project token works
+### 第 5 步：验证项目 token 可用
 
-After writing `.dev.vars`, run a wrangler command to confirm the token is functional:
+写入 `.dev.vars` 后，运行 wrangler 命令确认 token 正常：
 
 ```bash
 source .dev.vars 2>/dev/null; npx wrangler secret list 2>&1 | head -3
 ```
 
-Or if the project doesn't have secrets yet, a lighter check:
+或者如果项目尚无 secrets，使用更轻量的检查：
 
 ```bash
 curl -sS -H "Authorization: Bearer $TOKEN" "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tokens/verify" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'status={d[\"result\"][\"status\"]}')"
 ```
 
-## Security rules
+## 安全规则
 
-- **Never print or display the token value.** Use `[REDACTED]` if a value must be shown.
-- **Never hardcode tokens in shell commands.** Always use variables sourced from files.
-- **Use the project token for project work.** Do not deploy, create resources, run Wrangler, or write GitHub Secrets with the shared bootstrap token.
-- **Only read the bootstrap `CLOUDFLARE_API_TOKEN` from this skill's local config when creating or updating a project token.**
-- The project token goes into `.dev.vars`, which must be gitignored. Verify before writing.
-- If GitHub Actions deploys the project, write the project token, not the shared token, into GitHub Secrets.
-- After creating or updating the project token, report only the token id, source file, and permission boundary.
+- **绝不打印或显示 token 值。** 如果必须展示值，使用 `[REDACTED]`。
+- **绝不在 shell 命令中硬编码 token。** 始终使用从文件读取的变量。
+- **项目工作使用项目 token。** 不要使用共享引导 token 进行部署、创建资源、运行 Wrangler 或写入 GitHub Secrets。
+- **仅在创建或更新项目 token 时，从此 skill 的本地配置读取引导 `CLOUDFLARE_API_TOKEN`。**
+- 项目 token 写入 `.dev.vars`，该文件必须在 gitignore 中。写入前请确认。
+- 如果 GitHub Actions 部署该项目，将项目 token（而非共享 token）写入 GitHub Secrets。
+- 创建或更新项目 token 后，仅报告 token id、来源文件和权限边界。

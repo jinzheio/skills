@@ -1,57 +1,57 @@
 ---
 name: jz-transcribe-audio
-description: Transcribe audio and video files to Chinese text using the GLM ASR API. Use when the user wants to convert a voice memo, meeting recording, interview, or video into text. Supports common formats (m4a, mp3, wav, mp4, mov) via automatic ffmpeg conversion. Handles files of any length by splitting into 30-second segments internally.
+description: 使用 GLM ASR API 将音频和视频文件转写为中文文本。当用户想将语音备忘录、会议录音、采访或视频转换为文字时使用。支持常见格式（m4a、mp3、wav、mp4、mov），通过 ffmpeg 自动转换。内部将文件拆分为 30 秒片段，可处理任意长度的文件。
 ---
 
-# Transcribe Audio
+# 音频转写
 
-Use this skill to turn audio or video into Chinese text via [GLM-ASR-2512](https://docs.bigmodel.cn/cn/guide/models/sound-and-video/glm-asr-2512).
+将音频或视频通过 [GLM-ASR-2512](https://docs.bigmodel.cn/cn/guide/models/sound-and-video/glm-asr-2512) 转为中文文本。
 
-## Quick Start
+## 快速开始
 
 ```bash
 python3 <skill-dir>/scripts/transcribe.py ~/Downloads/录音.m4a
 ```
 
-Output defaults to `<input-basename>.txt` next to the input file. Override with `-o`:
+输出默认写在输入文件旁边，文件名为 `<输入文件名>.txt`。可通过 `-o` 指定输出路径：
 
 ```bash
 python3 <skill-dir>/scripts/transcribe.py ~/Downloads/录音.m4a -o ~/Downloads/转录.txt
 ```
 
-## How It Works
+## 工作原理
 
-1. If the input is not MP3, ffmpeg converts it to MP3 (128 kbps).
-2. Audio longer than 30 seconds is split into 30‑second segments.
-3. Each segment is posted to the GLM ASR endpoint (`glm-asr-2512`).
-4. Results are concatenated and written to the output file.
+1. 如果输入不是 MP3，ffmpeg 将其转换为 MP3（128 kbps）。
+2. 超过 30 秒的音频被拆分为 30 秒片段。
+3. 每个片段 POST 到 GLM ASR 端点（`glm-asr-2512`）。
+4. 结果拼接后写入输出文件。
 
-## Supported Formats
+## 支持的格式
 
-Via ffmpeg auto‑conversion: m4a, wav, mp3, mp4, mov, flac, ogg, webm, aac, and most common audio/video containers.
+通过 ffmpeg 自动转换支持：m4a、wav、mp3、mp4、mov、flac、ogg、webm、aac 以及大多数常见音视频容器格式。
 
-## Credentials
+## 凭证
 
-API key lookup order:
+API key 查找顺序：
 
-1. `~/.config/skills/jz-transcribe-audio/.env` ← recommended
+1. `~/.config/skills/jz-transcribe-audio/.env` ← 推荐
 2. `<skill-root>/.env`
-3. `GLM_API_KEY` environment variable
+3. `GLM_API_KEY` 环境变量
 
-Each source is a simple `GLM_API_KEY=<key>` line.
+每个来源均为简单的 `GLM_API_KEY=<key>` 行。
 
-## Pricing
+## 费用
 
-GLM-ASR-2512 costs **¥0.06 / minute**. A 14‑minute recording costs ~¥0.85.
+GLM-ASR-2512 价格为 **¥0.06 / 分钟**。一段 14 分钟的录音大约花费 ¥0.85。
 
-## Limits
+## 限制
 
-- Max file size: 25 MB
-- Max segment duration: 30 seconds (script splits longer files automatically)
-- Supported segment formats: wav, mp3
+- 最大文件大小：25 MB
+- 最大片段时长：30 秒（脚本自动拆分更长的文件）
+- 支持的片段格式：wav、mp3
 
-## Caveats
+## 注意事项
 
-- glm-asr-2512 is a recent model (Dec 2025). If the API returns an "unknown model" error, check the [official docs](https://docs.bigmodel.cn/api-reference/模型-API/语音转文本) for the current model name.
-- The 30‑second split uses ffmpeg segment copy, so boundaries may occasionally fall mid‑word — adjacent segments usually cover the gap.
-- Very short segments (a few seconds of silence) may produce empty or garbled output.
+- glm-asr-2512 是较新的模型（2025 年 12 月）。如果 API 返回 "unknown model" 错误，请查阅[官方文档](https://docs.bigmodel.cn/api-reference/模型-API/语音转文本)获取当前模型名称。
+- 30 秒拆分使用 ffmpeg segment copy，因此边界可能偶尔落在单词中间——相邻片段通常能覆盖断点。
+- 极短的片段（几秒静音）可能产生空输出或乱码。

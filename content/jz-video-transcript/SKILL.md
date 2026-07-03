@@ -1,30 +1,30 @@
 ---
 name: jz-video-transcript
-description: Fetch video subtitles/transcripts from YouTube or X videos and create English, Chinese, and bilingual Markdown files. Use when the user wants video subtitles, transcripts, captions, URLs from a video list, or Chinese translations of videos. Handles YouTube auto captions, X VTT captions, repeated rolling caption text, and machine translation for Chinese output.
+description: 从 YouTube 或 X 视频中提取字幕/转录，生成英文、中文和双语 Markdown 文件。当用户需要视频字幕、转录、视频列表中的 URL 或视频的中文翻译时使用。处理 YouTube 自动字幕、X VTT 字幕、重复滚动字幕文本，以及中文机器翻译。
 ---
 
-# Video Transcript
+# 视频字幕提取
 
-Use this skill when the task is to get video subtitles, transcripts, or Chinese translations from one or more YouTube or X video URLs.
+当需要从一个或多个 YouTube 或 X 视频 URL 获取字幕、转录或中文翻译时使用此技能。
 
-## Default Workflow
+## 默认工作流
 
-1. Normalize the input into one URL per line.
-2. Run `scripts/video_transcript.py` with an explicit output directory.
-3. Prefer English VTT captions from the source platform.
-4. Generate:
+1. 将输入标准化为每行一个 URL。
+2. 运行 `scripts/video_transcript.py`，指定输出目录。
+3. 优先使用源平台的英文 VTT 字幕。
+4. 生成：
    - `transcript.en.md`
    - `transcript.zh.md`
    - `transcript.bilingual.md`
    - `meta.json`
-   - source `.en.vtt`
-   - root `INDEX.md`
-5. When `--output-format kb` (default), also write a clean knowledge-base copy to `raw/clippings/youtube/<channel-slug>/<title-slug>/` containing `transcript.md`, `transcript.zh.md`, and `meta.json` — mirroring the `raw/clippings/wechat/` convention.
-6. After running, verify the number of generated transcript files equals the number of target videos.
+   - 源 `.en.vtt`
+   - 根目录 `INDEX.md`
+5. 当 `--output-format kb`（默认）时，同时写一份干净的知识库副本到 `raw/clippings/youtube/<channel-slug>/<title-slug>/`，包含 `transcript.md`、`transcript.zh.md` 和 `meta.json`——与 `raw/clippings/wechat/` 的目录惯例一致。
+6. 运行后，验证生成的转录文件数量与目标视频数量一致。
 
-## Command
+## 命令
 
-Single video:
+单个视频：
 
 ```bash
 uv run python <skill-dir>/scripts/video_transcript.py \
@@ -32,7 +32,7 @@ uv run python <skill-dir>/scripts/video_transcript.py \
   --output-dir ./video-transcripts
 ```
 
-X video:
+X 视频：
 
 ```bash
 uv run python <skill-dir>/scripts/video_transcript.py \
@@ -40,7 +40,7 @@ uv run python <skill-dir>/scripts/video_transcript.py \
   --output-dir ./video-transcripts
 ```
 
-Multiple videos from a text file:
+从文本文件批量处理：
 
 ```bash
 uv run python <skill-dir>/scripts/video_transcript.py \
@@ -48,7 +48,7 @@ uv run python <skill-dir>/scripts/video_transcript.py \
   --output-dir ./video-transcripts
 ```
 
-English only:
+仅英文：
 
 ```bash
 uv run python <skill-dir>/scripts/video_transcript.py \
@@ -57,23 +57,23 @@ uv run python <skill-dir>/scripts/video_transcript.py \
   --engine none
 ```
 
-## Requirements
+## 依赖
 
-- `yt-dlp` must be available on `PATH`.
-- Python 3.10+.
-- Network access to the source video platform for English captions.
-- Network access to `translate.googleapis.com` only when Chinese translation is requested.
+- `yt-dlp` 必须在 `PATH` 中。
+- Python 3.10+。
+- 获取英文字幕需要网络访问源视频平台。
+- 仅当请求中文翻译时需要访问 `translate.googleapis.com`。
 
-If `yt-dlp` is missing, install or make it available in the current environment before asking the user to retry.
+如果缺少 `yt-dlp`，先安装或使其在环境中可用，再让用户重试。
 
-## Input Rules
+## 输入规则
 
-- Accept full YouTube URLs, `youtu.be` URLs, Shorts URLs, X status URLs, or raw YouTube video IDs.
-- For a YouTube channel or playlist, first use `yt-dlp --flat-playlist` to create a URL list, then pass that file with `--input-file`.
-- For date windows, collect the video URL list separately first; this script only processes the URLs it is given.
-- X videos must expose an English VTT caption track through `yt-dlp`. If no caption track exists, report the URL as failed.
+- 接受完整 YouTube URL、`youtu.be` URL、Shorts URL、X 状态 URL 或原始 YouTube 视频 ID。
+- 对于 YouTube 频道或播放列表，先使用 `yt-dlp --flat-playlist` 创建 URL 列表，然后将该文件通过 `--input-file` 传入。
+- 对于日期窗口，先单独收集视频 URL 列表；此脚本仅处理给定的 URL。
+- X 视频必须通过 `yt-dlp` 暴露英文 VTT 字幕轨道。如果没有字幕轨道，将该 URL 报告为失败。
 
-## Output Layout
+## 输出结构
 
 ```text
 video-transcripts/
@@ -87,7 +87,7 @@ video-transcripts/
         └── transcript.bilingual.md
 ```
 
-With `--output-format kb` (default), an additional copy is placed:
+使用 `--output-format kb`（默认）时，额外在以下路径生成副本：
 
 ```text
 raw/clippings/youtube/<channel-slug>/<title-slug>/
@@ -96,19 +96,19 @@ raw/clippings/youtube/<channel-slug>/<title-slug>/
 └── transcript.zh.md
 ```
 
-Use `--output-format plain` to skip the knowledge-base copy.
+使用 `--output-format plain` 跳过知识库副本。
 
-## Important Implementation Details
+## 重要实现细节
 
-- YouTube auto VTT often repeats previous words on each caption frame. Do not translate raw VTT lines directly.
-- X VTT can contain `<X-word-ms>` timing tags. Use the script parser because it strips markup and keeps readable text.
-- Use the script parser because it keeps only incremental caption text where available and removes repeated rolling caption lines.
-- Chinese captions from YouTube translation endpoints may return HTTP 429. Treat that as normal. Use English captions plus script translation instead of retrying indefinitely.
-- Machine translation is good enough for reading and search. For publishing, manually review important names, product terms, and awkward sentences.
+- YouTube 自动 VTT 经常在每个字幕帧中重复前面的单词。不要直接翻译原始 VTT 行。
+- X VTT 可能包含 `<X-word-ms>` 时间标签。使用脚本解析器，因为它会剥离标记并保留可读文本。
+- 使用脚本解析器，因为在可用的情况下它会仅保留增量字幕文本，并删除重复的滚动字幕行。
+- 从 YouTube 翻译端点获取中文字幕可能返回 HTTP 429。将其视为正常情况。使用英文字幕加脚本翻译，而不是无限重试。
+- 机器翻译对于阅读和搜索足够好用。用于发布时，手动审核重要名称、产品术语和不通顺的句子。
 
-## Verification
+## 验证
 
-After running, check:
+运行后检查：
 
 ```bash
 find ./video-transcripts -name 'transcript.zh.md' | wc -l
@@ -116,18 +116,18 @@ find ./video-transcripts -name 'transcript.en.md' | wc -l
 sed -n '1,40p' ./video-transcripts/INDEX.md
 ```
 
-Report:
+汇报：
 
-1. Target video count.
-2. Generated English transcript count.
-3. Generated Chinese transcript count.
-4. Output directory.
-5. Any failed URLs.
+1. 目标视频数量。
+2. 生成的英文转录数量。
+3. 生成的中文转录数量。
+4. 输出目录。
+5. 所有失败的 URL。
 
-## Failure Handling
+## 失败处理
 
-- `HTTP Error 429` from YouTube Chinese subtitles: continue with English VTT plus translation.
-- Missing English captions: report the video URL as failed; do not invent transcript text.
-- X login wall or media extraction failure: report the URL as failed and include the `yt-dlp` error.
-- Translation timeout: rerun the same command. Existing completed video directories may be overwritten safely by the script.
-- Bad machine translation: keep the raw English transcript and note that the Chinese file needs review.
+- YouTube 中文字幕 `HTTP Error 429`：继续使用英文 VTT 加翻译。
+- 缺少英文字幕：将该视频 URL 报告为失败；不要编造转录文本。
+- X 登录墙或媒体提取失败：将该 URL 报告为失败，附带 `yt-dlp` 错误信息。
+- 翻译超时：重新运行同一命令。脚本可以安全地覆盖已有的视频目录。
+- 机器翻译质量差：保留原始英文转录，标记中文文件需要人工审核。

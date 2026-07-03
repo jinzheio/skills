@@ -1,61 +1,61 @@
 ---
 name: jz-video-style-clone
-description: Given a reference video (e.g. a competitor's product promo), analyze its visual style, pacing, and music, then produce a similar-style promo video for the current project using Remotion, including a synthesized background track matching the reference's tempo and energy arc. Use this whenever the user provides a video file or link and asks for "a video like this", "同款视频", "仿照这个风格做视频", a product promo/launch video, or wants to recreate a motion-graphics style for their own product — even if they don't mention Remotion or music.
+description: 给定一个参考视频（如竞品产品宣传片），分析其视觉风格、节奏和配乐，然后用 Remotion 为当前项目制作风格相似的宣传视频，包括合成一首与参考视频节奏和能量弧线匹配的背景音乐。当用户提供视频文件或链接并要求"做个类似的视频""同款视频""仿照这个风格做视频"、产品宣传/发布视频，或想为自己的产品复刻某种动效风格时使用——即使用户没有明确提到 Remotion 或配乐。
 ---
 
-# Video Style Clone
+# 视频风格克隆
 
-Turn a reference video into a same-style promo for the current project. The pipeline has four stages — analyze the reference, script the content, build in Remotion, add music — and each stage has a reference doc with the exact recipes. Follow the stages in order; the most common failure mode is jumping to code before the analysis is written down.
+将参考视频转化为当前项目的同风格宣传片。流程分为四个阶段——分析参考视频、编写内容脚本、用 Remotion 构建、添加配乐——每个阶段都有对应的参考文档提供具体方案。按顺序执行各阶段；最常见的失败模式是在分析结果写下来之前就跳到代码阶段。
 
-## Why this works
+## 为什么有效
 
-Motion-graphics promos (Cline, Linear, Vercel style) are highly formulaic: a hook headline, 2–4 feature beats with UI panels, a price/CTA beat, and a logo outro — all built from a small set of animation primitives (word-by-word text entrance, highlight sweep, panel slide-in, spring scale). If you extract the formula from the reference and re-instantiate it with the current project's content and brand, the result reads as "same style" even though every pixel differs. Bundled assets give you the primitives so you only write scene content.
+动效宣传片（Cline、Linear、Vercel 风格）是高度公式化的：一个钩子标题、2-4 个带 UI 面板的功能亮点、一个价格/CTA 亮点、一个 logo 结尾——全部由少数几个动画原语构建（逐词文字入场、高光扫过、面板滑入、弹性缩放）。如果你从参考视频中提取公式，并用当前项目的内容和品牌重新实例化，结果读起来就是"同款风格"，尽管每个像素都不同。内置素材提供原语，你只需编写场景内容。
 
-## Stage 0 — Clarify (once, before any work)
+## 阶段 0——确认（一次性，任何工作开始前）
 
-Ask the user (one round of questions, then proceed with defaults):
+询问用户（一轮问题，之后按默认值推进）：
 
-1. What story/selling points should the video tell? (default: mirror the reference's narrative structure with the project's own hero copy and pricing)
-2. Language of on-screen text? (default: same as reference)
-3. Colors: follow the project's brand palette or copy the reference? (default: project brand — find it in the project's CSS/theme; keep the reference's *layout* and *type treatment*)
-4. UI panels: recreate as coded mockups or use real screenshots? (default: coded mockups — deterministic, no secrets on screen)
+1. 视频要讲什么故事/卖点？（默认：用项目自身的核心文案和定价，镜像参考视频的叙事结构）
+2. 屏幕文字的语种？（默认：与参考视频一致）
+3. 颜色：沿用项目的品牌调色板还是复制参考视频？（默认：项目品牌色——从项目的 CSS/主题中提取；保留参考视频的*布局*和*字体处理*）
+4. UI 面板：用代码重绘还是用真实截图？（默认：代码重绘——确定性强，屏幕不会暴露隐私信息）
 
-Then collect project facts BEFORE writing any scenes: product name, tagline/hero copy, real feature names, real prices, logo file, brand colors, domain. Pull them from the project repo (i18n message files, `pricing`/config modules, `public/` brand assets). Never invent prices or claims — wrong numbers in a rendered video are expensive to miss.
+然后在编写任何场景之前收集项目信息：产品名称、标语/核心文案、真实功能名称、真实价格、logo 文件、品牌色、域名。从项目仓库中提取（i18n 消息文件、`pricing`/配置模块、`public/` 品牌素材）。绝对不要编造价格或声明——渲染后视频中的错误数字很难被发现。
 
-## Stage 1 — Analyze the reference
+## 阶段 1——分析参考视频
 
-Read `references/style-analysis.md` and follow it. In short:
+阅读 `references/style-analysis.md` 并执行。概括如下：
 
-- Extract 1 frame/second with ffmpeg, view them, and write a **style sheet**: background color, type scale/weight, accent color + highlight mechanic, panel chrome, pill/badge shapes, scene list with timings.
-- Run `scripts/analyze_audio.py <video>` to get duration, BPM estimate, energy arc (section boundaries), and a spectrogram image to eyeball.
+- 用 ffmpeg 每秒提取 1 帧，查看帧序列，撰写**风格表**：背景颜色、字号/粗细、强调色 + 高光机制、面板镶边、药丸/徽章形状、场景列表及时间。
+- 运行 `scripts/analyze_audio.py <video>` 获取时长、BPM 估算、能量弧线（段落边界）和频谱图图像。
 
-Write the style sheet down (a short markdown block in your reply or a scratch file). Every later decision traces back to it.
+把风格表写下来（回复中的简短 markdown 块或临时文件）。后续所有决策都以此为依据。
 
-## Stage 2 — Script the video
+## 阶段 2——编写视频脚本
 
-Map the reference's scene structure onto the project's content: one line per scene with start frame, duration, on-screen text, and which primitive it uses. Keep total duration within ±15% of the reference. Put the timeline in a single `TL` constant (see the template) so scenes never overlap by accident.
+将参考视频的场景结构映射到项目内容：每行一个场景，包含起始帧、时长、屏幕文字和使用的原语。总时长控制在参考视频的 ±15% 以内。将时间线放在单个 `TL` 常量中（见模板），确保场景绝不会意外重叠。
 
-## Stage 3 — Build with Remotion
+## 阶段 3——用 Remotion 构建
 
-Read `references/remotion-build.md`. It covers project layout, the bundled component primitives (`assets/components/`), fonts (ship woff2 in the project, load via `FontFace` + `delayRender` — never rely on system fonts or Google Fonts CDN), emoji pitfalls, and scene composition patterns. Copy the assets, recolor via one `theme.ts`, write scenes.
+阅读 `references/remotion-build.md`。涵盖项目布局、内置组件原语（`assets/components/`）、字体（项目内以 woff2 分发，通过 `FontFace` + `delayRender` 加载——绝不要依赖系统字体或 Google Fonts CDN）、emoji 陷阱、场景组合模式。复制素材，通过 `theme.ts` 重新上色，编写场景。
 
-## Stage 4 — Music
+## 阶段 4——配乐
 
-Read `references/music.md`. Use `scripts/make_music.py` as the starting point: set BPM and section boundaries from the Stage 1 audio analysis, align the breakdown/outro to the video's price-reveal and logo scenes, render a WAV, encode to `.m4a`, reference it with `<Audio src={staticFile(...)}>` in the composition. If the user has a licensed track, skip synthesis and just align/trim it.
+阅读 `references/music.md`。以 `scripts/make_music.py` 为起点：根据阶段 1 音频分析设置 BPM 和段落边界，将低谷/结尾对齐到视频的价格揭晓和 logo 场景，渲染 WAV，编码为 `.m4a`，在合成中使用 `<Audio src={staticFile(...)}>` 引用。如果用户有授权音乐，跳过合成，只做对齐和裁剪。
 
-## Stage 5 — Render, verify, deliver
+## 阶段 5——渲染、验证、交付
 
-1. Render: `npx remotion render <CompositionId> out/video.mp4` (add `--concurrency=1` on small machines; chunked rendering recipe and sandbox troubleshooting are in `references/rendering.md` — read it if the render fails or you are in a restricted/sandboxed environment).
-2. **Verify with your eyes**: extract 6–10 frames spread across the video (`ffmpeg -vf "select='eq(n,45)+eq(n,300)+...'"`), view them, and compare against the Stage 1 style sheet. Check: fonts actually loaded (not fallback serif), no emoji tofu boxes, panels sized to content (no big empty bottoms), text not clipped, prices/names correct.
-3. Verify audio: `ffmpeg -af volumedetect` — aim for mean around −12 to −14 dB, max below −0.5 dB; confirm music sections land on the intended scenes.
-4. Fix and re-render only the affected frame ranges if the renderer supports `--frames`.
-5. Deliver the mp4 into the project (e.g. `video/` dir) and leave the Remotion source in the repo (e.g. `src/remotion-video/`) with `package.json` scripts (`video:promo:studio`, `video:promo:render`) so the team can iterate.
+1. 渲染：`npx remotion render <CompositionId> out/video.mp4`（小型机器加 `--concurrency=1`；分块渲染方法和沙箱问题排查见 `references/rendering.md`——渲染失败或处于受限/沙箱环境时阅读该文档）。
+2. **用眼睛验证**：提取 6-10 帧分布在视频各处（`ffmpeg -vf "select='eq(n,45)+eq(n,300)+...'"`），查看，与阶段 1 的风格表对比。检查：字体确实已加载（不是回退衬线体）、没有 emoji 豆腐块、面板适配内容（没有大片空白底部）、文字没被裁切、价格/名称正确。
+3. 验证音频：`ffmpeg -af volumedetect`——目标均值约 −12 至 −14 dB，峰值低于 −0.5 dB；确认音乐段落落在预期的场景上。
+4. 修复并仅重新渲染受影响的帧范围（如果渲染器支持 `--frames`）。
+5. 将 mp4 交付到项目中（如 `video/` 目录），并将 Remotion 源码留在仓库中（如 `src/remotion-video/`），附带 `package.json` 脚本（`video:promo:studio`、`video:promo:render`）以便团队后续迭代。
 
-## Checklist before calling it done
+## 完成前检查清单
 
-- [ ] Style sheet written from actual frames (not memory) and music analysis run
-- [ ] All product facts (names, prices, copy) came from the project repo
-- [ ] Fonts bundled + loaded via FontFace; verified in rendered frames
-- [ ] Music arc aligned to scene timeline; levels checked
-- [ ] Sampled rendered frames reviewed against the style sheet
-- [ ] Remotion source + render scripts committed to the project, final mp4 delivered
+- [ ] 风格表基于实际帧写出（非凭记忆），且音频分析已完成
+- [ ] 所有产品信息（名称、价格、文案）来自项目仓库
+- [ ] 字体已打包 + 通过 FontFace 加载；在渲染帧中已验证
+- [ ] 音乐弧线对齐场景时间线；音量已检查
+- [ ] 渲染帧采样已对照风格表审查
+- [ ] Remotion 源码 + 渲染脚本已提交到项目，最终 mp4 已交付

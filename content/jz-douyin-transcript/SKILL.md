@@ -1,24 +1,24 @@
 ---
 name: jz-douyin-transcript
-description: Transcribe Douyin videos to Markdown. Use for one Douyin video URL or for a Douyin user/profile batch. Writes transcripts under raw/clippings/douyin/<channel>/ with sync-state.json progress to avoid repeated downloads. Defaults to latest 30 videos and skips videos longer than 5 minutes.
+description: 将抖音视频转写为 Markdown。支持单个视频 URL 或抖音用户/主页批量转写。转录文件写入 raw/clippings/douyin/<channel>/，通过 sync-state.json 记录进度以避免重复下载。默认获取最近 30 个视频，跳过超过 5 分钟的视频。
 ---
 
-# Douyin Transcript
+# 抖音视频转写
 
-Use this skill to transcribe Douyin oral videos into Markdown files.
+将抖音口播视频转写为 Markdown 文件。
 
-## What It Does
+## 功能
 
-- Supports a single video URL.
-- Supports a Douyin profile/user URL batch.
-- Defaults to latest 30 videos for profile batch.
-- Skips videos longer than 5 minutes by default.
-- Saves progress in `raw/clippings/douyin/<channel>/sync-state.json`.
-- Writes one Markdown file per usable transcript.
+- 支持单个视频 URL。
+- 支持抖音主页/用户 URL 批量转写。
+- 批量转写默认获取最近 30 个视频。
+- 默认跳过超过 5 分钟的视频。
+- 进度保存在 `raw/clippings/douyin/<channel>/sync-state.json`。
+- 每条有效转录输出一个 Markdown 文件。
 
-## Command
+## 命令
 
-Single video:
+单个视频：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -26,7 +26,7 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --channel <channel-name>
 ```
 
-Batch from a profile:
+从主页批量获取：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -34,7 +34,7 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --channel <channel-name>
 ```
 
-Continue until 10 more usable transcripts are produced:
+继续处理直到再产出 10 条有效转录：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -43,7 +43,7 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --add-usable 10
 ```
 
-Only transcribe the first minute of each video:
+仅转写每个视频的前一分钟：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -54,7 +54,7 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --clip-seconds 60
 ```
 
-Use an existing URL list:
+使用已有的 URL 列表：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -62,7 +62,7 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --channel <channel-name>
 ```
 
-## Output
+## 输出
 
 ```text
 raw/clippings/douyin/<channel-name>/
@@ -71,21 +71,21 @@ raw/clippings/douyin/<channel-name>/
 └── <video-id>.md
 ```
 
-Each Markdown file contains:
+每个 Markdown 文件包含：
 
-- title
-- channel
-- Douyin URL
-- transcript text
+- 标题
+- 频道
+- 抖音链接
+- 转录文本
 
-## Requirements
+## 依赖
 
 - Python 3.10+
 - `requests`
-- `ffmpeg` and `ffprobe` on `PATH`
-- GLM API key configured for `jz-transcribe-audio`
-- Node.js and Playwright for profile collection
-- For profile collection, an existing logged-in Chrome/Chrome for Testing with remote debugging is recommended:
+- `ffmpeg` 和 `ffprobe` 在 `PATH` 中
+- 已为 `jz-transcribe-audio` 配置好 GLM API key
+- 收集主页视频需要 Node.js 和 Playwright
+- 收集主页视频时，建议使用已登录的 Chrome/Chrome for Testing 并开启远程调试：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -94,18 +94,18 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --cdp http://127.0.0.1:9333
 ```
 
-If CDP is unavailable, pass `--input-file` with known video URLs.
+如果 CDP 不可用，可传 `--input-file` 指定已知的视频 URL。
 
-## Notes
+## 注意事项
 
-- Existing successful Markdown files are skipped.
-- Failed items are skipped by default on later runs. Use `--retry-failed` to retry them.
-- Videos longer than `--max-duration-seconds` are marked failed and skipped. Default: `300`.
-- Tiny or segment-error transcripts do not count toward the usable target.
+- 已有成功转写的 Markdown 文件会被跳过。
+- 失败的条目默认在后续运行时跳过。使用 `--retry-failed` 重试。
+- 超过 `--max-duration-seconds` 的视频会被标记为失败并跳过。默认值：`300`。
+- 过短或片段错误的转录不计入有效目标。
 
-## Verification
+## 验证
 
-After running:
+运行后：
 
 ```bash
 python3 <skill-dir>/scripts/douyin_transcript.py \
@@ -113,9 +113,9 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --status
 ```
 
-Report:
+汇报：
 
-- output directory
-- usable transcript count
-- failed count
-- skipped long videos
+- 输出目录
+- 有效转录数量
+- 失败数量
+- 跳过的长视频数量
