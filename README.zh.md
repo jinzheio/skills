@@ -40,9 +40,9 @@
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
-| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review` |
+| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone` |
 | `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
-| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-mac-remote` |
+| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote` |
 
 新网站的推荐顺序：
 
@@ -106,6 +106,7 @@ cp -R ship/jz-cloud-agent ~/.codex/skills/
 cp -R ship/jz-test ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
 cp -R content/jz-feishu-doc-download ~/.codex/skills/
+cp -R content/jz-scys-article ~/.codex/skills/
 cp -R content/jz-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-audio ~/.codex/skills/
 cp -R content/jz-douyin-transcript ~/.codex/skills/
@@ -118,6 +119,7 @@ cp -R infra/jz-ovh-server ~/.codex/skills/
 cp -R infra/jz-hetzner-server ~/.codex/skills/
 cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
+cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
@@ -234,11 +236,19 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-scys-article 获取这个生财文章链接，保存为 Markdown；如果全文在飞书中，输出飞书内容并记录生财原始链接。
+```
+
+```text
 使用 $jz-video-transcript 获取这个 YouTube 或 X 视频字幕，并生成英文、中文和双语 Markdown。
 ```
 
 ```text
 使用 $jz-transcribe-audio 转写这段会议录音。
+```
+
+```text
+使用 $jz-video-style-clone 分析这个参考视频，结合当前项目用 Remotion 制作一支画面与配乐风格类似的宣传视频（含合成配乐）。
 ```
 
 ```text
@@ -263,6 +273,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 
 ```text
 使用 $jz-chrome-launcher 打开日常 Chrome profile，或打开 9333 端口的隔离 Agent Chrome。
+```
+
+```text
+使用 $jz-launchd-task 创建或整理这个 macOS launchd 后台任务。
 ```
 
 ## 配置
@@ -309,10 +323,13 @@ cp .env.example .env
 | `jz-cloud-agent` | 本机未跟踪 deployment 配置和 SSH 权限 | 需要时读取 skill 同步目标和远程浏览器配置 |
 | `jz-test` | 可编辑的 Web 项目 | 根据项目读取现有测试栈、CI 配置或浏览器依赖 |
 | `jz-chrome-launcher` | 本机 Chrome app | 可选 `JZ_DAILY_CHROME_PROFILE`、`JZ_AGENT_CHROME_PORT`、`JZ_AGENT_CHROME_USER_DATA_DIR` 覆盖 |
+| `jz-launchd-task` | 有权限写入用户级 LaunchAgents 的 macOS 用户账号 | 只有系统级 LaunchDaemons 需要 root 权限 |
 | `jz-fetch-x` | Twittr X API 的 RapidAPI key | 可选的 skill 目录本地 `.env` 回退 |
 | `jz-feishu-doc-download` | `lark-cli` 配置和有文档读取、素材访问权限的用户授权 | 飞书文档 URL 或 token；目标 clipping 目录可写 |
+| `jz-scys-article` | 已登录的 Chrome for Testing CDP 会话 | 文章链接到飞书全文时需要 `lark-cli` 用户授权；Chrome for Testing 不可用时，可选使用用户 Chrome 会话 |
 | `jz-video-transcript` | `yt-dlp` 和 YouTube 或 X 视频字幕访问 | 需要中文机器翻译时访问 `translate.googleapis.com` |
 | `jz-transcribe-audio` | `GLM_API_KEY` 和 `ffmpeg`/`ffprobe` | skill 目录本地 `.env` 回退 |
+| `jz-video-style-clone` | `ffmpeg`/`ffprobe`、带 numpy 的 Python 3、可安装 Remotion 的 Node.js/npm | 渲染需下载 headless Chrome（或用 Playwright CDN 兜底） |
 | `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
 | `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
@@ -378,7 +395,7 @@ export CLARITY_TOKEN=<clarity-token>
 | --- | --- | --- | --- |
 | Umami 兼容统计 | 统计访问量、来源、页面、国家、设备和事件。 | 与 Clarity 在访问和页面维度有重叠。 | 自有一方流量视图，事件统计简单，可自托管。 |
 | Google Search Console | 查看 Google 搜索曝光、点击、查询词、页面、索引和 sitemap 状态。 | 与 Bing Webmaster Tools 在搜索索引和 sitemap 提交上重叠。 | Google 搜索专属的查询和索引数据。 |
-| IndexNow | 把变化 URL 推送给参与协议的搜索引擎。 | 与 Google/Bing 的 sitemap 提交互补。 | 内容变化后的快速发现信号。 |
+| IndexNow | 把变化 URL 推送给参与协议的搜索引擎。 | 与 Google/Bing 的 sitemap 提交互补。 | 让搜索引擎更快发现更新后的 URL。 |
 | Bing Webmaster Tools | 查看 Bing 搜索表现，验证站点，提交 sitemap/URL。 | 与 Google Search Console 在搜索表现和索引健康上重叠。 | Bing 专属索引状态和 API 提交入口。 |
 | Microsoft Clarity | 查看会话行为、热图、录屏、rage click 和 UX 阻力。 | 与统计工具在页面访问上重叠。 | 聚合统计看不到的行为证据。 |
 

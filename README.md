@@ -40,9 +40,9 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | Path | Topic | Skills |
 | --- | --- | --- |
 | `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
-| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review` |
+| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-video-style-clone` |
 | `infra/` | Infrastructure operations | `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
-| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-mac-remote` |
+| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote` |
 
 Recommended sequence for a new site:
 
@@ -106,6 +106,7 @@ cp -R ship/jz-cloud-agent ~/.codex/skills/
 cp -R ship/jz-test ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
 cp -R content/jz-feishu-doc-download ~/.codex/skills/
+cp -R content/jz-scys-article ~/.codex/skills/
 cp -R content/jz-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-audio ~/.codex/skills/
 cp -R content/jz-douyin-transcript ~/.codex/skills/
@@ -118,6 +119,7 @@ cp -R infra/jz-ovh-server ~/.codex/skills/
 cp -R infra/jz-hetzner-server ~/.codex/skills/
 cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
+cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
@@ -242,11 +244,19 @@ Use $jz-feishu-doc-download to download this Feishu wiki article as a local Mark
 ```
 
 ```text
+Use $jz-scys-article to fetch this scys.com article as Markdown; if it links to a Feishu full article, use the Feishu content and record the original scys.com URL.
+```
+
+```text
 Use $jz-video-transcript to fetch this YouTube or X video transcript and create English, Chinese, and bilingual Markdown files.
 ```
 
 ```text
 Use $jz-transcribe-audio to transcribe this meeting recording.
+```
+
+```text
+Use $jz-video-style-clone to analyze this reference video and produce a same-style promo video (with a synthesized soundtrack) for the current project using Remotion.
 ```
 
 ```text
@@ -271,6 +281,10 @@ Use $jz-cf-ai-gateway-ops to inspect Cloudflare AI Gateway request paths, latenc
 
 ```text
 Use $jz-chrome-launcher to open my daily Chrome profile or the isolated Agent Chrome on port 9333.
+```
+
+```text
+Use $jz-launchd-task to create or organize this macOS launchd background task.
 ```
 
 ## Configuration
@@ -318,8 +332,10 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-test` | Editable web project | Existing test stack, CI config, or browser dependencies depending on project |
 | `jz-fetch-x` | RapidAPI key for the Twittr X API | Optional local `.env` fallback inside the skill directory |
 | `jz-feishu-doc-download` | `lark-cli` config and user auth with doc read/media access | Feishu document URL or token; write access to the target clipping directory |
+| `jz-scys-article` | Logged-in Chrome for Testing session on a CDP port | `lark-cli` user auth when the article links to a Feishu full article; optional user Chrome session only when Chrome for Testing is unavailable |
 | `jz-video-transcript` | `yt-dlp` and network access to YouTube or X video captions | `translate.googleapis.com` access for Chinese machine translation |
 | `jz-transcribe-audio` | `GLM_API_KEY` and `ffmpeg`/`ffprobe` | Skill-local `.env` fallback |
+| `jz-video-style-clone` | `ffmpeg`/`ffprobe`, Python 3 with numpy, Node.js with npm access for Remotion | Headless Chrome download (or Playwright CDN fallback) for rendering |
 | `jz-douyin-transcript` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
 | `jz-wechat-archive-sync` | API key for the archive provider | Existing state/cache files when resuming a sync |
 | `jz-readest-review` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
@@ -329,6 +345,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-ovh-server` | OVH API credentials (application key, secret, consumer key) and SSH key | Write access for creating and terminating VPS |
 | `jz-hetzner-server` | Hetzner Cloud API token | Write access for creating and deleting servers; SSH key for hardening |
 | `jz-chrome-launcher` | Local Chrome app | Optional `JZ_DAILY_CHROME_PROFILE`, `JZ_AGENT_CHROME_PORT`, `JZ_AGENT_CHROME_USER_DATA_DIR` overrides |
+| `jz-launchd-task` | macOS user account with permission to write user LaunchAgents | Root permission only for system LaunchDaemons |
 
 Common variables:
 
