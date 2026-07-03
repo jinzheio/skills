@@ -93,7 +93,9 @@ async function scroll(page) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const { chromium } = await loadPlaywright();
+const playwright = await loadPlaywright();
+const chromium = playwright.chromium ?? playwright.default?.chromium;
+if (!chromium) throw new Error("Playwright chromium export not found");
 const cookies = await sourceCookies(args.cdp);
 const browser = await chromium.launch({ headless: true, args: ["--disable-blink-features=AutomationControlled"] });
 try {

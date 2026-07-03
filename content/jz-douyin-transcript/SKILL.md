@@ -43,6 +43,17 @@ python3 <skill-dir>/scripts/douyin_transcript.py \
   --add-usable 10
 ```
 
+Only transcribe the first minute of each video:
+
+```bash
+python3 <skill-dir>/scripts/douyin_transcript.py \
+  --profile-url "https://www.douyin.com/user/<sec_uid>" \
+  --channel <channel-name> \
+  --latest 10 \
+  --max-duration-seconds 0 \
+  --clip-seconds 60
+```
+
 Use an existing URL list:
 
 ```bash

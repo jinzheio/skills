@@ -73,7 +73,7 @@ def ensure_mp3(input_path: str, tmp_dir: str) -> str:
         return input_path
     mp3_path = os.path.join(tmp_dir, "input.mp3")
     subprocess.run(
-        ["ffmpeg", "-i", input_path, "-c:a", "libmp3lame", "-b:a", "128k",
+        ["ffmpeg", "-i", input_path, "-ac", "1", "-c:a", "libmp3lame", "-b:a", "128k",
          mp3_path, "-y"],
         capture_output=True, text=True, check=True,
     )

@@ -172,37 +172,42 @@ def media_duration_seconds(path: Path) -> float:
     return float(result.stdout.strip() or 0)
 
 
-def extract_mono_mp3(media_path: Path, audio_path: Path) -> None:
-    run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-i",
-            str(media_path),
-            "-vn",
-            "-ac",
-            "1",
-            "-c:a",
-            "libmp3lame",
-            "-b:a",
-            "128k",
-            str(audio_path),
-        ],
-        timeout=180,
-    )
+def extract_mono_mp3(media_path: Path, audio_path: Path, clip_seconds: int = 0) -> None:
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(media_path),
+        "-vn",
+        "-ac",
+        "1",
+        "-c:a",
+        "libmp3lame",
+        "-b:a",
+        "128k",
+    ]
+    if clip_seconds > 0:
+        cmd.extend(["-t", str(clip_seconds)])
+    cmd.append(str(audio_path))
+    run(cmd, timeout=180)
 
 
 def write_markdown(path: Path, item: dict[str, Any], channel: str, transcript: str) -> None:
     title = (item.get("title") or item["id"]).replace('"', '\\"')
+    duration = item.get("duration_seconds")
+    clip = item.get("clip_seconds")
+    duration_line = f"duration_seconds: {duration}\n" if duration is not None else ""
+    clip_line = f"clip_seconds: {clip}\n" if clip else ""
     body = f"""---
 title: "{title}"
 channel: "{channel}"
 source: "{item['url']}"
 video_id: "{item['id']}"
 type: douyin-transcript
+{duration_line}{clip_line}transcript_scope: "{'first ' + str(clip) + ' seconds' if clip else 'full video'}"
 ---
 
 # {item.get('title') or item['id']}
@@ -226,7 +231,7 @@ def usable_markdown(path: Path) -> bool:
     return len(transcript) >= 80
 
 
-def transcribe_video(item: dict[str, Any], channel: str, out_dir: Path, max_duration: int, keep_audio: bool) -> Path:
+def transcribe_video(item: dict[str, Any], channel: str, out_dir: Path, max_duration: int, keep_audio: bool, clip_seconds: int) -> Path:
     video_id = item["id"]
     md_path = out_dir / f"{video_id}.md"
     if usable_markdown(md_path):
@@ -246,8 +251,11 @@ def transcribe_video(item: dict[str, Any], channel: str, out_dir: Path, max_dura
         item["duration_seconds"] = round(duration, 3)
         if max_duration > 0 and duration > max_duration:
             raise RuntimeError(f"duration {duration:.0f}s exceeds max_duration_seconds={max_duration}")
-        extract_mono_mp3(media_path, audio_path)
-        run([sys.executable, str(sibling_transcribe_script()), str(audio_path), "-o", str(txt_path)], timeout=max(180, int(duration * 8)))
+        if clip_seconds > 0:
+            item["clip_seconds"] = clip_seconds
+        extract_mono_mp3(media_path, audio_path, clip_seconds)
+        transcript_duration = min(duration, clip_seconds) if clip_seconds > 0 else duration
+        run([sys.executable, str(sibling_transcribe_script()), str(audio_path), "-o", str(txt_path)], timeout=max(180, int(transcript_duration * 8)))
         transcript = txt_path.read_text(encoding="utf-8", errors="ignore").strip()
         if "[segment " in transcript:
             raise RuntimeError("transcript contains failed segments")
@@ -310,6 +318,7 @@ def main() -> int:
     parser.add_argument("--latest", type=int, default=30)
     parser.add_argument("--add-usable", type=int, default=0)
     parser.add_argument("--max-duration-seconds", type=int, default=300)
+    parser.add_argument("--clip-seconds", type=int, default=0)
     parser.add_argument("--cdp", default="http://127.0.0.1:9333")
     parser.add_argument("--retry-failed", action="store_true")
     parser.add_argument("--keep-audio", action="store_true")
@@ -348,7 +357,12 @@ def main() -> int:
 
     baseline_usable = count_usable(state, out_dir, source_keys)
     target = baseline_usable + args.add_usable if args.add_usable else args.latest
-    run_record = {"started_at": now(), "target_usable": target, "max_duration_seconds": args.max_duration_seconds}
+    run_record = {
+        "started_at": now(),
+        "target_usable": target,
+        "max_duration_seconds": args.max_duration_seconds,
+        "clip_seconds": args.clip_seconds,
+    }
     state["runs"].append(run_record)
     save_state(state_path, state)
 
@@ -368,7 +382,7 @@ def main() -> int:
         tr.update({"status": "running", "updated_at": now()})
         save_state(state_path, state)
         try:
-            md_path = transcribe_video(item, channel, out_dir, args.max_duration_seconds, args.keep_audio)
+            md_path = transcribe_video(item, channel, out_dir, args.max_duration_seconds, args.keep_audio, args.clip_seconds)
             tr.update({"status": "success", "output_path": str(md_path), "updated_at": now()})
             print(f"OK {item['id']} -> {md_path}")
         except Exception as exc:
