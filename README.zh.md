@@ -40,7 +40,7 @@
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
-| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone`、`jz-book-distill` |
+| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone`、`jz-book-distill`、`jz-video-package` |
 | `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
 | `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote` |
 
@@ -114,6 +114,7 @@ cp -R content/jz-wechat-archive-sync ~/.codex/skills/
 cp -R content/jz-readest-review ~/.codex/skills/
 cp -R content/jz-video-style-clone ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
+cp -R content/jz-video-package ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
 cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
 cp -R infra/jz-newapi-ops ~/.codex/skills/
@@ -270,6 +271,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-video-package 给这条口播视频做后期包装：转录分段、标注情绪和重点词，规划 B-roll 配图、关键词卡片、蒙版框选和动势关键帧，经我确认后生成剪映草稿。
+```
+
+```text
 使用 $jz-douyin-transcript 转写这个抖音作者主页，channel 为 jinqiangdashu，默认最新 30 条。
 ```
 
@@ -349,6 +354,7 @@ cp .env.example .env
 | `jz-transcribe-audio` | `GLM_API_KEY` 和 `ffmpeg`/`ffprobe` | skill 目录本地 `.env` 回退 |
 | `jz-video-style-clone` | `ffmpeg`/`ffprobe`、带 numpy 的 Python 3、可安装 Remotion 的 Node.js/npm | 渲染需下载 headless Chrome（或用 Playwright CDN 兜底） |
 | `jz-book-distill` | Python 3 和 EPUB 文件访问 | `~/.config/skills/jz-book-distill/config.yml` 设置自定义输出目录 |
+| `jz-video-package` | `ffmpeg`/`ffprobe`、装有 `pyJianYingDraft` 的 Python 3、剪映草稿文件夹 | 转录需 `faster-whisper`（或已有 srt)；素材站搜索需 `~/.config/skills/jz-video-package/.env` 里的 Pexels/Pixabay API key |
 | `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
 | `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |

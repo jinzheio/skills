@@ -40,7 +40,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | Path | Topic | Skills |
 | --- | --- | --- |
 | `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
-| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-video-style-clone`, `jz-book-distill` |
+| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-video-style-clone`, `jz-book-distill`, `jz-video-package` |
 | `infra/` | Infrastructure operations | `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
 | `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote` |
 
@@ -114,6 +114,7 @@ cp -R content/jz-wechat-archive-sync ~/.codex/skills/
 cp -R content/jz-readest-review ~/.codex/skills/
 cp -R content/jz-video-style-clone ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
+cp -R content/jz-video-package ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
 cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
 cp -R infra/jz-newapi-ops ~/.codex/skills/
@@ -266,6 +267,10 @@ Use $jz-book-distill to distill this EPUB book into structured Markdown notes wi
 ```
 
 ```text
+Use $jz-video-package to package this talking-head video: transcribe and segment it, tag emotions and key phrases, plan B-roll inserts, keyword cards, masks and motion keyframes, then generate a JianyingPro draft after my confirmation.
+```
+
+```text
 Use $jz-douyin-transcript to transcribe this Douyin profile, channel jinqiangdashu, latest 30 videos.
 ```
 
@@ -347,6 +352,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-transcribe-audio` | `GLM_API_KEY` and `ffmpeg`/`ffprobe` | Skill-local `.env` fallback |
 | `jz-video-style-clone` | `ffmpeg`/`ffprobe`, Python 3 with numpy, Node.js with npm access for Remotion | Headless Chrome download (or Playwright CDN fallback) for rendering |
 | `jz-book-distill` | Python 3 and EPUB file access | `~/.config/skills/jz-book-distill/config.yml` to set a custom output directory |
+| `jz-video-package` | `ffmpeg`/`ffprobe`, Python 3 with `pyJianYingDraft`, JianyingPro draft folder | `faster-whisper` for transcription (or an existing srt); Pexels/Pixabay API keys in `~/.config/skills/jz-video-package/.env` for stock footage |
 | `jz-douyin-transcript` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
 | `jz-wechat-archive-sync` | API key for the archive provider | Existing state/cache files when resuming a sync |
 | `jz-readest-review` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
