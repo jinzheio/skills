@@ -40,7 +40,7 @@
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
-| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone` |
+| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone`、`jz-book-distill` |
 | `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
 | `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote` |
 
@@ -112,6 +112,8 @@ cp -R content/jz-transcribe-audio ~/.codex/skills/
 cp -R content/jz-douyin-transcript ~/.codex/skills/
 cp -R content/jz-wechat-archive-sync ~/.codex/skills/
 cp -R content/jz-readest-review ~/.codex/skills/
+cp -R content/jz-video-style-clone ~/.codex/skills/
+cp -R content/jz-book-distill ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
 cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
 cp -R infra/jz-newapi-ops ~/.codex/skills/
@@ -228,6 +230,18 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-ovh-server 创建一台 OVH VPS 并获取 SSH 登录方式。
+```
+
+```text
+使用 $jz-hetzner-server 创建一台 Hetzner Cloud 服务器并加固 SSH。
+```
+
+```text
+使用 $jz-newapi-ops 查看 NewAPI 模型价格、key 状态和渠道路由。
+```
+
+```text
 使用 $jz-fetch-x 抓取 @mercor_ai 最近 100 条 X 帖子，并保存为 Markdown 和 JSON。
 ```
 
@@ -249,6 +263,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 
 ```text
 使用 $jz-video-style-clone 分析这个参考视频，结合当前项目用 Remotion 制作一支画面与配乐风格类似的宣传视频（含合成配乐）。
+```
+
+```text
+使用 $jz-book-distill 精读这本 EPUB 电子书，提炼反常识认知和深刻洞察，输出结构化 Markdown 笔记。
 ```
 
 ```text
@@ -330,11 +348,17 @@ cp .env.example .env
 | `jz-video-transcript` | `yt-dlp` 和 YouTube 或 X 视频字幕访问 | 需要中文机器翻译时访问 `translate.googleapis.com` |
 | `jz-transcribe-audio` | `GLM_API_KEY` 和 `ffmpeg`/`ffprobe` | skill 目录本地 `.env` 回退 |
 | `jz-video-style-clone` | `ffmpeg`/`ffprobe`、带 numpy 的 Python 3、可安装 Remotion 的 Node.js/npm | 渲染需下载 headless Chrome（或用 Playwright CDN 兜底） |
+| `jz-book-distill` | Python 3 和 EPUB 文件访问 | `~/.config/skills/jz-book-distill/config.yml` 设置自定义输出目录 |
 | `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
 | `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
 | `jz-litellm-ops` | 本机未跟踪 LiteLLM 运维配置和 SSH/数据库权限 | 修改价格、fallback、预算或 key 状态时需要写权限 |
 | `jz-cf-ai-gateway-ops` | 有 AI Gateway 读取权限的 Cloudflare API token 和 account id | 修改 custom provider、spend limit、Worker secret 或 facade 路由时需要写权限 |
+| `jz-newapi-ops` | 本机未跟踪 NewAPI 运维配置和数据库权限 | 修改模型价格、key 状态或渠道路由时需要写权限 |
+| `jz-ovh-server` | OVH API 凭证（application key、secret、consumer key）和 SSH key | 创建和删除 VPS 需要写权限 |
+| `jz-hetzner-server` | Hetzner Cloud API token | 创建和删除服务器需要写权限；加固 SSH 需要 SSH key |
+| `jz-browser-automation` | 本机 Chrome 和 Node.js | 自动使用 9333 端口或用户指定的 CDP 端口 |
+| `jz-mac-remote` | 目标 Mac 已开启远程登录（SSH）且在同一局域网 | 同步文件和配置时需要读写权限 |
 
 常用变量：
 
