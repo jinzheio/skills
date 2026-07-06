@@ -23,10 +23,12 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | `jz-commit-code` | Review workspace changes and create scoped commits after confirmation. |
 | `jz-push-code` | Verify, push, and run post-push indexing sync. |
 | `jz-test` | Set up or improve test infrastructure — vitest, coverage, CI, E2E. Supports Next.js, Astro, TanStack Start. |
+| `jz-test-intent` | Turn a feature idea, spec, issue, conversation, or branch diff into a gstack QA-ready test plan. |
 | `jz-audit-vercel-cost` | Explain Vercel usage, billed cost, Pro fees, and receipt/card charge differences. |
 | `jz-audit-cf-cost` | Read Cloudflare bills and GraphQL usage, check running resource costs in the current billing cycle, and identify billing anomalies. |
 | `jz-audit-neon-usage` | Find why a Neon database is receiving requests or cannot scale to zero. |
 | `jz-create-cf-token` | Create or update a minimal Cloudflare token for a project. |
+| `jz-auto-pr-cloudflare` | Configure Auto PR issue handling, Cloudflare PR previews, OAuth preview URL, and cleanup for a Cloudflare web app. |
 | `jz-build-personal-context` | Interview the user to create persistent profile and writing-style files for Codex, ChatGPT, Claude, and Claude Code. |
 | `jz-init-tailwind-theme` | Initialize or adjust Tailwind v4 theme tokens. |
 | `jz-find-revenue-site` | Find high-revenue sites similar to a given domain or product category. |
@@ -40,9 +42,9 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | Path | Topic | Skills |
 | --- | --- | --- |
 | `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
-| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-video-style-clone`, `jz-book-distill`, `jz-video-package` |
+| `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-marketing-video`, `jz-book-distill`, `jz-video-package` |
 | `infra/` | Infrastructure operations | `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
-| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote` |
+| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote`, `jz-resume-codex-goal` |
 
 Recommended sequence for a new site:
 
@@ -96,6 +98,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
+cp -R ship/jz-auto-pr-cloudflare ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -104,6 +107,7 @@ cp -R ship/jz-make-viral ~/.codex/skills/
 cp -R ship/jz-check-cloud-agent ~/.codex/skills/
 cp -R ship/jz-cloud-agent ~/.codex/skills/
 cp -R ship/jz-test ~/.codex/skills/
+cp -R ship/jz-test-intent ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
 cp -R content/jz-feishu-doc-download ~/.codex/skills/
 cp -R content/jz-scys-article ~/.codex/skills/
@@ -112,7 +116,7 @@ cp -R content/jz-transcribe-audio ~/.codex/skills/
 cp -R content/jz-douyin-transcript ~/.codex/skills/
 cp -R content/jz-wechat-archive-sync ~/.codex/skills/
 cp -R content/jz-readest-review ~/.codex/skills/
-cp -R content/jz-video-style-clone ~/.codex/skills/
+cp -R content/jz-marketing-video ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
 cp -R content/jz-video-package ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
@@ -124,6 +128,7 @@ cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
 cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
+cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 If your runner can read this repository directly, no copy step is needed.
@@ -199,6 +204,10 @@ Use $jz-create-cf-token to create a minimal Cloudflare token for this project.
 ```
 
 ```text
+Use $jz-auto-pr-cloudflare to configure Auto PR, Cloudflare PR previews, a stable OAuth preview URL, and cleanup for this Cloudflare web app.
+```
+
+```text
 Use $jz-build-personal-context to interview me, create about.md, voice.md, anti-style.md in ~/Projects/aboutme, and enable all targets with -g.
 ```
 
@@ -231,6 +240,10 @@ Use $jz-test to add tests for this site before shipping.
 ```
 
 ```text
+Use $jz-test-intent to turn this feature idea into a QA-ready test plan.
+```
+
+```text
 Use $jz-ovh-server to create an OVH VPS and get SSH access.
 ```
 
@@ -259,7 +272,7 @@ Use $jz-transcribe-audio to transcribe this meeting recording.
 ```
 
 ```text
-Use $jz-video-style-clone to analyze this reference video and produce a same-style promo video (with a synthesized soundtrack) for the current project using Remotion.
+Use $jz-marketing-video to analyze this website or product promo reference video and produce a same-style marketing video (with a synthesized soundtrack) for the current project using Remotion.
 ```
 
 ```text
@@ -302,6 +315,10 @@ Use $jz-chrome-launcher to open my daily Chrome profile or the isolated Agent Ch
 Use $jz-launchd-task to create or organize this macOS launchd background task.
 ```
 
+```text
+Use $jz-resume-codex-goal to find a running Codex App goal and resume it after the usage reset.
+```
+
 ## Configuration
 
 The skills use authenticated CLIs, API tokens, browser sessions, or environment variables depending on the task.
@@ -337,6 +354,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-audit-cf-cost` | Cloudflare API Token (Account: Analytics: Read), `CLOUDFLARE_ACCOUNT_ID` | Optional existing hourly cost monitor |
 | `jz-audit-neon-usage` | Platform request logs, cron-job.org schedules, and read-only database statistics | Vercel CLI auth, Neon/Postgres read credentials, optional `CRON_JOB_API_KEY`, project source code |
 | `jz-create-cf-token` | Bootstrap Cloudflare token with permission to create or edit account tokens | Project repo metadata for tighter token scoping |
+| `jz-auto-pr-cloudflare` | GitHub repo access, GitHub Actions secrets, Cloudflare project token, and automation support | Existing Cloudflare Workers/Pages deploy config and OAuth callback requirements |
 | `jz-build-personal-context` | Writable profile directory | `-g` when installing the generated profile into supported tools |
 | `jz-init-tailwind-theme` | Editable frontend project using Tailwind | Existing design-system files if the project already has one |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR credentials or local cached exports | Local SQLite/CSV data paths for prior research |
@@ -345,14 +363,15 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-check-cloud-agent` | Local untracked deployment config and SSH access | Remote desktop/noVNC config only when opening a browser session |
 | `jz-cloud-agent` | Local untracked deployment config and SSH access | Skill sync targets and remote browser config when needed |
 | `jz-test` | Editable web project | Existing test stack, CI config, or browser dependencies depending on project |
+| `jz-test-intent` | Feature idea, design/spec/issue, conversation, or current branch context | Optional local config to override the output path template |
 | `jz-fetch-x` | RapidAPI key for the Twittr X API | Optional local `.env` fallback inside the skill directory |
 | `jz-feishu-doc-download` | `lark-cli` config and user auth with doc read/media access | Feishu document URL or token; write access to the target clipping directory |
 | `jz-scys-article` | Logged-in Chrome for Testing session on a CDP port | `lark-cli` user auth when the article links to a Feishu full article; optional user Chrome session only when Chrome for Testing is unavailable |
 | `jz-video-transcript` | `yt-dlp` and network access to YouTube or X video captions | `translate.googleapis.com` access for Chinese machine translation |
 | `jz-transcribe-audio` | `GLM_API_KEY` and `ffmpeg`/`ffprobe` | Skill-local `.env` fallback |
-| `jz-video-style-clone` | `ffmpeg`/`ffprobe`, Python 3 with numpy, Node.js with npm access for Remotion | Headless Chrome download (or Playwright CDN fallback) for rendering |
+| `jz-marketing-video` | `ffmpeg`/`ffprobe`, Python 3 with numpy, Node.js with npm access for Remotion | Headless Chrome download (or Playwright CDN fallback) for rendering |
 | `jz-book-distill` | Python 3 and EPUB file access | `~/.config/skills/jz-book-distill/config.yml` to set a custom output directory |
-| `jz-video-package` | `ffmpeg`/`ffprobe`, Python 3 with `pyJianYingDraft`, JianyingPro draft folder | `faster-whisper` for transcription (or an existing srt); Pexels/Pixabay API keys in `~/.config/skills/jz-video-package/.env` for stock footage |
+| `jz-video-package` | `ffmpeg`/`ffprobe` and Python 3; Shotcut for the MLT backend, or `pyJianYingDraft` plus a plaintext JianyingPro draft folder for the JianYing backend | `faster-whisper` for transcription (or an existing srt); Pexels/Pixabay API keys in `~/.config/skills/jz-video-package/.env` for stock footage |
 | `jz-douyin-transcript` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
 | `jz-wechat-archive-sync` | API key for the archive provider | Existing state/cache files when resuming a sync |
 | `jz-readest-review` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
@@ -363,6 +382,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-hetzner-server` | Hetzner Cloud API token | Write access for creating and deleting servers; SSH key for hardening |
 | `jz-chrome-launcher` | Local Chrome app | Optional `JZ_DAILY_CHROME_PROFILE`, `JZ_AGENT_CHROME_PORT`, `JZ_AGENT_CHROME_USER_DATA_DIR` overrides |
 | `jz-launchd-task` | macOS user account with permission to write user LaunchAgents | Root permission only for system LaunchDaemons |
+| `jz-resume-codex-goal` | Codex App thread tools and automation tools | Optional reset time text from Codex usage-limit output |
 
 Common variables:
 

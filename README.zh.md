@@ -23,10 +23,12 @@
 | `jz-commit-code` | Review 工作区变更，确认后按范围提交。 |
 | `jz-push-code` | 验证、推送代码，并同步变更页面的索引。 |
 | `jz-test` | 搭建或增强测试基础设施——vitest、覆盖率、CI、E2E。支持 Next.js、Astro、TanStack Start。 |
+| `jz-test-intent` | 把功能想法、spec、issue、对话或当前分支 diff 转成 gstack QA 可读取的测试计划。 |
 | `jz-audit-vercel-cost` | 解释 Vercel usage、billed cost、Pro 固定费和信用卡扣款差异。 |
 | `jz-audit-cf-cost` | 读取 Cloudflare 账单和 GraphQL usage，检查当前计费周期运行中资源的按量费用，识别异常计费。 |
 | `jz-audit-neon-usage` | 分析 Neon 请求来源和无法休眠原因。 |
 | `jz-create-cf-token` | 为项目创建或更新最小权限 Cloudflare token。 |
+| `jz-auto-pr-cloudflare` | 为 Cloudflare Web app 配置 Auto PR、PR preview、OAuth 稳定 preview URL 和清理流程。 |
 | `jz-build-personal-context` | 通过访谈生成个人上下文和写作风格文件，供 Codex、ChatGPT、Claude、Claude Code 使用。 |
 | `jz-init-tailwind-theme` | 初始化或调整 Tailwind v4 主题 token。 |
 | `jz-find-revenue-site` | 按域名或产品类别查找相似的高收入网站。 |
@@ -40,9 +42,9 @@
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
-| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-video-style-clone`、`jz-book-distill`、`jz-video-package` |
+| `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-marketing-video`、`jz-book-distill`、`jz-video-package` |
 | `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
-| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote` |
+| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote`、`jz-resume-codex-goal` |
 
 新网站的推荐顺序：
 
@@ -96,6 +98,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
+cp -R ship/jz-auto-pr-cloudflare ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -104,6 +107,7 @@ cp -R ship/jz-make-viral ~/.codex/skills/
 cp -R ship/jz-check-cloud-agent ~/.codex/skills/
 cp -R ship/jz-cloud-agent ~/.codex/skills/
 cp -R ship/jz-test ~/.codex/skills/
+cp -R ship/jz-test-intent ~/.codex/skills/
 cp -R content/jz-fetch-x ~/.codex/skills/
 cp -R content/jz-feishu-doc-download ~/.codex/skills/
 cp -R content/jz-scys-article ~/.codex/skills/
@@ -112,7 +116,7 @@ cp -R content/jz-transcribe-audio ~/.codex/skills/
 cp -R content/jz-douyin-transcript ~/.codex/skills/
 cp -R content/jz-wechat-archive-sync ~/.codex/skills/
 cp -R content/jz-readest-review ~/.codex/skills/
-cp -R content/jz-video-style-clone ~/.codex/skills/
+cp -R content/jz-marketing-video ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
 cp -R content/jz-video-package ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
@@ -124,6 +128,7 @@ cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
 cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
+cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 如果 runner 能直接读取这个仓库，不需要复制。
@@ -199,6 +204,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-auto-pr-cloudflare 为这个 Cloudflare Web app 配置 Auto PR、PR preview、稳定 OAuth preview URL 和清理流程。
+```
+
+```text
 使用 $jz-build-personal-context 通过访谈在 ~/Projects/aboutme 生成 about.md、voice.md、anti-style.md，并用 -g 接入四个入口。
 ```
 
@@ -228,6 +237,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 
 ```text
 使用 $jz-test 在上线前为这个站点补测试。
+```
+
+```text
+使用 $jz-test-intent 把这个功能想法整理成 QA 可执行的测试计划。
 ```
 
 ```text
@@ -263,7 +276,7 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-video-style-clone 分析这个参考视频，结合当前项目用 Remotion 制作一支画面与配乐风格类似的宣传视频（含合成配乐）。
+使用 $jz-marketing-video 分析这个网站或产品宣传参考视频，结合当前项目用 Remotion 制作一支画面与配乐风格类似的营销宣传视频（含合成配乐）。
 ```
 
 ```text
@@ -302,6 +315,10 @@ cp -R local/jz-mac-remote ~/.codex/skills/
 使用 $jz-launchd-task 创建或整理这个 macOS launchd 后台任务。
 ```
 
+```text
+使用 $jz-resume-codex-goal 找到正在运行的 Codex App goal，并在 usage reset 后继续执行。
+```
+
 ## 配置
 
 这些 skills 会根据任务使用已登录的 CLI、API token、浏览器会话或环境变量。
@@ -337,6 +354,7 @@ cp .env.example .env
 | `jz-audit-cf-cost` | Cloudflare API Token（Account: Analytics: Read），`CLOUDFLARE_ACCOUNT_ID` | 可选依赖已部署的每小时成本监控 |
 | `jz-audit-neon-usage` | 平台请求日志、cron-job.org 定时任务和只读数据库统计 | Vercel CLI 登录、Neon/Postgres 只读凭证、可选 `CRON_JOB_API_KEY`、项目源码 |
 | `jz-create-cf-token` | 有创建或编辑账号 token 权限的 Cloudflare bootstrap token | 项目 repo 信息用于缩小 token 权限 |
+| `jz-auto-pr-cloudflare` | GitHub repo 权限、GitHub Actions secrets、Cloudflare 项目 token 和 automation 支持 | 已有 Cloudflare Workers/Pages deploy 配置和 OAuth callback 要求 |
 | `jz-build-personal-context` | 可写的 profile 目录 | 用 `-g` 接入支持的工具 |
 | `jz-init-tailwind-theme` | 可编辑的 Tailwind 前端项目 | 项目已有 design system 时读取现有主题文件 |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR 凭证或本地缓存数据 | 复用本地 SQLite/CSV 历史数据 |
@@ -345,6 +363,7 @@ cp .env.example .env
 | `jz-check-cloud-agent` | 本机未跟踪 deployment 配置和 SSH 权限 | 只有打开远程浏览器时需要 remote desktop/noVNC 配置 |
 | `jz-cloud-agent` | 本机未跟踪 deployment 配置和 SSH 权限 | 需要时读取 skill 同步目标和远程浏览器配置 |
 | `jz-test` | 可编辑的 Web 项目 | 根据项目读取现有测试栈、CI 配置或浏览器依赖 |
+| `jz-test-intent` | 功能想法、design/spec/issue、对话或当前分支上下文 | 可选本机配置覆盖输出路径模板 |
 | `jz-chrome-launcher` | 本机 Chrome app | 可选 `JZ_DAILY_CHROME_PROFILE`、`JZ_AGENT_CHROME_PORT`、`JZ_AGENT_CHROME_USER_DATA_DIR` 覆盖 |
 | `jz-launchd-task` | 有权限写入用户级 LaunchAgents 的 macOS 用户账号 | 只有系统级 LaunchDaemons 需要 root 权限 |
 | `jz-fetch-x` | Twittr X API 的 RapidAPI key | 可选的 skill 目录本地 `.env` 回退 |
@@ -352,9 +371,9 @@ cp .env.example .env
 | `jz-scys-article` | 已登录的 Chrome for Testing CDP 会话 | 文章链接到飞书全文时需要 `lark-cli` 用户授权；Chrome for Testing 不可用时，可选使用用户 Chrome 会话 |
 | `jz-video-transcript` | `yt-dlp` 和 YouTube 或 X 视频字幕访问 | 需要中文机器翻译时访问 `translate.googleapis.com` |
 | `jz-transcribe-audio` | `GLM_API_KEY` 和 `ffmpeg`/`ffprobe` | skill 目录本地 `.env` 回退 |
-| `jz-video-style-clone` | `ffmpeg`/`ffprobe`、带 numpy 的 Python 3、可安装 Remotion 的 Node.js/npm | 渲染需下载 headless Chrome（或用 Playwright CDN 兜底） |
+| `jz-marketing-video` | `ffmpeg`/`ffprobe`、带 numpy 的 Python 3、可安装 Remotion 的 Node.js/npm | 渲染需下载 headless Chrome（或用 Playwright CDN 兜底） |
 | `jz-book-distill` | Python 3 和 EPUB 文件访问 | `~/.config/skills/jz-book-distill/config.yml` 设置自定义输出目录 |
-| `jz-video-package` | `ffmpeg`/`ffprobe`、装有 `pyJianYingDraft` 的 Python 3、剪映草稿文件夹 | 转录需 `faster-whisper`（或已有 srt)；素材站搜索需 `~/.config/skills/jz-video-package/.env` 里的 Pexels/Pixabay API key |
+| `jz-video-package` | `ffmpeg`/`ffprobe` 和 Python 3；MLT 后端需 Shotcut，剪映后端需 `pyJianYingDraft` 和明文格式草稿文件夹 | 转录需 `faster-whisper`（或已有 srt)；素材站搜索需 `~/.config/skills/jz-video-package/.env` 里的 Pexels/Pixabay API key |
 | `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
 | `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
@@ -364,6 +383,7 @@ cp .env.example .env
 | `jz-ovh-server` | OVH API 凭证（application key、secret、consumer key）和 SSH key | 创建和删除 VPS 需要写权限 |
 | `jz-hetzner-server` | Hetzner Cloud API token | 创建和删除服务器需要写权限；加固 SSH 需要 SSH key |
 | `jz-browser-automation` | 本机 Chrome 和 Node.js | 自动使用 9333 端口或用户指定的 CDP 端口 |
+| `jz-resume-codex-goal` | Codex App thread 工具和 automation 工具 | 可选提供 Codex usage-limit 输出中的 reset 时间 |
 | `jz-mac-remote` | 目标 Mac 已开启远程登录（SSH）且在同一局域网 | 同步文件和配置时需要读写权限 |
 
 常用变量：

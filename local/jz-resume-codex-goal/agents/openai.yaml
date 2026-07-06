@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resume Codex Goal"
+  short_description: "跨项目续跑 Codex App goal"
+  default_prompt: "使用 $jz-resume-codex-goal 找到正在运行的 goal，并在 usage reset 后继续执行。"
