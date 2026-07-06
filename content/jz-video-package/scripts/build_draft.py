@@ -11,7 +11,9 @@ schema 见 references/draft-build.md。
 import argparse
 import json
 import os
+import subprocess
 import sys
+import time
 
 SEC = 1_000_000
 
@@ -202,6 +204,164 @@ def validate(data: dict) -> tuple[list, list]:
     return usable, todos
 
 
+def unique_existing_paths(paths: list[str]) -> list[str]:
+    """按出现顺序去重，只保留非空字符串。是否存在由调用方决定。"""
+    seen, out = set(), []
+    for path in paths:
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        out.append(path)
+    return out
+
+
+def generate_cover(host_video: str, cover_path: str) -> bool:
+    """从口播视频抽一帧做草稿封面。失败不影响草稿主体。"""
+    if os.path.exists(cover_path) and os.path.getsize(cover_path) > 0:
+        return True
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-v", "error", "-ss", "1", "-i", host_video, "-frames:v", "1", cover_path],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return True
+    except Exception as e:
+        warn(f"生成草稿封面失败，剪映列表可能显示黑封面: {e}")
+        return False
+
+
+def refresh_draft_meta(draft_path: str, proj: dict) -> None:
+    """补齐剪映草稿箱列表依赖的 meta 字段。
+
+    pyJianYingDraft 会复制一个空 meta 模板；新版剪映列表页会读这个文件里的
+    tm_duration、draft_timeline_materials_size_、draft_materials 和 draft_cover。
+    不补这些字段时，草稿内容存在，但列表可能显示 0.0B / 00:00。
+    """
+    meta_path = os.path.join(draft_path, "draft_meta_info.json")
+    content_path = os.path.join(draft_path, "draft_content.json")
+    if not os.path.exists(meta_path) or not os.path.exists(content_path):
+        warn("草稿 meta/content 文件不存在，无法刷新草稿箱列表信息")
+        return
+
+    try:
+        with open(meta_path, encoding="utf-8") as f:
+            meta = json.load(f)
+        with open(content_path, encoding="utf-8") as f:
+            content = json.load(f)
+    except Exception as e:
+        warn(f"读取草稿 meta/content 失败，无法刷新草稿箱列表信息: {e}")
+        return
+
+    video_paths = []
+    for material in content.get("materials", {}).get("videos", []):
+        video_paths.append(material.get("path") or material.get("media_path"))
+    video_paths = unique_existing_paths(video_paths)
+
+    material_size = 0
+    for path in video_paths:
+        if os.path.exists(path):
+            material_size += os.path.getsize(path)
+
+    cover_name = os.path.basename(meta.get("draft_cover") or "draft_cover.jpg")
+    cover_path = os.path.join(draft_path, cover_name)
+    if generate_cover(proj["host_video"], cover_path):
+        meta["draft_cover"] = cover_name
+        meta["cloud_draft_cover"] = False
+
+    now = int(time.time() * SEC)
+    meta["draft_name"] = proj["draft_name"]
+    meta["draft_fold_path"] = draft_path
+    meta["draft_root_path"] = os.path.dirname(draft_path)
+    meta["tm_duration"] = content.get("duration", 0)
+    meta["draft_timeline_materials_size_"] = material_size
+    meta["tm_draft_modified"] = now
+
+    material_types = [0, 1, 2, 3, 6, 7, 8]
+    meta["draft_materials"] = [
+        {"type": t, "value": video_paths if t == 0 else []}
+        for t in material_types
+    ]
+    meta.setdefault("draft_materials_copied_info", [])
+
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, separators=(",", ":"))
+
+    if meta["tm_duration"] <= 0:
+        warn("草稿内容 duration 为 0，剪映列表仍可能显示 00:00")
+
+
+def sanitize_extra_material_refs(draft_path: str) -> None:
+    """删除指向不存在素材的 extra_material_refs。
+
+    部分 pyJianYingDraft 版本会在文本/字幕片段中写入字体或样式引用，
+    但没有把对应素材写进 materials。新版剪映会把这种缺引用草稿判为损坏。
+    """
+    content_path = os.path.join(draft_path, "draft_content.json")
+    if not os.path.exists(content_path):
+        warn("draft_content.json 不存在，无法检查素材引用")
+        return
+
+    try:
+        with open(content_path, encoding="utf-8") as f:
+            content = json.load(f)
+    except Exception as e:
+        warn(f"读取 draft_content.json 失败，无法检查素材引用: {e}")
+        return
+
+    material_ids = set()
+    for items in content.get("materials", {}).values():
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if isinstance(item, dict) and item.get("id"):
+                material_ids.add(item["id"])
+
+    removed = 0
+    for track in content.get("tracks", []):
+        for segment in track.get("segments", []):
+            refs = segment.get("extra_material_refs")
+            if not refs:
+                continue
+            kept = [ref for ref in refs if ref in material_ids]
+            removed += len(refs) - len(kept)
+            segment["extra_material_refs"] = kept
+
+    if removed:
+        with open(content_path, "w", encoding="utf-8") as f:
+            json.dump(content, f, ensure_ascii=False, separators=(",", ":"))
+        warn(f"已移除 {removed} 个缺失的 extra_material_refs，避免剪映打开时报草稿损坏")
+
+
+def encrypted_draft_folder_detected(draft_folder: str) -> bool:
+    """检测剪映 6+ 常见的加密草稿库结构。
+
+    pyJianYingDraft 只能写明文 draft_content.json 旧格式。若草稿库里的正常草稿
+    使用 draft_info.json/Timelines 且没有 draft_content.json，继续生成会得到打不开的草稿。
+    """
+    if os.path.exists(os.path.join(draft_folder, "root_meta_info.json")):
+        return True
+    try:
+        names = os.listdir(draft_folder)
+    except OSError:
+        return False
+    checked = 0
+    for name in names:
+        path = os.path.join(draft_folder, name)
+        if not os.path.isdir(path) or name.startswith("."):
+            continue
+        has_new = os.path.exists(os.path.join(path, "draft_info.json")) or os.path.isdir(os.path.join(path, "Timelines"))
+        has_old = os.path.exists(os.path.join(path, "draft_content.json"))
+        if has_new and not has_old:
+            return True
+        checked += 1
+        if checked >= 20:
+            break
+    return False
+
+
 def build(data: dict, draft_folder: str) -> None:
     import pyJianYingDraft as draft
     from pyJianYingDraft import (TrackType, KeyframeProperty, MaskType, IntroType,
@@ -333,6 +493,9 @@ def build(data: dict, draft_folder: str) -> None:
             warn(f"字幕导入失败: {e}")
 
     script.save()
+    draft_path = os.path.join(draft_folder, proj["draft_name"])
+    sanitize_extra_material_refs(draft_path)
+    refresh_draft_meta(draft_path, proj)
     print(f"\n✅ 草稿已生成: {proj['draft_name']}（在剪映中打开；列表未刷新时进出一次任意草稿）")
     if todos:
         print("\n⏳ 以下素材待补充（TODO 占位，已跳过）：")
@@ -347,6 +510,7 @@ def main():
     ap.add_argument("decisions", help="decisions.json 路径")
     ap.add_argument("--draft-folder", help="剪映草稿文件夹（形如 .../JianyingPro Drafts）")
     ap.add_argument("--check", action="store_true", help="只校验不生成")
+    ap.add_argument("--force-old-format", action="store_true", help="即使检测到新版加密草稿库，也强制生成明文旧格式草稿")
     args = ap.parse_args()
 
     with open(args.decisions, encoding="utf-8") as f:
@@ -361,6 +525,11 @@ def main():
 
     if not args.draft_folder:
         sys.exit("[错误] 需要 --draft-folder（或先 --check 校验）")
+    if encrypted_draft_folder_detected(args.draft_folder) and not args.force_old_format:
+        sys.exit("[错误] 检测到当前剪映草稿库使用新版加密格式（draft_info.json/Timelines）。"
+                 "pyJianYingDraft 只能生成明文旧格式草稿，继续生成会导致剪映提示草稿损坏。"
+                 "请改用 scripts/build_import_package.py 生成剪映可导入素材包；"
+                 "如果你确认目标剪映支持旧格式，再加 --force-old-format。")
     try:
         import pyJianYingDraft  # noqa: F401
     except ImportError:

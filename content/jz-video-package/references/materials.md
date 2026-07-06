@@ -26,10 +26,11 @@
 python3 <skill-dir>/scripts/fetch_stock.py "man thinking silhouette" -n 3 -o work/materials/
 ```
 
-- API key 放 `~/.config/skills/jz-video-package/.env`：`PEXELS_API_KEY=...`（[申请](https://www.pexels.com/api/)，免费）、`PIXABAY_API_KEY=...`（可选 fallback）。
+- API key 放 `~/.config/skills/jz-video-package/.env`：`PEXELS_API_KEY=...`（[申请](https://www.pexels.com/api/)，免费）、`COVERR_API_KEY=...`（[申请](https://coverr.co/developers)，可选）、`PIXABAY_API_KEY=...`（可选 fallback）。
 - 关键词用**英文**，素材站英文索引远好于中文。情绪标签 → 关键词的转换示例：痛苦 → "man crying rain cinematic"；沉思 → "person window contemplating moody"；挣扎 → "silhouette struggle dark"。
 - 加 "cinematic"、"moody"、"film" 等词过滤掉图库味。
-- 下载后逐个用 ffprobe + 抽一帧查看，色调不统一的淘汰。Pexels/Pixabay 许可允许商用，无需署名，但**不要**用含可识别人脸的素材做负面语境配图。
+- 默认 `auto` 按 Pexels → Coverr → Pixabay fallback；指定素材源可加 `--source coverr`。
+- 下载后逐个用 ffprobe + 抽一帧查看，色调不统一的淘汰。Pexels/Pixabay/Coverr 许可允许商用，无需署名，但**不要**用含可识别人脸的素材做负面语境配图。
 
 ## 通道 3：AI 推荐片单
 

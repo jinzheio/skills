@@ -80,6 +80,7 @@
 ## pyJianYingDraft 能力边界（写决策前必读）
 
 - **草稿生成**支持剪映 5+ 所有版本；**模板模式**（读已有草稿、提取花字/贴纸 resource_id）仅剪映 ≤5.9（6+ 草稿加密）；**自动导出**仅 Windows + 剪映 ≤6。macOS 只生成草稿，用户手动导出。
+- 剪映 6+ 的本地草稿通常使用 `draft_info.json` + `Timelines/` 加密格式。pyJianYingDraft 生成的是明文 `draft_content.json` 旧格式；在这类草稿库里会被剪映判为“草稿内容已损坏”。`build_draft.py` 会检测并拒绝生成，改用 `build_import_package.py`。
 - 动画/特效/滤镜/蒙版/字体都用**中文枚举名**（如 `IntroType.渐显`、`MaskType.圆形`、`FontType.宋体`）。脚本用 `from_name` 容错匹配，名字不存在时**警告并跳过该效果**（草稿其余部分仍生成）。不确定名字时宁可留空，让用户在剪映里手动加。
 - 视频片段**没有原生描边/发光**参数——host_focus 的描边发光让用户在剪映里补（选中片段 → 蒙版 → 描边；发光用阴影更自然）。
 - 花字/气泡需要 resource_id（模板模式提取，或用户从旧草稿里给）；拿不到时用 TextStyle 描边+阴影近似。
@@ -90,6 +91,8 @@
 ## 排错
 
 - **草稿在剪映里看不到**：进入再退出任一已有草稿，或重启剪映刷新列表。
+- **草稿箱显示 `0.0B / 00:00`，打开像空草稿**：新版剪映列表页依赖 `draft_meta_info.json` 里的时长、素材大小、素材列表和封面。`build_draft.py` 会在 `script.save()` 后自动刷新这些字段，并从口播视频抽一帧生成 `draft_cover.jpg`。如果仍显示为空，先重启剪映；再检查草稿目录里的 `draft_content.json` 是否有轨道、`draft_meta_info.json` 的 `tm_duration` 是否大于 0。
+- **提示“无法打开草稿 / 草稿内容已损坏”**：先检查 `draft_content.json` 里是否有片段引用了不存在的 material。`build_draft.py` 会自动删除这类缺失的 `extra_material_refs`；常见来源是某些 pyJianYingDraft 版本给文本/字幕写入字体或样式引用，但没有把对应素材写进 `materials`。
 - **打开崩溃或片段黑屏**：多为素材路径失效（草稿里存的是绝对路径，素材移动后即失效）——素材应放固定目录再生成草稿。
 - **`from_name` 找不到枚举**：`python3 -c "from pyJianYingDraft import IntroType; print([m.name for m in IntroType])"` 列出当前版本可用名称。
 - **时间重叠报错**：build_draft.py 校验同轨片段不得重叠；调整 decisions.json 的区间，或把重叠条目换到不同手法类型（不同轨道）。

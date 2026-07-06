@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""从 Pexels（fallback Pixabay）搜索并下载免版权视频素材。
+"""从 Pexels / Coverr / Pixabay 搜索并下载免版权视频素材。
 
 用法:
     python3 fetch_stock.py "man thinking silhouette cinematic" -n 3 -o work/materials/
+    python3 fetch_stock.py "film burn transition" --source coverr -n 1 -o work/materials/
 
 API key 放 ~/.config/skills/jz-video-package/.env:
     PEXELS_API_KEY=...
+    COVERR_API_KEY=...
     PIXABAY_API_KEY=...
 """
 import argparse
@@ -31,7 +33,9 @@ def load_env() -> dict:
 
 
 def http_json(url: str, headers: dict | None = None) -> dict:
-    req = urllib.request.Request(url, headers=headers or {})
+    merged_headers = {"User-Agent": "Mozilla/5.0"}
+    merged_headers.update(headers or {})
+    req = urllib.request.Request(url, headers=merged_headers)
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
@@ -43,7 +47,7 @@ def download(url: str, path: str) -> None:
             f.write(chunk)
 
 
-def pick_file(video_files: list) -> str | None:
+def pick_pexels_file(video_files: list) -> str | None:
     """选 1080p 左右的文件，太大浪费、太小画质差。"""
     ranked = sorted(video_files, key=lambda v: abs((v.get("height") or 0) - 1080))
     return ranked[0]["link"] if ranked else None
@@ -55,9 +59,29 @@ def search_pexels(query: str, n: int, key: str) -> list[tuple[str, str]]:
         {"Authorization": key})
     out = []
     for v in data.get("videos", []):
-        link = pick_file(v.get("video_files", []))
+        link = pick_pexels_file(v.get("video_files", []))
         if link:
             out.append((f"pexels-{v['id']}", link))
+    return out
+
+
+def search_coverr(query: str, n: int, key: str) -> list[tuple[str, str]]:
+    data = http_json(
+        "https://api.coverr.co/videos?"
+        + urllib.parse.urlencode({
+            "query": query,
+            "page_size": max(n, 3),
+            "urls": "true",
+            "sort": "popular",
+        }),
+        {"Authorization": f"Bearer {key}"})
+    out = []
+    for v in data.get("hits", [])[:n]:
+        video_id = v.get("id") or v.get("slug") or "unknown"
+        urls = v.get("urls") or {}
+        link = urls.get("mp4_download") or urls.get("mp4")
+        if link:
+            out.append((f"coverr-{video_id}", link))
     return out
 
 
@@ -78,16 +102,27 @@ def main():
     ap.add_argument("query", help="英文关键词，加 cinematic/moody 过滤图库味")
     ap.add_argument("-n", type=int, default=3)
     ap.add_argument("-o", "--output", default="work/materials")
+    ap.add_argument(
+        "--source",
+        choices=["auto", "pexels", "coverr", "pixabay"],
+        default="auto",
+        help="素材源；auto 按 Pexels -> Coverr -> Pixabay fallback",
+    )
     args = ap.parse_args()
 
     env = load_env()
     results = []
-    if env.get("PEXELS_API_KEY"):
+    if args.source in ("auto", "pexels") and env.get("PEXELS_API_KEY"):
         try:
             results = search_pexels(args.query, args.n, env["PEXELS_API_KEY"])
         except Exception as e:
             print(f"[警告] Pexels 搜索失败: {e}", file=sys.stderr)
-    if not results and env.get("PIXABAY_API_KEY"):
+    if not results and args.source in ("auto", "coverr") and env.get("COVERR_API_KEY"):
+        try:
+            results = search_coverr(args.query, args.n, env["COVERR_API_KEY"])
+        except Exception as e:
+            print(f"[警告] Coverr 搜索失败: {e}", file=sys.stderr)
+    if not results and args.source in ("auto", "pixabay") and env.get("PIXABAY_API_KEY"):
         try:
             results = search_pixabay(args.query, args.n, env["PIXABAY_API_KEY"])
         except Exception as e:
