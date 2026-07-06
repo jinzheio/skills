@@ -1,3 +1,5 @@
+work/
+.wrangler/
 data/
 .env
 .env.*
