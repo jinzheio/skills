@@ -11,7 +11,7 @@ description: 从 YouTube 或 X 视频中提取字幕/转录，生成英文、中
 
 1. 将输入标准化为每行一个 URL。
 2. 运行 `scripts/video_transcript.py`，指定输出目录。
-3. 优先使用源平台的英文 VTT 字幕。
+3. 优先使用源平台的英文 VTT 字幕，并优先尝试下载 `zh-Hans` / `zh-CN` / `zh` 中文字幕。
 4. 生成：
    - `transcript.en.md`
    - `transcript.zh.md`
@@ -82,6 +82,7 @@ video-transcripts/
     └── <date>__<video-id>__<title-slug>/
         ├── meta.json
         ├── source.en.vtt
+        ├── source.zh-Hans.vtt       # 可用时
         ├── transcript.en.md
         ├── transcript.zh.md
         └── transcript.bilingual.md
@@ -101,6 +102,8 @@ raw/clippings/youtube/<channel-slug>/<title-slug>/
 ## 重要实现细节
 
 - YouTube 自动 VTT 经常在每个字幕帧中重复前面的单词。不要直接翻译原始 VTT 行。
+- 中文转录优先使用 YouTube 暴露的 `zh-Hans` / `zh-CN` / `zh` 字幕，并按英文段落时间轴对齐。
+- 没有中文字幕时，使用英文字幕加机器翻译；翻译前后要保护 `LLM`、`token`、`Claude Code` 等技术术语，避免翻成“法学硕士”“代币”等错误。
 - X VTT 可能包含 `<X-word-ms>` 时间标签。使用脚本解析器，因为它会剥离标记并保留可读文本。
 - 使用脚本解析器，因为在可用的情况下它会仅保留增量字幕文本，并删除重复的滚动字幕行。
 - 从 YouTube 翻译端点获取中文字幕可能返回 HTTP 429。将其视为正常情况。使用英文字幕加脚本翻译，而不是无限重试。

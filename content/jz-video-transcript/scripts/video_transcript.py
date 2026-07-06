@@ -17,6 +17,19 @@ TIMESTAMP_RE = re.compile(
     r"(?P<start>\d{2}:\d{2}:\d{2}\.\d{3})\s+-->\s+(?P<end>\d{2}:\d{2}:\d{2}\.\d{3})"
 )
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
+ZH_SUB_LANGS = ("zh-Hans", "zh-CN", "zh")
+PROTECTED_TERMS = (
+    "Claude Code",
+    "LLM",
+    "LLMs",
+    "token",
+    "tokens",
+)
+COMMON_TERM_FIXES = (
+    (re.compile(r"法学硕士"), "LLM"),
+    (re.compile(r"克劳德[·・]?代码"), "Claude Code"),
+    (re.compile(r"代币"), "token"),
+)
 
 
 def run(args: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -97,7 +110,9 @@ def seconds_to_hms(value) -> str:
     return f"{m}:{s:02d}"
 
 
-def download_english_vtt(url: str, video_dir: Path, video_id: str) -> Path:
+def download_vtt(url: str, video_dir: Path, video_id: str, sub_langs: str, source_name: str) -> Path | None:
+    for old in video_dir.glob(f"{video_id}.*.vtt"):
+        old.unlink(missing_ok=True)
     run(
         [
             "yt-dlp",
@@ -105,7 +120,7 @@ def download_english_vtt(url: str, video_dir: Path, video_id: str) -> Path:
             "--write-subs",
             "--write-auto-subs",
             "--sub-langs",
-            "en",
+            sub_langs,
             "--sub-format",
             "vtt",
             "--no-warnings",
@@ -115,14 +130,32 @@ def download_english_vtt(url: str, video_dir: Path, video_id: str) -> Path:
         ],
         cwd=video_dir,
     )
-    matches = sorted(video_dir.glob(f"{video_id}.en*.vtt"))
+    matches = sorted(video_dir.glob(f"{video_id}.*.vtt"))
     if not matches:
-        raise FileNotFoundError(f"English VTT not found for {url}")
-    source = video_dir / "source.en.vtt"
+        return None
+    source = video_dir / source_name
     source.write_text(matches[0].read_text(encoding="utf-8", errors="ignore"), encoding="utf-8")
     if matches[0] != source:
         matches[0].unlink(missing_ok=True)
     return source
+
+
+def download_english_vtt(url: str, video_dir: Path, video_id: str) -> Path:
+    path = download_vtt(url, video_dir, video_id, "en", "source.en.vtt")
+    if path is None:
+        raise FileNotFoundError(f"English VTT not found for {url}")
+    return path
+
+
+def download_chinese_vtt(url: str, video_dir: Path, video_id: str) -> tuple[Path, str] | tuple[None, None]:
+    for lang in ZH_SUB_LANGS:
+        try:
+            path = download_vtt(url, video_dir, video_id, lang, f"source.{lang}.vtt")
+        except subprocess.CalledProcessError:
+            continue
+        if path is not None:
+            return path, lang
+    return None, None
 
 
 def parse_vtt(path: Path) -> list[dict]:
@@ -158,6 +191,16 @@ def parse_vtt(path: Path) -> list[dict]:
     return filtered
 
 
+def timestamp_seconds(timestamp: str | None) -> int:
+    if not timestamp:
+        return 0
+    parts = timestamp.split(":")
+    if len(parts) != 3:
+        return 0
+    hours, minutes, seconds = parts
+    return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
+
+
 def make_paragraphs(cues: list[dict], max_words: int) -> list[dict]:
     paragraphs = []
     bucket = []
@@ -180,6 +223,70 @@ def make_paragraphs(cues: list[dict], max_words: int) -> list[dict]:
     return paragraphs
 
 
+def align_cues_to_paragraphs(cues: list[dict], paragraphs: list[dict]) -> list[str]:
+    aligned = []
+    cue_index = 0
+    for paragraph in paragraphs:
+        start = timestamp_seconds(paragraph["start"])
+        end = timestamp_seconds(paragraph["end"])
+        parts = []
+        seen = set()
+        while cue_index < len(cues) and timestamp_seconds(cues[cue_index]["end"]) < start:
+            cue_index += 1
+        scan_index = cue_index
+        while scan_index < len(cues):
+            cue = cues[scan_index]
+            cue_start = timestamp_seconds(cue["start"])
+            cue_end = timestamp_seconds(cue["end"])
+            if cue_start > end:
+                break
+            if cue_end >= start:
+                text = postprocess_terms(cue["text"])
+                if text and text not in seen:
+                    parts.append(text)
+                    seen.add(text)
+            scan_index += 1
+        aligned.append(clean_joined_zh("".join(parts) if parts else ""))
+    return aligned
+
+
+def clean_joined_zh(text: str) -> str:
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s+([，。！？、：；）])", r"\1", text)
+    text = re.sub(r"([（])\s+", r"\1", text)
+    return text
+
+
+def protect_terms(text: str) -> tuple[str, dict[str, str]]:
+    replacements = {}
+    protected = text
+    for index, term in enumerate(sorted(PROTECTED_TERMS, key=len, reverse=True)):
+        placeholder = f"ZXQTERM{index:03d}ZXQ"
+        pattern = re.compile(rf"\b{re.escape(term)}\b", re.IGNORECASE)
+
+        def replace(match: re.Match) -> str:
+            replacements[placeholder] = match.group(0)
+            return placeholder
+
+        protected = pattern.sub(replace, protected)
+    return protected, replacements
+
+
+def restore_terms(text: str, replacements: dict[str, str]) -> str:
+    restored = text
+    for placeholder, original in replacements.items():
+        restored = re.sub(re.escape(placeholder), original, restored, flags=re.IGNORECASE)
+        restored = re.sub(r"\s*".join(re.escape(part) for part in placeholder), original, restored, flags=re.IGNORECASE)
+    return postprocess_terms(restored)
+
+
+def postprocess_terms(text: str) -> str:
+    fixed = text
+    for pattern, replacement in COMMON_TERM_FIXES:
+        fixed = pattern.sub(replacement, fixed)
+    return fixed
+
+
 class GoogleTranslator:
     def __init__(self, sleep_seconds: float = 0.1) -> None:
         self.base_url = "https://translate.googleapis.com/translate_a/single"
@@ -187,10 +294,12 @@ class GoogleTranslator:
         self.sleep_seconds = sleep_seconds
 
     def translate_many(self, texts: list[str]) -> list[str]:
+        protected_items = [protect_terms(text) for text in texts]
+        protected_texts = [item[0] for item in protected_items]
         batches = []
         current = []
         current_len = 0
-        for text in texts:
+        for text in protected_texts:
             proposed = current_len + len(text) + len(self.separator) + 2
             if current and proposed > 3500:
                 batches.append(current)
@@ -206,7 +315,10 @@ class GoogleTranslator:
             results.extend(self._translate_batch(batch))
             if self.sleep_seconds:
                 time.sleep(self.sleep_seconds)
-        return results
+        return [
+            restore_terms(translated, replacements)
+            for translated, (_, replacements) in zip(results, protected_items)
+        ]
 
     def translate_one(self, text: str) -> str:
         return self.translate_many([text])[0]
@@ -328,8 +440,23 @@ def process_video(
         raise RuntimeError(f"No caption text parsed for {url}")
     paragraphs = make_paragraphs(cues, args.max_words)
     zh_texts = None
+    zh_source = "none"
+    zh_vtt_path, zh_lang = download_chinese_vtt(url, video_dir, meta["id"])
+    if zh_vtt_path is not None:
+        zh_cues = parse_vtt(zh_vtt_path)
+        if zh_cues:
+            zh_texts = align_cues_to_paragraphs(zh_cues, paragraphs)
+            zh_source = zh_lang or "youtube-zh"
     if translator is not None:
-        zh_texts = translator.translate_many([paragraph["text"] for paragraph in paragraphs])
+        missing_indexes = [index for index, text in enumerate(zh_texts or []) if not text]
+        if zh_texts is None:
+            zh_texts = translator.translate_many([paragraph["text"] for paragraph in paragraphs])
+            zh_source = "google"
+        elif missing_indexes:
+            translated_missing = translator.translate_many([paragraphs[index]["text"] for index in missing_indexes])
+            for index, translated in zip(missing_indexes, translated_missing):
+                zh_texts[index] = translated
+            zh_source = f"{zh_source}+google"
 
     kb_dir = None
     if kb_root is not None:
@@ -344,6 +471,7 @@ def process_video(
         "paragraphs": len(paragraphs),
         "path": str(video_dir.relative_to(output_dir)),
         "zh": zh_texts is not None,
+        "zh_source": zh_source,
     }
 
 
