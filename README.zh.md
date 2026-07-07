@@ -11,6 +11,7 @@
 | Skill | 用途 |
 | --- | --- |
 | `jz-create-site` | 通过 GitHub 和 Vercel 发布本地 Web 项目。NextJS 或者静态页面都可以。如果没有云端 repo，会新建 Private Repo。 |
+| `jz-cloudflare-auto-ship` | 编排新站点从本地代码发布到 Cloudflare，并按需接域名、统计和 Auto PR。 |
 | `jz-create-cf-site` | 把本地 Web 项目发布到 Cloudflare Workers。 |
 | `jz-migrate-to-cf` | 把 Web 项目从 Vercel 迁移到 Cloudflare。 |
 | `jz-launch-domain` | 为已部署的网站绑定自定义域名、DNS、HTTPS 和跳转。 |
@@ -28,7 +29,7 @@
 | `jz-audit-cf-cost` | 读取 Cloudflare 账单和 GraphQL usage，检查当前计费周期运行中资源的按量费用，识别异常计费。 |
 | `jz-audit-neon-usage` | 分析 Neon 请求来源和无法休眠原因。 |
 | `jz-create-cf-token` | 为项目创建或更新最小权限 Cloudflare token。 |
-| `jz-auto-pr-cloudflare` | 为 Cloudflare Web app 配置 Auto PR、PR preview、OAuth 稳定 preview URL 和清理流程。 |
+| `jz-set-auto-pr` | 把 GitHub repo 接入本机 Codex Auto PR self-hosted runner。 |
 | `jz-build-personal-context` | 通过访谈生成个人上下文和写作风格文件，供 Codex、ChatGPT、Claude、Claude Code 使用。 |
 | `jz-init-tailwind-theme` | 初始化或调整 Tailwind v4 主题 token。 |
 | `jz-find-revenue-site` | 按域名或产品类别查找相似的高收入网站。 |
@@ -49,9 +50,10 @@
 新网站的推荐顺序：
 
 ```text
-jz-create-site -> jz-launch-domain -> jz-setup-analytics
+jz-cloudflare-auto-ship
 ```
 
+如果要手动拆阶段走 Cloudflare，用 `jz-create-cf-site -> jz-launch-domain -> jz-setup-analytics`。
 `jz-add-search-index` 单独保留，因为已有网站可能只需要补 IndexNow。
 
 ## 代码上传流程
@@ -83,6 +85,7 @@ Codex 示例：
 ```bash
 mkdir -p ~/.codex/skills
 cp -R ship/jz-create-site ~/.codex/skills/
+cp -R ship/jz-cloudflare-auto-ship ~/.codex/skills/
 cp -R ship/jz-create-cf-site ~/.codex/skills/
 cp -R ship/jz-migrate-to-cf ~/.codex/skills/
 cp -R ship/jz-launch-domain ~/.codex/skills/
@@ -98,7 +101,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
-cp -R ship/jz-auto-pr-cloudflare ~/.codex/skills/
+cp -R ship/jz-set-auto-pr ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -138,6 +141,10 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ## 使用
 
 在 agent 中按名称调用 skill：
+
+```text
+使用 $jz-cloudflare-auto-ship 把这个新站点发布到 Cloudflare，并按需接域名、统计和 Auto PR。
+```
 
 ```text
 使用 $jz-create-site 发布这个本地网站。
@@ -204,7 +211,7 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-auto-pr-cloudflare 为这个 Cloudflare Web app 配置 Auto PR、PR preview、稳定 OAuth preview URL 和清理流程。
+使用 $jz-set-auto-pr 把这个 GitHub repo 接入本机 Codex Auto PR runner。
 ```
 
 ```text
@@ -339,6 +346,7 @@ cp .env.example .env
 | Skill | 主流程需要 | 可选分支 |
 | --- | --- | --- |
 | `jz-create-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量 |
+| `jz-cloudflare-auto-ship` | 当前项目 checkout、Cloudflare 凭证；需要创建或推送 repo 时使用 GitHub 权限 | 正式域名/DNS 凭证、统计服务凭证、转化路径信息、Auto PR 所需 automation 支持 |
 | `jz-create-cf-site` | Wrangler 或 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` | 需要创建或连接 repo 时使用 GitHub CLI 登录 |
 | `jz-migrate-to-cf` | 当前项目 checkout 和 Cloudflare 凭证 | 读取现有 Vercel 设置时需要 Vercel 登录 |
 | `jz-launch-domain` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
@@ -354,7 +362,7 @@ cp .env.example .env
 | `jz-audit-cf-cost` | Cloudflare API Token（Account: Analytics: Read），`CLOUDFLARE_ACCOUNT_ID` | 可选依赖已部署的每小时成本监控 |
 | `jz-audit-neon-usage` | 平台请求日志、cron-job.org 定时任务和只读数据库统计 | Vercel CLI 登录、Neon/Postgres 只读凭证、可选 `CRON_JOB_API_KEY`、项目源码 |
 | `jz-create-cf-token` | 有创建或编辑账号 token 权限的 Cloudflare bootstrap token | 项目 repo 信息用于缩小 token 权限 |
-| `jz-auto-pr-cloudflare` | GitHub repo 权限、GitHub Actions secrets、Cloudflare 项目 token 和 automation 支持 | 已有 Cloudflare Workers/Pages deploy 配置和 OAuth callback 要求 |
+| `jz-set-auto-pr` | GitHub repo 权限、在线的 self-hosted runner、本机 repo checkout、dispatcher 路径和 repo 映射配置 | 触发策略：只允许 label/comment，或默认处理所有新 issue |
 | `jz-build-personal-context` | 可写的 profile 目录 | 用 `-g` 接入支持的工具 |
 | `jz-init-tailwind-theme` | 可编辑的 Tailwind 前端项目 | 项目已有 design system 时读取现有主题文件 |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR 凭证或本地缓存数据 | 复用本地 SQLite/CSV 历史数据 |

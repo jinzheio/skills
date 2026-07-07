@@ -11,6 +11,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | Skill | Use it for |
 | --- | --- |
 | `jz-create-site` | Publish a local web project through GitHub and Vercel. |
+| `jz-cloudflare-auto-ship` | Orchestrate a new site from local code to Cloudflare deploy, domain, analytics, and optional Auto PR. |
 | `jz-create-cf-site` | Publish a local web project to Cloudflare Workers. |
 | `jz-migrate-to-cf` | Move a web project from Vercel to Cloudflare. |
 | `jz-launch-domain` | Connect a deployed site to a custom domain with DNS, HTTPS, and redirects. |
@@ -28,7 +29,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | `jz-audit-cf-cost` | Read Cloudflare bills and GraphQL usage, check running resource costs in the current billing cycle, and identify billing anomalies. |
 | `jz-audit-neon-usage` | Find why a Neon database is receiving requests or cannot scale to zero. |
 | `jz-create-cf-token` | Create or update a minimal Cloudflare token for a project. |
-| `jz-auto-pr-cloudflare` | Configure Auto PR issue handling, Cloudflare PR previews, OAuth preview URL, and cleanup for a Cloudflare web app. |
+| `jz-set-auto-pr` | Connect a GitHub repo to the local Codex Auto PR self-hosted runner. |
 | `jz-build-personal-context` | Interview the user to create persistent profile and writing-style files for Codex, ChatGPT, Claude, and Claude Code. |
 | `jz-init-tailwind-theme` | Initialize or adjust Tailwind v4 theme tokens. |
 | `jz-find-revenue-site` | Find high-revenue sites similar to a given domain or product category. |
@@ -49,9 +50,10 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 Recommended sequence for a new site:
 
 ```text
-jz-create-site -> jz-launch-domain -> jz-setup-analytics
+jz-cloudflare-auto-ship
 ```
 
+For a manual Cloudflare path, use `jz-create-cf-site -> jz-launch-domain -> jz-setup-analytics`.
 `jz-add-search-index` is separate because it is also useful for existing sites that only need IndexNow support.
 
 ## Code Upload Workflow
@@ -83,6 +85,7 @@ Codex example:
 ```bash
 mkdir -p ~/.codex/skills
 cp -R ship/jz-create-site ~/.codex/skills/
+cp -R ship/jz-cloudflare-auto-ship ~/.codex/skills/
 cp -R ship/jz-create-cf-site ~/.codex/skills/
 cp -R ship/jz-migrate-to-cf ~/.codex/skills/
 cp -R ship/jz-launch-domain ~/.codex/skills/
@@ -98,7 +101,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
-cp -R ship/jz-auto-pr-cloudflare ~/.codex/skills/
+cp -R ship/jz-set-auto-pr ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -138,6 +141,10 @@ Each skill may include an `agents/openai.yaml` file. These files provide display
 ## Usage
 
 Invoke a skill by name in your agent:
+
+```text
+Use $jz-cloudflare-auto-ship to publish this new site to Cloudflare, then set up the domain, analytics, and Auto PR if needed.
+```
 
 ```text
 Use $jz-create-site to publish this local website.
@@ -204,7 +211,7 @@ Use $jz-create-cf-token to create a minimal Cloudflare token for this project.
 ```
 
 ```text
-Use $jz-auto-pr-cloudflare to configure Auto PR, Cloudflare PR previews, a stable OAuth preview URL, and cleanup for this Cloudflare web app.
+Use $jz-set-auto-pr to connect this GitHub repo to the local Codex Auto PR runner.
 ```
 
 ```text
@@ -339,6 +346,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | Skill | Required for the core path | Optional branches |
 | --- | --- | --- |
 | `jz-create-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel |
+| `jz-cloudflare-auto-ship` | Current project checkout, Cloudflare auth, and GitHub access when creating or pushing a repo | Final domain/DNS credentials, analytics credentials, conversion path details, automation support for Auto PR |
 | `jz-create-cf-site` | Cloudflare auth through Wrangler or `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub CLI auth when creating or connecting a repo |
 | `jz-migrate-to-cf` | Existing project checkout and Cloudflare auth | Vercel auth only when reading current Vercel settings |
 | `jz-launch-domain` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |
@@ -354,7 +362,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-audit-cf-cost` | Cloudflare API Token (Account: Analytics: Read), `CLOUDFLARE_ACCOUNT_ID` | Optional existing hourly cost monitor |
 | `jz-audit-neon-usage` | Platform request logs, cron-job.org schedules, and read-only database statistics | Vercel CLI auth, Neon/Postgres read credentials, optional `CRON_JOB_API_KEY`, project source code |
 | `jz-create-cf-token` | Bootstrap Cloudflare token with permission to create or edit account tokens | Project repo metadata for tighter token scoping |
-| `jz-auto-pr-cloudflare` | GitHub repo access, GitHub Actions secrets, Cloudflare project token, and automation support | Existing Cloudflare Workers/Pages deploy config and OAuth callback requirements |
+| `jz-set-auto-pr` | GitHub repo access, an online self-hosted runner, local repo checkout, dispatcher path, and repo mapping config | Trigger policy: label/comment only or all new issues |
 | `jz-build-personal-context` | Writable profile directory | `-g` when installing the generated profile into supported tools |
 | `jz-init-tailwind-theme` | Editable frontend project using Tailwind | Existing design-system files if the project already has one |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR credentials or local cached exports | Local SQLite/CSV data paths for prior research |

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Auto PR Cloudflare"
-  short_description: "为 Cloudflare Web app 配置 Auto PR 工作流。"
-  default_prompt: "使用 $jz-auto-pr-cloudflare 为这个 Cloudflare Web app 配置 Auto PR、PR preview 和 cleanup。"
