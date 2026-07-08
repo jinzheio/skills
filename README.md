@@ -44,8 +44,8 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | --- | --- | --- |
 | `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
 | `content/` | Content production and distribution | `jz-fetch-x`, `jz-feishu-doc-download`, `jz-scys-article`, `jz-video-transcript`, `jz-transcribe-audio`, `jz-douyin-transcript`, `jz-wechat-archive-sync`, `jz-readest-review`, `jz-marketing-video`, `jz-book-distill`, `jz-video-package` |
-| `infra/` | Infrastructure operations | `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
-| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote`, `jz-resume-codex-goal` |
+| `infra/` | Infrastructure operations | `jz-notify`, `jz-cron-job`, `jz-litellm-ops`, `jz-cf-ai-gateway-ops`, `jz-newapi-ops`, `jz-ovh-server`, `jz-hetzner-server` |
+| `local/` | Local machine operations | `jz-browser-automation`, `jz-chrome-launcher`, `jz-launchd-task`, `jz-mac-remote`, `jz-bug-review`, `jz-resume-codex-goal` |
 
 Recommended sequence for a new site:
 
@@ -122,7 +122,9 @@ cp -R content/jz-readest-review ~/.codex/skills/
 cp -R content/jz-marketing-video ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
 cp -R content/jz-video-package ~/.codex/skills/
+cp -R infra/jz-cron-job ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
+cp -R infra/jz-notify ~/.codex/skills/
 cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
 cp -R infra/jz-newapi-ops ~/.codex/skills/
 cp -R infra/jz-ovh-server ~/.codex/skills/
@@ -131,6 +133,7 @@ cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
 cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
+cp -R local/jz-bug-review ~/.codex/skills/
 cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
@@ -216,6 +219,14 @@ Use $jz-set-auto-pr to connect this GitHub repo to the local Codex Auto PR runne
 
 ```text
 Use $jz-build-personal-context to interview me, create about.md, voice.md, anti-style.md in ~/Projects/aboutme, and enable all targets with -g.
+```
+
+```text
+Use $jz-notify to add completion notifications to this scheduled task: system notification, Feishu, and Slack.
+```
+
+```text
+Use $jz-cron-job to create an hourly cron-job.org task that calls /api/health.
 ```
 
 ```text
@@ -323,6 +334,10 @@ Use $jz-launchd-task to create or organize this macOS launchd background task.
 ```
 
 ```text
+Use $jz-bug-review to record this bug source in gbrain and write an HKB Wiki postmortem.
+```
+
+```text
 Use $jz-resume-codex-goal to find a running Codex App goal and resume it after the usage reset.
 ```
 
@@ -362,7 +377,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-audit-cf-cost` | Cloudflare API Token (Account: Analytics: Read), `CLOUDFLARE_ACCOUNT_ID` | Optional existing hourly cost monitor |
 | `jz-audit-neon-usage` | Platform request logs, cron-job.org schedules, and read-only database statistics | Vercel CLI auth, Neon/Postgres read credentials, optional `CRON_JOB_API_KEY`, project source code |
 | `jz-create-cf-token` | Bootstrap Cloudflare token with permission to create or edit account tokens | Project repo metadata for tighter token scoping |
-| `jz-set-auto-pr` | GitHub repo access, an online self-hosted runner, local repo checkout, dispatcher path, and repo mapping config | Trigger policy: label/comment only or all new issues |
+| `jz-set-auto-pr` | GitHub repo access, an online self-hosted runner, local repo checkout, dispatcher path, and repo mapping config; macOS notifications need no extra credential | Optional override if a repo should not auto-process every new issue; Feishu notification credentials only after the user confirms |
 | `jz-build-personal-context` | Writable profile directory | `-g` when installing the generated profile into supported tools |
 | `jz-init-tailwind-theme` | Editable frontend project using Tailwind | Existing design-system files if the project already has one |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR credentials or local cached exports | Local SQLite/CSV data paths for prior research |
@@ -383,6 +398,8 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-douyin-transcript` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
 | `jz-wechat-archive-sync` | API key for the archive provider | Existing state/cache files when resuming a sync |
 | `jz-readest-review` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
+| `jz-notify` | No extra credential for local system notifications | Feishu needs `lark-cli` auth or `FEISHU_WEBHOOK_URL`; signed Feishu webhooks use `FEISHU_SIGN_KEY`; Slack prefers the Codex Slack connector, reads the target from `SLACK_CHANNEL_ID` or `SLACK_CHANNEL_NAME`, and uses `SLACK_WEBHOOK_URL` as script fallback |
+| `jz-cron-job` | cron-job.org API key as `CRON_JOB_API_KEY` in `~/.config/skills/jz-cron-job/.env` | Account write access is needed to create, update, enable, disable, or delete jobs; create disabled jobs first when possible |
 | `jz-litellm-ops` | Local untracked LiteLLM ops config and SSH/database access | Write access only when changing prices, fallback, budgets, or key state |
 | `jz-cf-ai-gateway-ops` | Cloudflare API token and account id with AI Gateway read access | Write access only when changing custom providers, spend limits, Worker secrets, or facade routing |
 | `jz-newapi-ops` | Local untracked NewAPI ops config and database access | Write access only when changing model prices, key state, or channel routing |
@@ -390,6 +407,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-hetzner-server` | Hetzner Cloud API token | Write access for creating and deleting servers; SSH key for hardening |
 | `jz-chrome-launcher` | Local Chrome app | Optional `JZ_DAILY_CHROME_PROFILE`, `JZ_AGENT_CHROME_PORT`, `JZ_AGENT_CHROME_USER_DATA_DIR` overrides |
 | `jz-launchd-task` | macOS user account with permission to write user LaunchAgents | Root permission only for system LaunchDaemons |
+| `jz-bug-review` | `gbrain` CLI and `~/.config/skills/jz-bug-review/config.yml` with `hkb_root` | `JZ_BUG_REVIEW_CONFIG` to use another local config file |
 | `jz-resume-codex-goal` | Codex App thread tools and automation tools | Optional reset time text from Codex usage-limit output |
 
 Common variables:

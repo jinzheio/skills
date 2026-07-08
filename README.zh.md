@@ -44,8 +44,8 @@
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
 | `content/` | 内容生产与分发 | `jz-fetch-x`、`jz-feishu-doc-download`、`jz-scys-article`、`jz-video-transcript`、`jz-transcribe-audio`、`jz-douyin-transcript`、`jz-wechat-archive-sync`、`jz-readest-review`、`jz-marketing-video`、`jz-book-distill`、`jz-video-package` |
-| `infra/` | 基础设施运维 | `jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
-| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote`、`jz-resume-codex-goal` |
+| `infra/` | 基础设施运维 | `jz-notify`、`jz-cron-job`、`jz-litellm-ops`、`jz-cf-ai-gateway-ops`、`jz-newapi-ops`、`jz-ovh-server`、`jz-hetzner-server` |
+| `local/` | 本机操作 | `jz-browser-automation`、`jz-chrome-launcher`、`jz-launchd-task`、`jz-mac-remote`、`jz-bug-review`、`jz-resume-codex-goal` |
 
 新网站的推荐顺序：
 
@@ -122,7 +122,9 @@ cp -R content/jz-readest-review ~/.codex/skills/
 cp -R content/jz-marketing-video ~/.codex/skills/
 cp -R content/jz-book-distill ~/.codex/skills/
 cp -R content/jz-video-package ~/.codex/skills/
+cp -R infra/jz-cron-job ~/.codex/skills/
 cp -R infra/jz-litellm-ops ~/.codex/skills/
+cp -R infra/jz-notify ~/.codex/skills/
 cp -R infra/jz-cf-ai-gateway-ops ~/.codex/skills/
 cp -R infra/jz-newapi-ops ~/.codex/skills/
 cp -R infra/jz-ovh-server ~/.codex/skills/
@@ -131,6 +133,7 @@ cp -R local/jz-browser-automation ~/.codex/skills/
 cp -R local/jz-chrome-launcher ~/.codex/skills/
 cp -R local/jz-launchd-task ~/.codex/skills/
 cp -R local/jz-mac-remote ~/.codex/skills/
+cp -R local/jz-bug-review ~/.codex/skills/
 cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
@@ -216,6 +219,14 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 
 ```text
 使用 $jz-build-personal-context 通过访谈在 ~/Projects/aboutme 生成 about.md、voice.md、anti-style.md，并用 -g 接入四个入口。
+```
+
+```text
+使用 $jz-notify 为这个定时任务接入完成通知：系统通知、飞书和 Slack。
+```
+
+```text
+使用 $jz-cron-job 在 cron-job.org 上创建一个每小时调用 /api/health 的定时任务。
 ```
 
 ```text
@@ -323,6 +334,10 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 ```text
+使用 $jz-bug-review 把这次 bug 来源记录到 gbrain，并写一篇 HKB Wiki 复盘文档。
+```
+
+```text
 使用 $jz-resume-codex-goal 找到正在运行的 Codex App goal，并在 usage reset 后继续执行。
 ```
 
@@ -362,7 +377,7 @@ cp .env.example .env
 | `jz-audit-cf-cost` | Cloudflare API Token（Account: Analytics: Read），`CLOUDFLARE_ACCOUNT_ID` | 可选依赖已部署的每小时成本监控 |
 | `jz-audit-neon-usage` | 平台请求日志、cron-job.org 定时任务和只读数据库统计 | Vercel CLI 登录、Neon/Postgres 只读凭证、可选 `CRON_JOB_API_KEY`、项目源码 |
 | `jz-create-cf-token` | 有创建或编辑账号 token 权限的 Cloudflare bootstrap token | 项目 repo 信息用于缩小 token 权限 |
-| `jz-set-auto-pr` | GitHub repo 权限、在线的 self-hosted runner、本机 repo checkout、dispatcher 路径和 repo 映射配置 | 触发策略：只允许 label/comment，或默认处理所有新 issue |
+| `jz-set-auto-pr` | GitHub repo 权限、在线的 self-hosted runner、本机 repo checkout、dispatcher 路径和 repo 映射配置；macOS 系统通知不需要额外凭证 | 如果某个 repo 不应默认处理所有新 issue，再单独覆盖触发策略；飞书通知等用户确认后再配置凭证 |
 | `jz-build-personal-context` | 可写的 profile 目录 | 用 `-g` 接入支持的工具 |
 | `jz-init-tailwind-theme` | 可编辑的 Tailwind 前端项目 | 项目已有 design system 时读取现有主题文件 |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR 凭证或本地缓存数据 | 复用本地 SQLite/CSV 历史数据 |
@@ -385,12 +400,15 @@ cp .env.example .env
 | `jz-douyin-transcript` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
 | `jz-wechat-archive-sync` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
 | `jz-readest-review` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
+| `jz-notify` | 本机系统通知不需要额外凭证 | 飞书需要 `lark-cli` 授权或 `FEISHU_WEBHOOK_URL`；飞书 webhook 签名用 `FEISHU_SIGN_KEY`；Slack 优先用 Codex Slack connector，发送频道用 `SLACK_CHANNEL_ID` 或 `SLACK_CHANNEL_NAME`，脚本兜底用 `SLACK_WEBHOOK_URL` |
+| `jz-cron-job` | cron-job.org API key，放在 `~/.config/skills/jz-cron-job/.env` 的 `CRON_JOB_API_KEY` | 创建、更新、启停、删除 job 需要账号写权限；建议先创建 disabled job 再启用 |
 | `jz-litellm-ops` | 本机未跟踪 LiteLLM 运维配置和 SSH/数据库权限 | 修改价格、fallback、预算或 key 状态时需要写权限 |
 | `jz-cf-ai-gateway-ops` | 有 AI Gateway 读取权限的 Cloudflare API token 和 account id | 修改 custom provider、spend limit、Worker secret 或 facade 路由时需要写权限 |
 | `jz-newapi-ops` | 本机未跟踪 NewAPI 运维配置和数据库权限 | 修改模型价格、key 状态或渠道路由时需要写权限 |
 | `jz-ovh-server` | OVH API 凭证（application key、secret、consumer key）和 SSH key | 创建和删除 VPS 需要写权限 |
 | `jz-hetzner-server` | Hetzner Cloud API token | 创建和删除服务器需要写权限；加固 SSH 需要 SSH key |
 | `jz-browser-automation` | 本机 Chrome 和 Node.js | 自动使用 9333 端口或用户指定的 CDP 端口 |
+| `jz-bug-review` | `gbrain` CLI，以及带 `hkb_root` 的 `~/.config/skills/jz-bug-review/config.yml` | 用 `JZ_BUG_REVIEW_CONFIG` 指向其它本机配置文件 |
 | `jz-resume-codex-goal` | Codex App thread 工具和 automation 工具 | 可选提供 Codex usage-limit 输出中的 reset 时间 |
 | `jz-mac-remote` | 目标 Mac 已开启远程登录（SSH）且在同一局域网 | 同步文件和配置时需要读写权限 |
 
