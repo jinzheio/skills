@@ -1,6 +1,6 @@
 ---
 name: jz-migrate-to-cf
-description: 将 Web 项目从 Vercel 迁移到 Cloudflare Workers、Pages 或 Cloudflare 原生托管。适用于用户要求迁移、发布、重新部署或把站点从 Vercel 移到 Cloudflare，尤其涉及自定义域名、Vercel GitHub 自动部署、Vercel 平台资源、vercel.json、Cloudflare DNS、Workers custom domains、D1、R2、Queues、Vectorize、Wrangler 或域名交接时。
+description: 将 Web 项目从 Vercel 迁移到 Cloudflare Workers 或 Cloudflare 原生托管。适用于用户要求迁移、发布、重新部署或把站点从 Vercel 移到 Cloudflare，尤其涉及自定义域名、Vercel GitHub 自动部署、Vercel 平台资源、vercel.json、Cloudflare DNS、Workers custom domains、D1、R2、Queues、Vectorize、Wrangler 或域名交接时。
 ---
 
 # Vercel 到 Cloudflare 迁移
@@ -81,18 +81,18 @@ rg -n 'Vercel|VERCEL|@vercel|next/image|ImageResponse|Edge Config|KV|Blob|Postgr
 重点判断：
 
 - 项目类型：纯内容站、个人项目展示、文档站、营销页、博客、作品集、SaaS 应用、后台、带登录态应用、API 服务或混合应用。
-- 现有框架：Next.js、Astro、Vite/React、SvelteKit、Nuxt、静态 HTML，或其他框架。
+- 现有框架：Next.js、Astro、Vite/React、SvelteKit、Nuxt、TanStack、静态 HTML，或其他框架。
 - 渲染方式：纯静态、SSG、SSR、ISR、边缘中间件、客户端应用。
 - Next.js 是否依赖 Node-only API、ISR、Image Optimization、Middleware、Route Handlers、Server Actions、API routes、动态 metadata、动态 sitemap/robots。
 - 是否使用 i18n、多语言路由、locale 检测、按语言生成 sitemap，或 `middleware` 做语言跳转。
 - 是否使用 `@vercel/analytics`、`@vercel/speed-insights`、`@vercel/blob`、`@vercel/postgres`、Vercel KV、Edge Config。
 - 是否依赖 Vercel Cron、Vercel rewrites/redirects/headers、环境变量、Build/Install/Output 设置。
 - 是否使用 Vercel 域名、Vercel 自动 GitHub 部署、Preview URL、Protection、Skew Protection。
-- 是否能用 Cloudflare Workers/Pages 直接承载，还是要改代码、换存储、换图片方案、换定时任务。
+- 是否能用 Cloudflare Workers 直接承载，还是要改代码、换存储、换图片方案、换定时任务。
 
 如果不能直接迁移，先列出改造项和风险，不要直接发布。
 
-技术栈推荐细则见 `references/technical-stack.md`。需要在框架、SSR、i18n、Pages/Workers/OpenNext 之间做取舍时再读取；普通域名交接或单一路径部署不必加载。
+技术栈推荐细则见 `references/technical-stack.md`。需要在框架、SSR、i18n、Workers/OpenNext 之间做取舍时再读取；普通域名交接或单一路径部署不必加载。
 
 ## 安全规则
 
@@ -270,20 +270,49 @@ There is no project for "<project-name>"
 
 ### 4. 创建或复用 Cloudflare 资源
 
-如果创建 D1、R2、Queues、Vectorize、Workers route 或 Pages project 需要权限，先查找 Cloudflare token。确认 token 至少有目标账户和目标 zone 的读写权限；权限不足时只向用户索要缺失权限。
+先列出本次迁移实际需要的 Cloudflare 资源和权限，不要直接使用宽权限 token。根据项目配置和迁移方案判断是否需要：
+
+- Workers Scripts Write
+- D1 Read / Write / Metadata Read
+- R2 Storage Read / Write、R2 Bucket Item Read / Write
+- KV Storage Read / Write
+- Queues Read / Write
+- Vectorize Read / Write
+- Routes Read / Write
+- Zone Read、DNS Write
+- Observability Read
+
+然后使用 `$jz-create-cf-token` 创建或更新项目范围、最小权限的 Cloudflare API token：
+
+1. 先按该 skill 的流程检查当前项目是否已有可用 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`。
+2. 如果已有 token，验证它是否覆盖本次资源创建和部署所需 API。权限足够就复用。
+3. 如果没有 token，或 token 缺少 D1、R2、Queues、Vectorize、Workers routes/custom domains、DNS、Observability 等权限，用 `$jz-create-cf-token` 创建或更新项目 token。
+4. 只把项目 token 用于 Wrangler/API 操作。不要用 `jz-create-cf-token` 的共享引导 token 部署、创建资源或写入 CI。
+5. 如果 token 写在 `.dev.vars`，执行下面的 Wrangler 命令时加 `CLOUDFLARE_ENV_FILE=.dev.vars`；如果 token 写在 `.env.local`，可直接使用 `scripts/with-cloudflare-env.mjs` 默认行为。
+
+权限集按实际资源收窄。例子：
+
+- 只部署 Worker 和 custom domains：Workers Scripts Write、Routes Read / Write、Zone Read、DNS Write。
+- Worker + D1：Workers Scripts Write、D1 Read / Write / Metadata Read。
+- Worker + R2：Workers Scripts Write、R2 Storage Read / Write、R2 Bucket Item Read / Write。
+- Worker + D1 + R2 + Queues + custom domains：上面对应权限相加，再加 Routes Read / Write、Zone Read、DNS Write。
+
+如果创建资源时返回认证错误，只补缺失权限，不要要求用户提供无关凭据。
 
 Workers 内容型应用常用资源：
 
 ```bash
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler d1 list --json
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler d1 create <db-name>
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler r2 bucket list
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler r2 bucket create <bucket-name>
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler queues list
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler queues create <queue-name>
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler vectorize list
-node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler vectorize create <index-name> --dimensions=<n> --metric=cosine
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler d1 list --json
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler d1 create <db-name>
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler r2 bucket list
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler r2 bucket create <bucket-name>
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler queues list
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler queues create <queue-name>
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler vectorize list
+CLOUDFLARE_ENV_FILE=.dev.vars node <skill-dir>/scripts/with-cloudflare-env.mjs pnpm exec wrangler vectorize create <index-name> --dimensions=<n> --metric=cosine
 ```
+
+如果项目继续使用 `.env.local` 存放 Cloudflare 凭据，把上面命令里的 `CLOUDFLARE_ENV_FILE=.dev.vars` 去掉。
 
 把真实 D1 `database_id` 写回 `wrangler.jsonc`。
 
@@ -344,12 +373,9 @@ Hostname '<domain>' already has externally managed DNS records
 
 删除冲突的 A/AAAA/CNAME 后重新部署。
 
-为 Cloudflare Pages 或 Workers 绑定自定义域名时，DNS 记录优先使用 Cloudflare `proxied` 模式：
+为 Cloudflare Workers 绑定自定义域名时，DNS 记录优先使用 Cloudflare `proxied` 模式：
 
-- Pages 常用 `CNAME example.com -> <project>.pages.dev` 和 `CNAME www.example.com -> <project>.pages.dev`，默认设为 `proxied: true`。
 - Workers routes/custom domains 默认走 Cloudflare 代理，不要改成 DNS only。
-- 如果 Pages custom domain 验证报 `CNAME record not set` 或长期停在 pending，可临时把目标 CNAME 改为 DNS only，让 Pages 看到真实 CNAME。
-- Pages domain 进入 `active` 后，再把 CNAME 切回 `proxied: true`，并重新验证正式域名可达。
 
 ### 6. 构建、迁移、部署
 
@@ -358,8 +384,6 @@ Hostname '<domain>' already has externally managed DNS records
 #### 运行时变量专题
 
 如果项目使用 OpenNext for Cloudflare，读取 `references/opennext-env.md`。核心规则：构建期只给 `NEXT_PUBLIC_*` 和必要 build-only 变量；运行时私密变量写入 Worker vars/secrets；部署使用 `--keep-vars` 或等价方式；部署前扫描 `.open-next` 产物。
-
-如果项目使用 `wrangler pages deploy <dist>` 且包含 Pages Functions，读取 `references/pages-direct-upload-functions.md`。核心规则：先验证真实 API route 的 `context.env`；只有 Direct Upload Functions 读不到已配置变量时，才使用临时 `[vars]` 桥接。
 
 生产前运行项目检查：
 
@@ -423,10 +447,6 @@ trap 'rm -f "$CF_CURL_CONFIG"' EXIT
 chmod 600 "$CF_CURL_CONFIG"
 printf 'header = "Authorization: Bearer %s"\n' "$CLOUDFLARE_API_TOKEN" > "$CF_CURL_CONFIG"
 
-# Pages custom domains 应为 active；DNS 记录优先保持 proxied。
-curl -sS --config "$CF_CURL_CONFIG" \
-  "https://api.cloudflare.com/client/v4/accounts/<account-id>/pages/projects/<project-name>/domains"
-
 curl -sS --config "$CF_CURL_CONFIG" \
   "https://api.cloudflare.com/client/v4/zones/<zone-id>/dns_records?name=example.com"
 ```
@@ -451,7 +471,6 @@ vercel alias ls --scope <scope> --limit 100 | rg 'example\.com|www\.example\.com
 - `/workers/routes` 或 `/domains/records` 返回认证错误：给目标 zone 增加 Workers Routes edit 和 Zone read。
 - `externally managed DNS records`：删除目标 hostname 上旧 A/AAAA/CNAME。
 - OpenNext 部署后 Worker 还能读到 `.env` 私密变量：说明构建时完整 `.env` 被嵌入了 `.open-next/cloudflare/next-env.mjs` 或 Worker bundle。改用只含 `NEXT_PUBLIC_*` 的安全构建脚本，runtime secrets 用 Cloudflare Worker secrets，并用 `--keep-vars` 部署。
-- Pages custom domain 报 `CNAME record not set`：临时改成 DNS only，active 后切回 proxied 并验证 HTTPS。
 - 本地 `dig` 或普通 `curl` 显示域名不可解析：不要只按本地 DNS 判断；用权威解析或 `curl --resolve` 直接验证域名 HTTPS 可达。
 - `www` 刚部署后 TLS 失败：等待并重试，custom domain 证书和 DNS 可能有短暂延迟。
 
