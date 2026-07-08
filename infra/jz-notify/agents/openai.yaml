@@ -1,0 +1,7 @@
+interface:
+  display_name: "JZ Notify"
+  short_description: "发送系统、飞书和 Slack 通知。"
+  default_prompt: "使用 $jz-notify 为当前任务接入完成通知：本机系统通知、飞书 CLI/webhook、Slack connector 或 webhook 兜底。"
+
+policy:
+  allow_implicit_invocation: true
