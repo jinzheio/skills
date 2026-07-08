@@ -1,10 +1,10 @@
 ---
-name: jz-cloudflare-auto-ship
+name: jz-deploy-cloudflare
 version: "1.0.0"
-description: "当用户想把一个新网站或 Web app 从本地代码推进到 Cloudflare 上线，并顺手配置 GitHub、自动部署、正式域名、搜索/统计、转化埋点和 Auto PR 时使用。适用于 ship this site to Cloudflare、从代码到上线、Cloudflare auto ship、新站点发布全流程、上线后接 analytics 和 Auto PR。默认新站点发布到 Cloudflare，不处理 Vercel 迁移；迁移旧项目仍单独使用 jz-migrate-to-cf。"
+description: "当用户想把一个新网站或 Web app 从本地代码推进到 Cloudflare 上线，并顺手配置 GitHub、自动部署、正式域名、搜索/统计、转化埋点和 Auto PR 时使用。适用于 deploy this site to Cloudflare、ship this site to Cloudflare、从代码到上线、新站点发布全流程、上线后接 analytics 和 Auto PR。默认新站点发布到 Cloudflare，不处理 Vercel 迁移；迁移旧项目仍单独使用 jz-migrate-to-cf。"
 ---
 
-# Cloudflare Auto Ship
+# Deploy to Cloudflare
 
 用于编排新站点从本地代码到 Cloudflare 上线后的常见流程。
 

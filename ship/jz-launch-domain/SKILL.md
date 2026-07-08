@@ -1,7 +1,7 @@
 ---
 name: jz-launch-domain
 version: "1.1.1"
-description: "当用户已有可用部署、想连接自定义域名时使用，包括 connect this domain、绑定域名、set up DNS、make www redirect、enable HTTPS。覆盖 registrar nameservers、DNS provider records、hosting-platform domain binding、TLS、apex/www 跳转，以及用户要求时的邮箱转发。站点还没有可用部署时不要使用；先用 create-site。"
+description: "当用户已有可用部署、想连接自定义域名时使用，包括 connect this domain、绑定域名、set up DNS、make www redirect、enable HTTPS。覆盖 registrar nameservers、DNS provider records、hosting-platform domain binding、TLS、apex/www 跳转，以及用户要求时的邮箱转发。站点还没有可用部署时不要使用；先用 jz-deploy-vercel 或 jz-create-cf-site。"
 ---
 
 # 域名绑定与上线

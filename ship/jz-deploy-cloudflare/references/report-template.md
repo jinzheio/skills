@@ -5,7 +5,7 @@
 ## 模板
 
 ```text
-Cloudflare auto ship 结果：
+Cloudflare deploy 结果：
 
 - Cloudflare deploy: <done|partial|skipped|blocked|manual> — <URL / deployment id / 原因>
 - GitHub repo: <status> — <repo URL / 原因>

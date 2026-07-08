@@ -10,8 +10,8 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 
 | Skill | Use it for |
 | --- | --- |
-| `jz-create-site` | Publish a local web project through GitHub and Vercel. |
-| `jz-cloudflare-auto-ship` | Orchestrate a new site from local code to Cloudflare deploy, domain, analytics, and optional Auto PR. |
+| `jz-deploy-vercel` | Publish a local web project through GitHub and Vercel. |
+| `jz-deploy-cloudflare` | Orchestrate a new site from local code to Cloudflare deploy, domain, analytics, and optional Auto PR. |
 | `jz-create-cf-site` | Publish a local web project to Cloudflare Workers. |
 | `jz-migrate-to-cf` | Move a web project from Vercel to Cloudflare. |
 | `jz-launch-domain` | Connect a deployed site to a custom domain with DNS, HTTPS, and redirects. |
@@ -50,7 +50,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 Recommended sequence for a new site:
 
 ```text
-jz-cloudflare-auto-ship
+jz-deploy-cloudflare
 ```
 
 For a manual Cloudflare path, use `jz-create-cf-site -> jz-launch-domain -> jz-setup-analytics`.
@@ -84,8 +84,8 @@ Codex example:
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R ship/jz-create-site ~/.codex/skills/
-cp -R ship/jz-cloudflare-auto-ship ~/.codex/skills/
+cp -R ship/jz-deploy-vercel ~/.codex/skills/
+cp -R ship/jz-deploy-cloudflare ~/.codex/skills/
 cp -R ship/jz-create-cf-site ~/.codex/skills/
 cp -R ship/jz-migrate-to-cf ~/.codex/skills/
 cp -R ship/jz-launch-domain ~/.codex/skills/
@@ -146,11 +146,11 @@ Each skill may include an `agents/openai.yaml` file. These files provide display
 Invoke a skill by name in your agent:
 
 ```text
-Use $jz-cloudflare-auto-ship to publish this new site to Cloudflare, then set up the domain, analytics, and Auto PR if needed.
+Use $jz-deploy-cloudflare to publish this new site to Cloudflare, then set up the domain, analytics, and Auto PR if needed.
 ```
 
 ```text
-Use $jz-create-site to publish this local website.
+Use $jz-deploy-vercel to publish this local website.
 ```
 
 ```text
@@ -360,8 +360,8 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 
 | Skill | Required for the core path | Optional branches |
 | --- | --- | --- |
-| `jz-create-site` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel |
-| `jz-cloudflare-auto-ship` | Current project checkout, Cloudflare auth, and GitHub access when creating or pushing a repo | Final domain/DNS credentials, analytics credentials, conversion path details, automation support for Auto PR |
+| `jz-deploy-vercel` | GitHub CLI auth (`gh auth login`), Vercel CLI auth (`vercel login`), `GITHUB_OWNER`, `VERCEL_SCOPE` | Production app env vars copied to Vercel |
+| `jz-deploy-cloudflare` | Current project checkout, Cloudflare auth, and GitHub access when creating or pushing a repo | Final domain/DNS credentials, analytics credentials, conversion path details, automation support for Auto PR |
 | `jz-create-cf-site` | Cloudflare auth through Wrangler or `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub CLI auth when creating or connecting a repo |
 | `jz-migrate-to-cf` | Existing project checkout and Cloudflare auth | Vercel auth only when reading current Vercel settings |
 | `jz-launch-domain` | Hosting provider auth, DNS provider auth when DNS must be changed, registrar auth when nameservers must be changed | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SPACESHIP_API_KEY`, `SPACESHIP_API_SECRET`, Cloudflare Email Routing permissions if inbound forwarding is requested, authenticated browser session for providers without API coverage |

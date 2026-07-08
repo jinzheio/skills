@@ -10,8 +10,8 @@
 
 | Skill | 用途 |
 | --- | --- |
-| `jz-create-site` | 通过 GitHub 和 Vercel 发布本地 Web 项目。NextJS 或者静态页面都可以。如果没有云端 repo，会新建 Private Repo。 |
-| `jz-cloudflare-auto-ship` | 编排新站点从本地代码发布到 Cloudflare，并按需接域名、统计和 Auto PR。 |
+| `jz-deploy-vercel` | 通过 GitHub 和 Vercel 发布本地 Web 项目。NextJS 或者静态页面都可以。如果没有云端 repo，会新建 Private Repo。 |
+| `jz-deploy-cloudflare` | 编排新站点从本地代码发布到 Cloudflare，并按需接域名、统计和 Auto PR。 |
 | `jz-create-cf-site` | 把本地 Web 项目发布到 Cloudflare Workers。 |
 | `jz-migrate-to-cf` | 把 Web 项目从 Vercel 迁移到 Cloudflare。 |
 | `jz-launch-domain` | 为已部署的网站绑定自定义域名、DNS、HTTPS 和跳转。 |
@@ -50,7 +50,7 @@
 新网站的推荐顺序：
 
 ```text
-jz-cloudflare-auto-ship
+jz-deploy-cloudflare
 ```
 
 如果要手动拆阶段走 Cloudflare，用 `jz-create-cf-site -> jz-launch-domain -> jz-setup-analytics`。
@@ -84,8 +84,8 @@ Codex 示例：
 
 ```bash
 mkdir -p ~/.codex/skills
-cp -R ship/jz-create-site ~/.codex/skills/
-cp -R ship/jz-cloudflare-auto-ship ~/.codex/skills/
+cp -R ship/jz-deploy-vercel ~/.codex/skills/
+cp -R ship/jz-deploy-cloudflare ~/.codex/skills/
 cp -R ship/jz-create-cf-site ~/.codex/skills/
 cp -R ship/jz-migrate-to-cf ~/.codex/skills/
 cp -R ship/jz-launch-domain ~/.codex/skills/
@@ -146,11 +146,11 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 在 agent 中按名称调用 skill：
 
 ```text
-使用 $jz-cloudflare-auto-ship 把这个新站点发布到 Cloudflare，并按需接域名、统计和 Auto PR。
+使用 $jz-deploy-cloudflare 把这个新站点发布到 Cloudflare，并按需接域名、统计和 Auto PR。
 ```
 
 ```text
-使用 $jz-create-site 发布这个本地网站。
+使用 $jz-deploy-vercel 发布这个本地网站。
 ```
 
 ```text
@@ -360,8 +360,8 @@ cp .env.example .env
 
 | Skill | 主流程需要 | 可选分支 |
 | --- | --- | --- |
-| `jz-create-site` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量 |
-| `jz-cloudflare-auto-ship` | 当前项目 checkout、Cloudflare 凭证；需要创建或推送 repo 时使用 GitHub 权限 | 正式域名/DNS 凭证、统计服务凭证、转化路径信息、Auto PR 所需 automation 支持 |
+| `jz-deploy-vercel` | GitHub CLI 登录（`gh auth login`）、Vercel CLI 登录（`vercel login`）、`GITHUB_OWNER`、`VERCEL_SCOPE` | 同步到 Vercel 的生产环境变量 |
+| `jz-deploy-cloudflare` | 当前项目 checkout、Cloudflare 凭证；需要创建或推送 repo 时使用 GitHub 权限 | 正式域名/DNS 凭证、统计服务凭证、转化路径信息、Auto PR 所需 automation 支持 |
 | `jz-create-cf-site` | Wrangler 或 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` | 需要创建或连接 repo 时使用 GitHub CLI 登录 |
 | `jz-migrate-to-cf` | 当前项目 checkout 和 Cloudflare 凭证 | 读取现有 Vercel 设置时需要 Vercel 登录 |
 | `jz-launch-domain` | 需要改 DNS 时要有 DNS provider 权限；需要改 nameserver 时要有 registrar 权限；需要绑定托管平台域名时要有 hosting provider 权限 | `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`SPACESHIP_API_KEY`、`SPACESHIP_API_SECRET`；如果要配置邮件转发，需要 Cloudflare Email Routing 权限；没有 API 时可用已登录浏览器会话 |
