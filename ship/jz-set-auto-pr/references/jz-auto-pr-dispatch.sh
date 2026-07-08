@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUTO_PR_DISPATCH_VERSION="0.3.1"
+AUTO_PR_DISPATCH_VERSION="0.3.5"
 
 usage() {
   cat <<'USAGE'
@@ -55,13 +55,81 @@ if [ -z "$repo" ] || [ -z "$issue" ]; then
 fi
 
 config_dir="${AUTO_PR_CONFIG_DIR:-$HOME/.config/skills/jz-set-auto-pr}"
-legacy_config_dir="${AUTO_PR_LEGACY_CONFIG_DIR:-$HOME/.codex/auto-pr}"
 state_dir="${AUTO_PR_STATE_DIR:-$HOME/.local/state/jz-set-auto-pr}"
 worktree_root="${AUTO_PR_WORKTREE_ROOT:-$HOME/.local/share/jz-set-auto-pr/worktrees}"
+macos_notify="${AUTO_PR_MACOS_NOTIFY:-1}"
+auto_pr_notify="${AUTO_PR_NOTIFY:-1}"
+notify_script="${AUTO_PR_NOTIFY_SCRIPT:-}"
 
 config="${AUTO_PR_REPOS_CONFIG:-$config_dir/repos.json}"
-if [ ! -f "$config" ] && [ -f "$legacy_config_dir/repos.json" ]; then
-  config="$legacy_config_dir/repos.json"
+
+send_macos_notification() {
+  case "$(printf '%s' "$macos_notify" | tr '[:upper:]' '[:lower:]')" in
+    0|false|no|off) return 0 ;;
+  esac
+  if ! command -v osascript >/dev/null 2>&1; then
+    return 0
+  fi
+
+  osascript - "$1" "$2" "$3" <<'APPLESCRIPT' >/dev/null 2>&1 || true
+on run argv
+  set notificationTitle to item 1 of argv
+  set notificationSubtitle to item 2 of argv
+  set notificationMessage to item 3 of argv
+  display notification notificationMessage with title notificationTitle subtitle notificationSubtitle
+end run
+APPLESCRIPT
+}
+
+resolve_notify_script() {
+  if [ -n "$notify_script" ]; then
+    printf '%s\n' "$notify_script"
+    return 0
+  fi
+
+  local candidate
+  for candidate in \
+    "$HOME/.codex/skills/jz-notify/scripts/notify.sh" \
+    "$HOME/.agents/skills/jz-notify/scripts/notify.sh" \
+    "$HOME/.claude/skills/jz-notify/scripts/notify.sh"; do
+    if [ -x "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+send_auto_pr_notification() {
+  local notification_title="$1"
+  local notification_body="$2"
+  case "$(printf '%s' "$auto_pr_notify" | tr '[:upper:]' '[:lower:]')" in
+    0|false|no|off) return 0 ;;
+  esac
+
+  local script_path
+  script_path="$(resolve_notify_script || true)"
+  if [ -n "$script_path" ]; then
+    "$script_path" "$notification_title" "$notification_body" >>"$log_dir/notify.log" 2>&1 || true
+  else
+    send_macos_notification "$notification_title" "$repo #$issue" "$notification_body"
+  fi
+}
+
+allowed_owner="${AUTO_PR_ALLOWED_OWNER:-}"
+if [ -z "$allowed_owner" ] && [ -f "$config_dir/allowed-owner" ]; then
+  allowed_owner="$(tr -d '\r\n' < "$config_dir/allowed-owner")"
+fi
+if [ -n "$allowed_owner" ]; then
+  case "$repo" in
+    "$allowed_owner"/*) ;;
+    *)
+      echo "Refusing repo outside allowed owner: $repo" >&2
+      echo "Expected owner: $allowed_owner" >&2
+      exit 1
+      ;;
+  esac
 fi
 
 if [ ! -f "$config" ]; then
@@ -70,15 +138,9 @@ if [ ! -f "$config" ]; then
 fi
 
 project_dir="$(jq -er --arg repo "$repo" '.[$repo]' "$config" 2>/dev/null || true)"
-if [ -z "$project_dir" ] && [ "$config" != "$legacy_config_dir/repos.json" ] && [ -f "$legacy_config_dir/repos.json" ]; then
-  project_dir="$(jq -er --arg repo "$repo" '.[$repo]' "$legacy_config_dir/repos.json" 2>/dev/null || true)"
-fi
 if [ -z "$project_dir" ]; then
   echo "Repo is not mapped in dispatcher config: $repo" >&2
   echo "Checked: $config" >&2
-  if [ -f "$legacy_config_dir/repos.json" ]; then
-    echo "Checked fallback: $legacy_config_dir/repos.json" >&2
-  fi
   exit 1
 fi
 
@@ -116,8 +178,6 @@ codex_log="$log_dir/codex.log"
 codex_github_token="${AUTO_PR_GITHUB_TOKEN:-}"
 if [ -z "$codex_github_token" ] && [ -f "$config_dir/github-token" ]; then
   codex_github_token="$(tr -d '\r\n' < "$config_dir/github-token")"
-elif [ -z "$codex_github_token" ] && [ -f "$legacy_config_dir/github-token" ]; then
-  codex_github_token="$(tr -d '\r\n' < "$legacy_config_dir/github-token")"
 fi
 
 gh issue view "$issue" \
@@ -146,6 +206,11 @@ Trigger actor: @$actor
 Labels: ${labels:-none}
 Branch: \`$branch\`
 Log id: \`$run_id\`"
+
+send_macos_notification \
+  "Auto PR started" \
+  "$repo #$issue" \
+  "${title:-Branch: $branch}"
 
 cat > "$prompt_file" <<PROMPT
 You are running from a GitHub self-hosted runner trigger.
@@ -215,6 +280,10 @@ Log id: \`$run_id\`
 
 Codex final message:
 $(sed -n '1,120p' "$last_message" 2>/dev/null || true)"
+  send_auto_pr_notification \
+    "Auto PR completed" \
+    "$repo #$issue
+${title:-Branch: $branch}"
 else
   final_body="Auto PR run failed for issue #$issue.
 
@@ -223,6 +292,10 @@ Log id: \`$run_id\`
 
 Codex final message, if any:
 $(sed -n '1,120p' "$last_message" 2>/dev/null || true)"
+  send_auto_pr_notification \
+    "Auto PR failed" \
+    "$repo #$issue
+${title:-Exit code: $status}"
 fi
 
 gh issue comment "$issue" --repo "$repo" --body "$final_body" || true

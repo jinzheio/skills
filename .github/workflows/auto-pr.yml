@@ -1,0 +1,63 @@
+name: Auto PR
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+  issue_comment:
+    types:
+      - created
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: GitHub issue number to process
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: auto-pr-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  auto-pr:
+    if: >-
+      (github.event_name == 'issues' &&
+        github.event.issue.author_association == 'OWNER') ||
+      (github.event_name == 'issue_comment' &&
+        !github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '/auto-pr') &&
+        github.event.comment.author_association == 'OWNER') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on:
+      - self-hosted
+      - auto-pr
+      - codex
+    timeout-minutes: 180
+
+    steps:
+      - name: Dispatch local Codex auto PR
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          INPUT_ISSUE_NUMBER: ${{ inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          issue_number="$EVENT_ISSUE_NUMBER"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            issue_number="$INPUT_ISSUE_NUMBER"
+          fi
+
+          "$HOME/.local/bin/jz-auto-pr-dispatch" \
+            --repo "$REPOSITORY" \
+            --issue "$issue_number" \
+            --actor "$ACTOR"
