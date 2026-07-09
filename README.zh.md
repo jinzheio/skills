@@ -29,7 +29,7 @@
 | `jz-audit-cf-cost` | 读取 Cloudflare 账单和 GraphQL usage，检查当前计费周期运行中资源的按量费用，识别异常计费。 |
 | `jz-audit-neon-usage` | 分析 Neon 请求来源和无法休眠原因。 |
 | `jz-create-cf-token` | 为项目创建或更新最小权限 Cloudflare token。 |
-| `jz-set-auto-pr` | 把 GitHub repo 接入本机 Codex Auto PR self-hosted runner。 |
+| `jz-set-auto-pr` | 把 GitHub repo 接入支持 Codex 或 Claude Code 的本机 Auto PR self-hosted runner。 |
 | `jz-build-personal-context` | 通过访谈生成个人上下文和写作风格文件，供 Codex、ChatGPT、Claude、Claude Code 使用。 |
 | `jz-init-tailwind-theme` | 初始化或调整 Tailwind v4 主题 token。 |
 | `jz-find-revenue-site` | 按域名或产品类别查找相似的高收入网站。 |
@@ -214,7 +214,7 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-set-auto-pr 把这个 GitHub repo 接入本机 Codex Auto PR runner。
+使用 $jz-set-auto-pr 把这个 GitHub repo 接入本机 Auto PR runner。
 ```
 
 ```text
