@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 180
 
     steps:
-      - name: Dispatch local Codex auto PR
+      - name: Dispatch local auto PR
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}

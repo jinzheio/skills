@@ -29,7 +29,7 @@ description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要�
 - dispatcher 路径：默认 `<home-dir>/.local/bin/jz-auto-pr-dispatch`，可用 `AUTO_PR_DISPATCH_PATH` 覆盖。
 - repo 映射配置：例如 `<auto-pr-config-dir>/repos.json`。
 - GitHub owner：从本机未跟踪配置 `<auto-pr-config-dir>/allowed-owner` 或 `AUTO_PR_ALLOWED_OWNER` 读取。
-- self-hosted runner label：至少包含 `self-hosted`，建议另有 `auto-pr` 和 agent 标识，例如 `codex`。
+- self-hosted runner label：至少包含 `self-hosted` 和 `auto-pr`。现有 runner 如果只有 `codex` 标签也可以继续用；Agent 选择由 dispatcher 配置决定，不由 workflow step 名决定。
 - 本地 Agent：默认 `codex`；可通过 `AUTO_PR_AGENT` 或 `<auto-pr-config-dir>/config.yml` 的 `agent` 字段设置为 `codex` 或 `claude-code`。
 - 触发策略：
   - 默认：新 issue 和 reopened issue 直接触发。
@@ -51,6 +51,50 @@ skill 文档中的路径都用占位符。实际路径从当前机器、已有 d
 已有机器如果使用过其它位置，先把配置文件移动到推荐目录；不要在 dispatcher 中保留旧路径 fallback。
 
 不要把真实 token、本机绝对路径、真实账号、私有部署细节写进 repo。
+
+## Agent 配置
+
+开始接入或测试前，必须确认当前本地 Agent 配置。不要只看 workflow 里的 runner label 或 step 名；真正生效的是 dispatcher 读取到的配置。
+
+读取顺序：
+
+1. `AUTO_PR_AGENT`
+2. `<auto-pr-config-dir>/config.yml`、`config.yaml` 或 `config.toml` 的 `agent` 字段
+3. 未设置时默认 `codex`
+
+检查当前配置：
+
+```bash
+<dispatcher-path> --version
+cat <auto-pr-config-dir>/config.yml
+command -v codex
+command -v claude
+```
+
+如果用户要求使用 Claude Code，确认 dispatcher 版本至少是 `0.3.7`，并写入本机未跟踪配置：
+
+```yaml
+agent: claude-code
+```
+
+然后确认 `claude` CLI 可用：
+
+```bash
+claude --version
+```
+
+如果用户要求改回 Codex，写入：
+
+```yaml
+agent: codex
+```
+
+测试时必须检查：
+
+- issue 的第一条 Auto PR 评论里有 `Agent: claude-code` 或 `Agent: codex`。
+- 分支前缀匹配 Agent，例如 `claude-code/issue-...` 或 `codex/issue-...`。
+- dispatcher log 文件名匹配 Agent，例如 `claude-code.log` 或 `codex.log`。
+- PR 已创建，并且 issue comment 里出现对应 Agent 的 final message。
 
 ## 接入流程
 
