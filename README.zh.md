@@ -29,7 +29,7 @@
 | `jz-audit-cf-cost` | 读取 Cloudflare 账单和 GraphQL usage，检查当前计费周期运行中资源的按量费用，识别异常计费。 |
 | `jz-audit-neon-usage` | 分析 Neon 请求来源和无法休眠原因。 |
 | `jz-create-cf-token` | 为项目创建或更新最小权限 Cloudflare token。 |
-| `jz-set-auto-pr` | 把 GitHub repo 接入支持 Codex 或 Claude Code 的本机 Auto PR self-hosted runner。 |
+| `jz-setup-auto-pr` | 把 GitHub repo 接入支持 Codex 或 Claude Code 的本机 Auto PR self-hosted runner。 |
 | `jz-build-personal-context` | 通过访谈生成个人上下文和写作风格文件，供 Codex、ChatGPT、Claude、Claude Code 使用。 |
 | `jz-init-tailwind-theme` | 初始化或调整 Tailwind v4 主题 token。 |
 | `jz-find-revenue-site` | 按域名或产品类别查找相似的高收入网站。 |
@@ -101,7 +101,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
-cp -R ship/jz-set-auto-pr ~/.codex/skills/
+cp -R ship/jz-setup-auto-pr ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -214,7 +214,7 @@ cp -R local/jz-resume-codex-goal ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-set-auto-pr 把这个 GitHub repo 接入本机 Auto PR runner。
+使用 $jz-setup-auto-pr 把这个 GitHub repo 接入本机 Auto PR runner。
 ```
 
 ```text
@@ -377,7 +377,7 @@ cp .env.example .env
 | `jz-audit-cf-cost` | Cloudflare API Token（Account: Analytics: Read），`CLOUDFLARE_ACCOUNT_ID` | 可选依赖已部署的每小时成本监控 |
 | `jz-audit-neon-usage` | 平台请求日志、cron-job.org 定时任务和只读数据库统计 | Vercel CLI 登录、Neon/Postgres 只读凭证、可选 `CRON_JOB_API_KEY`、项目源码 |
 | `jz-create-cf-token` | 有创建或编辑账号 token 权限的 Cloudflare bootstrap token | 项目 repo 信息用于缩小 token 权限 |
-| `jz-set-auto-pr` | GitHub repo 权限、在线的 self-hosted runner、本机 repo checkout、dispatcher 路径和 repo 映射配置；macOS 系统通知不需要额外凭证 | 如果某个 repo 不应默认处理所有新 issue，再单独覆盖触发策略；飞书通知等用户确认后再配置凭证 |
+| `jz-setup-auto-pr` | GitHub repo 权限、在线的 self-hosted runner、本机 repo checkout、dispatcher 路径和 repo 映射配置；macOS 系统通知不需要额外凭证 | 如果某个 repo 不应默认处理所有新 issue，再单独覆盖触发策略；飞书通知等用户确认后再配置凭证 |
 | `jz-build-personal-context` | 可写的 profile 目录 | 用 `-g` 接入支持的工具 |
 | `jz-init-tailwind-theme` | 可编辑的 Tailwind 前端项目 | 项目已有 design system 时读取现有主题文件 |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR 凭证或本地缓存数据 | 复用本地 SQLite/CSV 历史数据 |

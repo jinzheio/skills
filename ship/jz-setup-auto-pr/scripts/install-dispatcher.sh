@@ -5,7 +5,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "$script_dir/.." && pwd)"
 template="$skill_dir/references/jz-auto-pr-dispatch.sh"
 target="${AUTO_PR_DISPATCH_PATH:-$HOME/.local/bin/jz-auto-pr-dispatch}"
-config_dir="${AUTO_PR_CONFIG_DIR:-$HOME/.config/skills/jz-set-auto-pr}"
+config_dir="${AUTO_PR_CONFIG_DIR:-$HOME/.config/skills/jz-setup-auto-pr}"
 
 if [ ! -f "$template" ]; then
   echo "Missing dispatcher template: $template" >&2

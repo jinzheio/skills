@@ -13,10 +13,10 @@ description: "当用户想把一个新网站或 Web app 从本地代码推进到
 默认路线：
 
 ```text
-jz-create-cf-site -> jz-launch-domain -> jz-push-code -> jz-setup-analytics -> jz-track-conversion -> jz-set-auto-pr
+jz-create-cf-site -> jz-launch-domain -> jz-push-code -> jz-setup-analytics -> jz-track-conversion -> jz-setup-auto-pr
 ```
 
-其中 `jz-track-conversion` 和 `jz-set-auto-pr` 是按需阶段。用户没有要求转化埋点或 Auto PR 时，不默认实现。
+其中 `jz-track-conversion` 和 `jz-setup-auto-pr` 是按需阶段。用户没有要求转化埋点或 Auto PR 时，不默认实现。
 
 ## 范围
 
@@ -34,7 +34,7 @@ jz-create-cf-site -> jz-launch-domain -> jz-push-code -> jz-setup-analytics -> j
 - 只改 DNS。使用 `jz-launch-domain`。
 - 只推送已有变更。使用 `jz-push-code`。
 - 只接统计和搜索。使用 `jz-setup-analytics`。
-- 只配置 Auto PR。使用 `jz-set-auto-pr`。
+- 只配置 Auto PR。使用 `jz-setup-auto-pr`。
 
 ## 开始前
 
@@ -86,7 +86,7 @@ node <skill-dir>/scripts/inspect-cloudflare-ship-state.mjs
 - 已有 Cloudflare 部署但没有正式域名：先 `jz-launch-domain`。
 - 已有正式域名但没统计：运行 `jz-setup-analytics`。
 - 已有可部署 Cloudflare 项目但缺生产自动部署：运行 `jz-push-code`，由它检查并补 Cloudflare 自动部署 workflow。
-- 需要 Auto PR：确认已有 GitHub repo 和本机 checkout 后，运行 `jz-set-auto-pr`。
+- 需要 Auto PR：确认已有 GitHub repo 和本机 checkout 后，运行 `jz-setup-auto-pr`。
 
 如果用户要求“一次做完”，仍按阶段推进。高风险阶段由对应 skill 决定是否需要停下确认。
 
@@ -105,7 +105,7 @@ node <skill-dir>/scripts/inspect-cloudflare-ship-state.mjs
 3. **Production auto deploy / push**：使用 `jz-push-code`。
 4. **Analytics and search**：正式域名可访问后使用 `jz-setup-analytics`。
 5. **Conversion tracking**：用户要求转化漏斗或已有明确转化路径时使用 `jz-track-conversion`。
-6. **Auto PR**：用户要求自动处理 issue 或自动提 PR 时使用 `jz-set-auto-pr`。
+6. **Auto PR**：用户要求自动处理 issue 或自动提 PR 时使用 `jz-setup-auto-pr`。
 
 ### 4. 中断与恢复
 
@@ -135,5 +135,5 @@ node <skill-dir>/scripts/inspect-cloudflare-ship-state.mjs
 - 搜索与统计：`jz-setup-analytics`
 - IndexNow：`jz-add-search-index`
 - 转化埋点：`jz-track-conversion`
-- Auto PR：`jz-set-auto-pr`
+- Auto PR：`jz-setup-auto-pr`
 - 旧项目迁移：`jz-migrate-to-cf`，只在用户明确要求迁移时使用

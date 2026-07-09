@@ -14,7 +14,7 @@
 | 正式域名可访问，但缺 robots / sitemap / GSC / Umami / Clarity / Sentry | `jz-setup-analytics` |
 | 只缺 IndexNow 项目脚本 | `jz-add-search-index`，或让 `jz-setup-analytics` handoff |
 | 用户要求注册、支付、表单等漏斗事件 | `jz-track-conversion` |
-| 用户要求自动处理 issue 或自动提 PR | `jz-set-auto-pr` |
+| 用户要求自动处理 issue 或自动提 PR | `jz-setup-auto-pr` |
 | 用户明确说从 Vercel 迁移旧项目 | 不走本 skill 主流程，改用 `jz-migrate-to-cf` |
 
 ## 默认包含
@@ -36,7 +36,7 @@
 
 用户说“全流程包括 Auto PR”时，包含：
 
-7. `jz-set-auto-pr`
+7. `jz-setup-auto-pr`
 
 ## 默认不包含
 

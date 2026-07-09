@@ -86,4 +86,4 @@
 - 已用测试 issue 验证 Actions run、issue comment、`codex/*` branch 和 PR 创建。
 - 如果没有真实 issue 验证，标记为 `partial`，说明只完成 dispatcher、YAML 和本机配置检查。
 
-调用 skill：`jz-set-auto-pr`。
+调用 skill：`jz-setup-auto-pr`。

@@ -29,7 +29,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | `jz-audit-cf-cost` | Read Cloudflare bills and GraphQL usage, check running resource costs in the current billing cycle, and identify billing anomalies. |
 | `jz-audit-neon-usage` | Find why a Neon database is receiving requests or cannot scale to zero. |
 | `jz-create-cf-token` | Create or update a minimal Cloudflare token for a project. |
-| `jz-set-auto-pr` | Connect a GitHub repo to the local Auto PR self-hosted runner for Codex or Claude Code. |
+| `jz-setup-auto-pr` | Connect a GitHub repo to the local Auto PR self-hosted runner for Codex or Claude Code. |
 | `jz-build-personal-context` | Interview the user to create persistent profile and writing-style files for Codex, ChatGPT, Claude, and Claude Code. |
 | `jz-init-tailwind-theme` | Initialize or adjust Tailwind v4 theme tokens. |
 | `jz-find-revenue-site` | Find high-revenue sites similar to a given domain or product category. |
@@ -101,7 +101,7 @@ cp -R ship/jz-audit-vercel-cost ~/.codex/skills/
 cp -R ship/jz-audit-cf-cost ~/.codex/skills/
 cp -R ship/jz-audit-neon-usage ~/.codex/skills/
 cp -R ship/jz-create-cf-token ~/.codex/skills/
-cp -R ship/jz-set-auto-pr ~/.codex/skills/
+cp -R ship/jz-setup-auto-pr ~/.codex/skills/
 cp -R ship/jz-build-personal-context ~/.codex/skills/
 cp -R ship/jz-init-tailwind-theme ~/.codex/skills/
 cp -R ship/jz-find-revenue-site ~/.codex/skills/
@@ -214,7 +214,7 @@ Use $jz-create-cf-token to create a minimal Cloudflare token for this project.
 ```
 
 ```text
-Use $jz-set-auto-pr to connect this GitHub repo to the local Auto PR runner.
+Use $jz-setup-auto-pr to connect this GitHub repo to the local Auto PR runner.
 ```
 
 ```text
@@ -377,7 +377,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-audit-cf-cost` | Cloudflare API Token (Account: Analytics: Read), `CLOUDFLARE_ACCOUNT_ID` | Optional existing hourly cost monitor |
 | `jz-audit-neon-usage` | Platform request logs, cron-job.org schedules, and read-only database statistics | Vercel CLI auth, Neon/Postgres read credentials, optional `CRON_JOB_API_KEY`, project source code |
 | `jz-create-cf-token` | Bootstrap Cloudflare token with permission to create or edit account tokens | Project repo metadata for tighter token scoping |
-| `jz-set-auto-pr` | GitHub repo access, an online self-hosted runner, local repo checkout, dispatcher path, and repo mapping config; macOS notifications need no extra credential | Optional override if a repo should not auto-process every new issue; Feishu notification credentials only after the user confirms |
+| `jz-setup-auto-pr` | GitHub repo access, an online self-hosted runner, local repo checkout, dispatcher path, and repo mapping config; macOS notifications need no extra credential | Optional override if a repo should not auto-process every new issue; Feishu notification credentials only after the user confirms |
 | `jz-build-personal-context` | Writable profile directory | `-g` when installing the generated profile into supported tools |
 | `jz-init-tailwind-theme` | Editable frontend project using Tailwind | Existing design-system files if the project already has one |
 | `jz-find-revenue-site` | Similarweb/Semrush/TrustMRR credentials or local cached exports | Local SQLite/CSV data paths for prior research |

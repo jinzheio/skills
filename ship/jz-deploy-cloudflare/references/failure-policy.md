@@ -6,7 +6,7 @@ Auto ship 是阶段流程。失败时先定位阶段，不要从头重跑。
 
 - Build / lint / typecheck 失败：留在当前部署或推送阶段，只修复与上线直接相关的问题。
 - Cloudflare token 权限不足：交给 `jz-create-cf-token`，只申请项目需要的最小权限。
-- GitHub Secrets 缺失：交给 `jz-push-code` 或 `jz-set-auto-pr` 的凭据规则处理。
+- GitHub Secrets 缺失：交给 `jz-push-code` 或 `jz-setup-auto-pr` 的凭据规则处理。
 - 域名未传播：标记 `partial` 或 `manual`，给出已验证记录和下一次复查方式。
 - 正式域名不可访问：不要进入 `jz-setup-analytics`。
 - 统计服务缺凭据：只跳过对应集成，不阻塞其它可做集成。

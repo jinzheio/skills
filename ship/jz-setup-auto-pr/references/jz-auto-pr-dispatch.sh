@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUTO_PR_DISPATCH_VERSION="0.3.7"
+AUTO_PR_DISPATCH_VERSION="0.3.8"
 
 usage() {
   cat <<'USAGE'
@@ -54,9 +54,9 @@ if [ -z "$repo" ] || [ -z "$issue" ]; then
   exit 2
 fi
 
-config_dir="${AUTO_PR_CONFIG_DIR:-$HOME/.config/skills/jz-set-auto-pr}"
-state_dir="${AUTO_PR_STATE_DIR:-$HOME/.local/state/jz-set-auto-pr}"
-worktree_root="${AUTO_PR_WORKTREE_ROOT:-$HOME/.local/share/jz-set-auto-pr/worktrees}"
+config_dir="${AUTO_PR_CONFIG_DIR:-$HOME/.config/skills/jz-setup-auto-pr}"
+state_dir="${AUTO_PR_STATE_DIR:-$HOME/.local/state/jz-setup-auto-pr}"
+worktree_root="${AUTO_PR_WORKTREE_ROOT:-$HOME/.local/share/jz-setup-auto-pr/worktrees}"
 macos_notify="${AUTO_PR_MACOS_NOTIFY:-1}"
 auto_pr_notify="${AUTO_PR_NOTIFY:-1}"
 notify_script="${AUTO_PR_NOTIFY_SCRIPT:-}"

@@ -1,5 +1,5 @@
 ---
-name: jz-set-auto-pr
+name: jz-setup-auto-pr
 description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要求为新项目配置 issue 触发的 Auto PR、self-hosted runner workflow、repo 到本机 checkout 映射、dispatcher 配置、Codex / Claude Code agent 和测试 issue。触发词包括 auto PR、自动提 PR、issue auto PR、self-hosted runner、Codex runner、Claude Code runner、GitHub issue trigger、扩展到新 repo。"
 ---
 
@@ -45,10 +45,8 @@ skill 文档中的路径都用占位符。实际路径从当前机器、已有 d
 推荐本机配置目录：
 
 ```text
-~/.config/skills/jz-set-auto-pr/
+~/.config/skills/jz-setup-auto-pr/
 ```
-
-已有机器如果使用过其它位置，先把配置文件移动到推荐目录；不要在 dispatcher 中保留旧路径 fallback。
 
 不要把真实 token、本机绝对路径、真实账号、私有部署细节写进 repo。
 
@@ -109,7 +107,7 @@ references/jz-auto-pr-dispatch.sh
 模板内有版本号：
 
 ```bash
-AUTO_PR_DISPATCH_VERSION="0.3.7"
+AUTO_PR_DISPATCH_VERSION="0.3.8"
 ```
 
 开始接入 repo 前，先运行 installer。它会在 dispatcher 不存在或版本落后时安装/更新：
@@ -139,7 +137,7 @@ AUTO_PR_DISPATCH_PATH=<dispatcher-path> <skill-dir>/scripts/install-dispatcher.s
 installer 还会创建默认映射文件：
 
 ```text
-<home-dir>/.config/skills/jz-set-auto-pr/repos.json
+<home-dir>/.config/skills/jz-setup-auto-pr/repos.json
 ```
 
 不要把 token 写进 skill repo。PR 创建 token 放在本机未跟踪配置中，或通过 `AUTO_PR_GITHUB_TOKEN` 注入。
