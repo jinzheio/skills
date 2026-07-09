@@ -262,11 +262,11 @@ jobs:
   auto-pr:
     if: >-
       (github.event_name == 'issues' &&
-        github.event.issue.author_association == 'MEMBER') ||
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.issue.author_association)) ||
       (github.event_name == 'issue_comment' &&
         !github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '/auto-pr') &&
-        github.event.comment.author_association == 'MEMBER') ||
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association)) ||
       github.event_name == 'workflow_dispatch'
     runs-on:
       - self-hosted
@@ -299,7 +299,7 @@ jobs:
 
 判断：
 
-- 默认只有 MEMBER 创建或 reopen 的 issue 才进入 Auto PR。
+- 默认只有 OWNER 或 MEMBER 创建或 reopen 的 issue 才进入 Auto PR。
 - 同一 repo 的 Auto PR run 默认按 repo 级队列串行执行，避免多个 issue 同时撞到本机 dispatcher 的 repo lock。
 - 如果某个 repo 的 issue 经常是想法、讨论或需求澄清，先和用户确认是否要给该 repo 改成 label/comment 模式。
 - 不要让自动化 merge PR。
