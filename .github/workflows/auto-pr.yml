@@ -28,11 +28,15 @@ jobs:
   auto-pr:
     if: >-
       (github.event_name == 'issues' &&
-        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.issue.author_association)) ||
+        (github.event.issue.author_association == 'OWNER' ||
+         github.event.issue.author_association == 'MEMBER' ||
+         github.event.issue.author_association == 'COLLABORATOR')) ||
       (github.event_name == 'issue_comment' &&
         !github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '/auto-pr') &&
-        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association)) ||
+        (github.event.comment.author_association == 'OWNER' ||
+         github.event.comment.author_association == 'MEMBER' ||
+         github.event.comment.author_association == 'COLLABORATOR')) ||
       github.event_name == 'workflow_dispatch'
     runs-on:
       - self-hosted
