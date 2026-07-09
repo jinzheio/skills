@@ -121,23 +121,30 @@ AUTO_PR_MACOS_NOTIFY=0
 
 ### 2. 检查 runner
 
-确认 org 或 repo 已有 self-hosted runner，且 online。
+确认已有 self-hosted runner，且 online。
 
-可用命令示例：
+默认先查 org 级 runner。优先使用本机允许的 owner 作为 org：
+
+```bash
+gh api /orgs/<allowed-owner>/actions/runners \
+  --jq '.runners[] | {name,status,busy,labels:[.labels[].name]}'
+```
+
+如果没有在线 runner，再退回到 repo remote 的 owner：
 
 ```bash
 gh api /orgs/<owner>/actions/runners \
   --jq '.runners[] | {name,status,busy,labels:[.labels[].name]}'
 ```
 
-如果是 repo 级 runner：
+如果 owner 不是 org，或 owner 级没有 runner，再查 repo 级 runner：
 
 ```bash
 gh api repos/<owner>/<repo>/actions/runners \
   --jq '.runners[] | {name,status,busy,labels:[.labels[].name]}'
 ```
 
-如果没有 runner，不要在这个 skill 里从头安装 runner，除非用户明确要求。先说明需要注册 runner。
+如果三个位置都没有在线 runner，不要在这个 skill 里从头安装 runner，除非用户明确要求。先说明需要注册 runner。
 
 ### 3. 确认本机 checkout
 
