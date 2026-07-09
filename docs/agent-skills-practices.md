@@ -67,7 +67,7 @@ Description 是 skill 最重要的单行文字，直接影响 agent 的触发准
 
 - **用户意图**：这个 skill 解决什么问题
 - **典型触发词**：用户可能说的具体短语，如 `"Use when user says 'publish this site', 'push and go live', '帮我 commit'"`
-- **不触发的边界**：避免误触发的关键边界，如 `"Not for backend-only repos without public pages"`、`"Use after create-site, not before"`
+- **不触发的边界**：避免误触发的关键边界，如 `"Not for backend-only repos without public pages"`、`"Use after jz-deploy-vercel, not before"`
 
 正文里原有的 `## Use This When` 节可以删除，或保留为对已触发 agent 的补充说明，但不能依赖它来帮助触发。
 
@@ -118,7 +118,7 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 
 对于会产生不可逆外部副作用（DNS 变更、代码推送、域名绑定、环境变量写入）的 skill，仅靠 "Do not" 规则列表来约束 agent 行为是不够稳定的。更有效的模式是在 skill 中要求 agent 先输出一份结构化执行计划，再对照真实状态验证，最后才执行。
 
-**三段式结构示例**（适用于 `launch-domain`、`create-site` 等）：
+**三段式结构示例**（适用于 `jz-launch-domain`、`jz-deploy-vercel` 等）：
 
 1. **Plan**：agent 在动手前先输出：涉及的系统（registrar / DNS provider / hosting）、计划创建的 records、验证命令清单、回滚路径
 2. **Validate**：对照平台 API / CLI 的实际返回值确认前提成立（repo 存在？zone 已激活？env 已设置？）
@@ -139,7 +139,7 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 |---|---|
 | "帮我 push 这个后端 API 库" | 触发 `push-code` 但**不**运行 IndexNow |
 | "域名解析好了，帮我接 GSC" | 触发 `setup-analytics`，**不**触发 `launch-domain` |
-| "部署到 Vercel 临时域名就行" | 触发 `create-site`，**不**继续进入 domain/index onboarding |
+| "部署到 Vercel 临时域名就行" | 触发 `jz-deploy-vercel`，**不**继续进入 domain/index onboarding |
 | "帮我 commit 一下这几个文件" | 触发 `commit-code`，**不**触发 `push-code` |
 
 在调整 description 后，用这些 eval prompt 对比"修改前 / 修改后"的触发结果，才能知道改动是否真的有效。

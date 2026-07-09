@@ -1,5 +1,5 @@
 {
-  "skill_name": "create-site",
+  "skill_name": "jz-deploy-vercel",
   "eval_type": "trigger",
   "cases": [
     {

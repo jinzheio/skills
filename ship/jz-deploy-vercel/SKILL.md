@@ -1,5 +1,5 @@
 ---
-name: jz-create-site
+name: jz-deploy-vercel
 version: "1.1.0"
 description: "当用户想把本地网站或 Web app 完整发布上线时使用，包括 deploy this site、publish this local app、create a GitHub repo and deploy to Vercel、上线到 Vercel。创建或连接 GitHub，验证 build，push，连接 Vercel，同步最低限度生产环境变量，并验证 GitHub 触发的部署。不要处理自定义域名 cutover 或搜索/统计 onboarding；这些作为后续 handoff。"
 ---

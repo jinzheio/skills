@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy to Cloudflare"
+  short_description: "从本地代码编排 Cloudflare 上线全流程。"
+  default_prompt: "使用 $jz-deploy-cloudflare 把这个新站点发布到 Cloudflare，并按需接域名、统计和 Auto PR。"

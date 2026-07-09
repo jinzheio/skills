@@ -1,14 +1,14 @@
 ---
 name: jz-setup-analytics
 version: "1.2.0"
-description: "当公开站点已经在最终自定义域名上线，且用户要求接入 analytics、baseline metrics、Search Console、sitemap submission、IndexNow、Bing Webmaster Tools、Clarity 或 Sentry 时使用。触发语包括 set up GSC、connect analytics、do indexing onboarding、域名好了，接搜索和统计、接 Sentry、create Sentry project、get Sentry DSN。不要用于初始部署或 DNS cutover；先用 create-site 或 launch-domain。"
+description: "当公开站点已经在最终自定义域名上线，且用户要求接入 analytics、baseline metrics、Search Console、sitemap submission、IndexNow、Bing Webmaster Tools、Clarity 或 Sentry 时使用。触发语包括 set up GSC、connect analytics、do indexing onboarding、域名好了，接搜索和统计、接 Sentry、create Sentry project、get Sentry DSN。不要用于初始部署或 DNS cutover；先用 jz-deploy-vercel、jz-create-cf-site 或 jz-launch-domain。"
 ---
 
 # 搜索与统计接入
 
 用于最终域名已经可访问后，接入搜索、索引和统计。
 
-这不是部署 skill，而是域名上线后的 onboarding：
+用于域名上线后的 onboarding，不负责部署：
 
 1. Umami 或已配置的 web analytics
 2. Google Search Console
@@ -19,7 +19,7 @@ description: "当公开站点已经在最终自定义域名上线，且用户要
 
 推荐顺序：
 
-1. `create-site`
+1. `jz-deploy-vercel` 或 `jz-create-cf-site`
 2. `launch-domain`
 3. `setup-analytics`
 

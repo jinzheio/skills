@@ -1,5 +1,5 @@
 {
-  "skill_name": "jz-cloudflare-auto-ship",
+  "skill_name": "jz-deploy-cloudflare",
   "eval_type": "trigger",
   "cases": [
     {
@@ -7,7 +7,7 @@
       "should_trigger": true
     },
     {
-      "prompt": "Use Cloudflare auto ship for this local app, including GitHub, domain, analytics, and Auto PR.",
+      "prompt": "Use jz-deploy-cloudflare for this local app, including GitHub, domain, analytics, and Auto PR.",
       "should_trigger": true
     },
     {
