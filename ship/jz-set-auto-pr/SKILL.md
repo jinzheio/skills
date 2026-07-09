@@ -64,7 +64,7 @@ references/jz-auto-pr-dispatch.sh
 模板内有版本号：
 
 ```bash
-AUTO_PR_DISPATCH_VERSION="0.3.5"
+AUTO_PR_DISPATCH_VERSION="0.3.6"
 ```
 
 开始接入 repo 前，先运行 installer。它会在 dispatcher 不存在或版本落后时安装/更新：
@@ -384,6 +384,7 @@ dispatcher 应至少做到：
   - 不部署生产。
   - 验证后 commit、push、创建 PR。
 - 保存 logs 和 Codex final message。
+- 公开评论 issue 前，对 Codex final message 做本机绝对路径脱敏。
 - 成功或失败都评论回 issue。
 
 如果当前 dispatcher 还没有这些能力，先从本 skill 的 reference 模板安装或更新 dispatcher，再接入新 repo。

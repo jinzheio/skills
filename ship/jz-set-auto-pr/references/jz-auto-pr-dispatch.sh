@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUTO_PR_DISPATCH_VERSION="0.3.5"
+AUTO_PR_DISPATCH_VERSION="0.3.6"
 
 usage() {
   cat <<'USAGE'
@@ -114,6 +114,16 @@ send_auto_pr_notification() {
     "$script_path" "$notification_title" "$notification_body" >>"$log_dir/notify.log" 2>&1 || true
   else
     send_macos_notification "$notification_title" "$repo #$issue" "$notification_body"
+  fi
+}
+
+sanitize_public_text() {
+  perl -pe 's#/(Users|home)/[^\s\]\)"]+#<local-path>#g; s#\b[A-Za-z]:\\[^\s\]\)"]+#<local-path>#g'
+}
+
+read_public_last_message() {
+  if [ -f "$last_message" ]; then
+    sed -n '1,120p' "$last_message" | sanitize_public_text
   fi
 }
 
@@ -244,6 +254,7 @@ Implementation rules:
 - Push the branch.
 - Create a GitHub PR with a body containing summary, verification, docs result, risks/unverified items, and "Closes #$issue".
 - If the repository asks for document-release before merging, note that in the PR body. Do not merge.
+- Do not include local absolute paths in PR bodies, issue comments, or final messages. Use repo-relative paths.
 
 Issue body follows:
 
@@ -279,7 +290,7 @@ if [ "$status" -eq 0 ]; then
 Log id: \`$run_id\`
 
 Codex final message:
-$(sed -n '1,120p' "$last_message" 2>/dev/null || true)"
+$(read_public_last_message)"
   send_auto_pr_notification \
     "Auto PR completed" \
     "$repo #$issue
@@ -291,7 +302,7 @@ Exit code: \`$status\`
 Log id: \`$run_id\`
 
 Codex final message, if any:
-$(sed -n '1,120p' "$last_message" 2>/dev/null || true)"
+$(read_public_last_message)"
   send_auto_pr_notification \
     "Auto PR failed" \
     "$repo #$issue
