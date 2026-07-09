@@ -29,7 +29,7 @@ This repository is a public skill pack. Each skill folder contains its own `SKIL
 | `jz-audit-cf-cost` | Read Cloudflare bills and GraphQL usage, check running resource costs in the current billing cycle, and identify billing anomalies. |
 | `jz-audit-neon-usage` | Find why a Neon database is receiving requests or cannot scale to zero. |
 | `jz-create-cf-token` | Create or update a minimal Cloudflare token for a project. |
-| `jz-set-auto-pr` | Connect a GitHub repo to the local Codex Auto PR self-hosted runner. |
+| `jz-set-auto-pr` | Connect a GitHub repo to the local Auto PR self-hosted runner for Codex or Claude Code. |
 | `jz-build-personal-context` | Interview the user to create persistent profile and writing-style files for Codex, ChatGPT, Claude, and Claude Code. |
 | `jz-init-tailwind-theme` | Initialize or adjust Tailwind v4 theme tokens. |
 | `jz-find-revenue-site` | Find high-revenue sites similar to a given domain or product category. |
@@ -214,7 +214,7 @@ Use $jz-create-cf-token to create a minimal Cloudflare token for this project.
 ```
 
 ```text
-Use $jz-set-auto-pr to connect this GitHub repo to the local Codex Auto PR runner.
+Use $jz-set-auto-pr to connect this GitHub repo to the local Auto PR runner.
 ```
 
 ```text

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-AUTO_PR_DISPATCH_VERSION="0.3.6"
+AUTO_PR_DISPATCH_VERSION="0.3.7"
 
 usage() {
   cat <<'USAGE'
@@ -62,6 +62,73 @@ auto_pr_notify="${AUTO_PR_NOTIFY:-1}"
 notify_script="${AUTO_PR_NOTIFY_SCRIPT:-}"
 
 config="${AUTO_PR_REPOS_CONFIG:-$config_dir/repos.json}"
+
+read_configured_agent() {
+  local candidate value
+  for candidate in \
+    "$config_dir/config.yml" \
+    "$config_dir/config.yaml" \
+    "$config_dir/config.toml"; do
+    if [ -f "$candidate" ]; then
+      value="$(awk '
+        /^[[:space:]]*agent[[:space:]]*[:=]/ {
+          value=$0
+          sub(/^[[:space:]]*agent[[:space:]]*[:=][[:space:]]*/, "", value)
+          sub(/[[:space:]]*#.*$/, "", value)
+          gsub(/^["'\''[:space:]]+|["'\''[:space:]]+$/, "", value)
+          print value
+          exit
+        }
+      ' "$candidate")"
+      if [ -n "$value" ]; then
+        printf '%s\n' "$value"
+        return 0
+      fi
+    fi
+  done
+}
+
+normalize_agent() {
+  local raw="$1"
+  raw="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')"
+  case "$raw" in
+    ""|codex|openai-codex|codex-cli)
+      printf 'codex\n'
+      ;;
+    claude|claude-code|claude_code|anthropic-claude|anthropic-claude-code)
+      printf 'claude-code\n'
+      ;;
+    *)
+      echo "Unsupported AUTO_PR_AGENT: $1" >&2
+      echo "Supported values: codex, claude-code" >&2
+      exit 2
+      ;;
+  esac
+}
+
+configured_agent="${AUTO_PR_AGENT:-}"
+if [ -z "$configured_agent" ]; then
+  configured_agent="$(read_configured_agent || true)"
+fi
+auto_pr_agent="$(normalize_agent "$configured_agent")"
+case "$auto_pr_agent" in
+  codex)
+    agent_cli="codex"
+    agent_display_name="Codex"
+    branch_prefix="codex"
+    ;;
+  claude-code)
+    agent_cli="claude"
+    agent_display_name="Claude Code"
+    branch_prefix="claude-code"
+    ;;
+esac
+
+if ! command -v "$agent_cli" >/dev/null 2>&1; then
+  echo "Missing local Auto PR agent CLI: $agent_cli" >&2
+  echo "Selected agent: $auto_pr_agent" >&2
+  exit 1
+fi
 
 send_macos_notification() {
   case "$(printf '%s' "$macos_notify" | tr '[:upper:]' '[:lower:]')" in
@@ -184,10 +251,10 @@ mkdir -p "$log_dir"
 issue_json="$log_dir/issue.json"
 prompt_file="$log_dir/prompt.md"
 last_message="$log_dir/last-message.md"
-codex_log="$log_dir/codex.log"
-codex_github_token="${AUTO_PR_GITHUB_TOKEN:-}"
-if [ -z "$codex_github_token" ] && [ -f "$config_dir/github-token" ]; then
-  codex_github_token="$(tr -d '\r\n' < "$config_dir/github-token")"
+agent_log="$log_dir/$auto_pr_agent.log"
+agent_github_token="${AUTO_PR_GITHUB_TOKEN:-}"
+if [ -z "$agent_github_token" ] && [ -f "$config_dir/github-token" ]; then
+  agent_github_token="$(tr -d '\r\n' < "$config_dir/github-token")"
 fi
 
 gh issue view "$issue" \
@@ -200,7 +267,7 @@ url="$(jq -r '.url' "$issue_json")"
 labels="$(jq -r '[.labels[].name] | join(", ")' "$issue_json")"
 
 short_stamp="$(printf '%s' "$run_id" | cut -d- -f1)"
-branch="codex/issue-${issue}-auto-pr-${short_stamp}"
+branch="$branch_prefix/issue-${issue}-auto-pr-${short_stamp}"
 repo_leaf="${repo##*/}"
 worktree_dir="$worktree_root/${repo_leaf}/issue-${issue}-${short_stamp}"
 mkdir -p "$(dirname "$worktree_dir")"
@@ -215,6 +282,7 @@ gh issue comment "$issue" \
 Trigger actor: @$actor
 Labels: ${labels:-none}
 Branch: \`$branch\`
+Agent: \`$auto_pr_agent\`
 Log id: \`$run_id\`"
 
 send_macos_notification \
@@ -244,7 +312,7 @@ Required startup:
 4. Confirm repo root and origin. Only operate on $repo.
 
 Implementation rules:
-- You are already running from a fresh codex/* branch/worktree. Use the current branch.
+- You are already running from a fresh auto-pr branch/worktree. Use the current branch.
 - Do not push the base branch.
 - Do not deploy production.
 - Use the repo's package manager. For JS/TS projects, prefer pnpm.
@@ -261,35 +329,51 @@ Issue body follows:
 $(jq -r '.body // ""' "$issue_json")
 PROMPT
 
+run_agent() {
+  case "$auto_pr_agent" in
+    codex)
+      "$agent_cli" \
+        --sandbox danger-full-access \
+        --ask-for-approval never \
+        exec \
+        --cd "$worktree_dir" \
+        --output-last-message "$last_message" \
+        < "$prompt_file"
+      ;;
+    claude-code)
+      (
+        cd "$worktree_dir"
+        "$agent_cli" \
+          --dangerously-skip-permissions \
+          --print \
+          "$(cat "$prompt_file")"
+      )
+      ;;
+  esac
+}
+
 set +e
-if [ -n "$codex_github_token" ]; then
-  env GH_TOKEN="$codex_github_token" GITHUB_TOKEN="$codex_github_token" codex \
-    --sandbox danger-full-access \
-    --ask-for-approval never \
-    exec \
-    --cd "$worktree_dir" \
-    --output-last-message "$last_message" \
-    < "$prompt_file" \
-    2>&1 | tee "$codex_log"
+if [ -n "$agent_github_token" ]; then
+  GH_TOKEN="$agent_github_token" GITHUB_TOKEN="$agent_github_token" run_agent \
+    2>&1 | tee "$agent_log"
 else
-  env -u GH_TOKEN -u GITHUB_TOKEN codex \
-    --sandbox danger-full-access \
-    --ask-for-approval never \
-    exec \
-    --cd "$worktree_dir" \
-    --output-last-message "$last_message" \
-    < "$prompt_file" \
-    2>&1 | tee "$codex_log"
+  (unset GH_TOKEN GITHUB_TOKEN; run_agent) \
+    2>&1 | tee "$agent_log"
 fi
 status="${PIPESTATUS[0]}"
 set -e
+
+if [ "$auto_pr_agent" = "claude-code" ] && [ -f "$agent_log" ]; then
+  sed -n '1,120p' "$agent_log" > "$last_message"
+fi
 
 if [ "$status" -eq 0 ]; then
   final_body="Auto PR run completed for issue #$issue.
 
 Log id: \`$run_id\`
+Agent: \`$auto_pr_agent\`
 
-Codex final message:
+$agent_display_name final message:
 $(read_public_last_message)"
   send_auto_pr_notification \
     "Auto PR completed" \
@@ -300,8 +384,9 @@ else
 
 Exit code: \`$status\`
 Log id: \`$run_id\`
+Agent: \`$auto_pr_agent\`
 
-Codex final message, if any:
+$agent_display_name final message, if any:
 $(read_public_last_message)"
   send_auto_pr_notification \
     "Auto PR failed" \

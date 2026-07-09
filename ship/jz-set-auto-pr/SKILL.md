@@ -1,6 +1,6 @@
 ---
 name: jz-set-auto-pr
-description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要求为新项目配置 issue 触发的 Codex Auto PR、self-hosted runner workflow、repo 到本机 checkout 映射、dispatcher 配置和测试 issue。触发词包括 auto PR、自动提 PR、issue auto PR、self-hosted runner、Codex runner、GitHub issue trigger、扩展到新 repo。"
+description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要求为新项目配置 issue 触发的 Auto PR、self-hosted runner workflow、repo 到本机 checkout 映射、dispatcher 配置、Codex / Claude Code agent 和测试 issue。触发词包括 auto PR、自动提 PR、issue auto PR、self-hosted runner、Codex runner、Claude Code runner、GitHub issue trigger、扩展到新 repo。"
 ---
 
 # GitHub Issue Triggered Auto PR
@@ -13,8 +13,8 @@ description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要�
 2. GitHub Actions 把 job 派给已注册的 self-hosted runner。
 3. runner 执行本机 dispatcher。
 4. dispatcher 根据 repo 映射找到本机 checkout。
-5. dispatcher 创建独立 worktree 和 `codex/*` branch。
-6. Codex CLI 在 worktree 里处理 issue、验证、commit、push、创建 PR。
+5. dispatcher 创建独立 worktree 和 agent 对应的 auto-pr branch。
+6. 配置的本地 Agent CLI 在 worktree 里处理 issue、验证、commit、push、创建 PR。
 7. dispatcher 把结果评论回 issue。
 
 这个 skill 不负责 Cloudflare preview。PR preview、生产部署、Worker/Pages 清理交给部署相关 skill 或项目已有 workflow。
@@ -29,7 +29,8 @@ description: "把 GitHub repo 接入本机 Auto PR runner。适用于用户要�
 - dispatcher 路径：默认 `<home-dir>/.local/bin/jz-auto-pr-dispatch`，可用 `AUTO_PR_DISPATCH_PATH` 覆盖。
 - repo 映射配置：例如 `<auto-pr-config-dir>/repos.json`。
 - GitHub owner：从本机未跟踪配置 `<auto-pr-config-dir>/allowed-owner` 或 `AUTO_PR_ALLOWED_OWNER` 读取。
-- self-hosted runner label：至少包含 `self-hosted`，建议另有 `auto-pr` 和 `codex`。
+- self-hosted runner label：至少包含 `self-hosted`，建议另有 `auto-pr` 和 agent 标识，例如 `codex`。
+- 本地 Agent：默认 `codex`；可通过 `AUTO_PR_AGENT` 或 `<auto-pr-config-dir>/config.yml` 的 `agent` 字段设置为 `codex` 或 `claude-code`。
 - 触发策略：
   - 默认：新 issue 和 reopened issue 直接触发。
   - 评论 `/auto-pr` 可用于手动重跑。
@@ -64,7 +65,7 @@ references/jz-auto-pr-dispatch.sh
 模板内有版本号：
 
 ```bash
-AUTO_PR_DISPATCH_VERSION="0.3.6"
+AUTO_PR_DISPATCH_VERSION="0.3.7"
 ```
 
 开始接入 repo 前，先运行 installer。它会在 dispatcher 不存在或版本落后时安装/更新：
@@ -98,6 +99,23 @@ installer 还会创建默认映射文件：
 ```
 
 不要把 token 写进 skill repo。PR 创建 token 放在本机未跟踪配置中，或通过 `AUTO_PR_GITHUB_TOKEN` 注入。
+
+dispatcher 默认调用 Codex CLI。需要改用 Claude Code 时，在 runner 环境中设置：
+
+```bash
+AUTO_PR_AGENT=claude-code
+```
+
+也可以写入本机未跟踪配置：
+
+```yaml
+agent: claude-code
+```
+
+支持值：
+
+- `codex`：执行 `codex exec`。
+- `claude-code`：执行 `claude --print`。
 
 dispatcher 默认打开 macOS 系统通知：
 
@@ -286,7 +304,7 @@ jobs:
     timeout-minutes: 180
 
     steps:
-      - name: Dispatch local Codex auto PR
+      - name: Dispatch local auto PR
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -347,7 +365,7 @@ Add Auto PR issue trigger
 3. 查看 Actions run。
 4. 查看本机 dispatcher log。
 5. 查看 issue comment。
-6. 查看是否创建 `codex/*` branch。
+6. 查看是否创建 agent 对应的 auto-pr branch。
 7. 查看是否创建 PR。
 
 常用命令：
@@ -376,15 +394,15 @@ dispatcher 应至少做到：
 - 校验 checkout 的 `origin` remote 匹配事件 repo。
 - 对同一 repo 加 lock，避免并发改同一项目。
 - 从 `origin/<base-branch>` 创建独立 worktree。
-- 生成清楚的 Codex prompt：
+- 生成清楚的 Agent prompt：
   - 只处理当前 issue。
   - 读取项目说明。
   - 遵守 package manager。
   - 不 push base branch。
   - 不部署生产。
   - 验证后 commit、push、创建 PR。
-- 保存 logs 和 Codex final message。
-- 公开评论 issue 前，对 Codex final message 做本机绝对路径脱敏。
+- 保存 logs 和 Agent final message。
+- 公开评论 issue 前，对 Agent final message 做本机绝对路径脱敏。
 - 成功或失败都评论回 issue。
 
 如果当前 dispatcher 还没有这些能力，先从本 skill 的 reference 模板安装或更新 dispatcher，再接入新 repo。
@@ -431,6 +449,7 @@ dispatcher 应至少做到：
 - 映射文件是否已更新。
 - runner 是否 online。
 - dispatcher 版本和路径。
+- 本地 Agent 配置值。
 - 触发策略是否为默认处理所有新 issue。
 - 测试 issue、Actions run、PR 链接。
 - 哪些验证已跑，哪些没有跑。
