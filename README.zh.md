@@ -44,7 +44,7 @@ Skill 名称遵循 [命名规范](docs/skill-naming.md)：`jz-<method>-<resource
 | 路径 | 课题 | Skills |
 | --- | --- | --- |
 | `ship/` | 建站、发布、增长和站点运维 | 见上方「Ship Skills」。 |
-| `content/` | 内容生产与分发 | `jz-get-x-posts`、`jz-get-feishu-doc`、`jz-get-scys-article`、`jz-get-video-transcript`、`jz-transcribe-media`、`jz-get-douyin-transcripts`、`jz-sync-wechat-archive`、`jz-get-readest-highlights`、`jz-create-marketing-video`、`jz-create-book-notes`、`jz-edit-talking-head-video` |
+| `content/` | 内容生产与分发 | `jz-get-x-posts`、`jz-get-feishu-doc`、`jz-get-scys-article`、`jz-get-video-transcript`、`jz-transcribe-media`、`jz-get-douyin-transcripts`、`jz-get-wechat-articles`、`jz-get-readest-highlights`、`jz-create-marketing-video`、`jz-create-book-notes`、`jz-edit-talking-head-video` |
 | `infra/` | 基础设施运维 | `jz-send-notification`、`jz-manage-cron-jobs`、`jz-manage-litellm`、`jz-manage-cloudflare-ai-gateway`、`jz-manage-newapi`、`jz-manage-ovh-servers`、`jz-manage-hetzner-servers` |
 | `local/` | 本机操作 | `jz-setup-browser-automation`、`jz-launch-chrome`、`jz-manage-launchd-tasks`、`jz-connect-mac`、`jz-review-bug`、`jz-setup-personal-context` |
 
@@ -117,7 +117,7 @@ cp -R content/jz-get-scys-article ~/.codex/skills/
 cp -R content/jz-get-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-media ~/.codex/skills/
 cp -R content/jz-get-douyin-transcripts ~/.codex/skills/
-cp -R content/jz-sync-wechat-archive ~/.codex/skills/
+cp -R content/jz-get-wechat-articles ~/.codex/skills/
 cp -R content/jz-get-readest-highlights ~/.codex/skills/
 cp -R content/jz-create-marketing-video ~/.codex/skills/
 cp -R content/jz-create-book-notes ~/.codex/skills/
@@ -310,7 +310,7 @@ cp -R local/jz-setup-personal-context ~/.codex/skills/
 ```
 
 ```text
-使用 $jz-sync-wechat-archive 更新这个公众号的文章归档。
+使用 $jz-get-wechat-articles 获取这个公众号的最新文章，并保存到当前项目。
 ```
 
 ```text
@@ -394,7 +394,7 @@ cp .env.example .env
 | `jz-create-book-notes` | Python 3 和 EPUB 文件访问 | `~/.config/skills/jz-create-book-notes/config.yml` 设置自定义输出目录 |
 | `jz-edit-talking-head-video` | `ffmpeg`/`ffprobe` 和 Python 3；MLT 后端需 Shotcut，剪映后端需 `pyJianYingDraft` 和明文格式草稿文件夹 | 转录需 `faster-whisper`（或已有 srt)；素材站搜索需 `~/.config/skills/jz-edit-talking-head-video/.env` 里的 Pexels/Pixabay API key |
 | `jz-get-douyin-transcripts` | `GLM_API_KEY`、`ffmpeg`/`ffprobe` 和抖音视频/主页访问 | 主页采集推荐使用已登录 Chrome CDP；已有 URL 文件可直接用 `--input-file` |
-| `jz-sync-wechat-archive` | 归档服务 API key | 恢复同步时读取已有 state/cache 文件 |
+| `jz-get-wechat-articles` | 文章列表服务 API key | 恢复补档时读取已有状态、列表页缓存和互动指标缓存 |
 | `jz-get-readest-highlights` | 本机 `.env` 中的 Readest 地址、anon key、owner email 和 owner password | 可按列表序号或书名片段导出 |
 | `jz-send-notification` | 本机系统通知不需要额外凭证 | 飞书需要 `lark-cli` 授权或 `FEISHU_WEBHOOK_URL`；飞书 webhook 签名用 `FEISHU_SIGN_KEY`；Slack 优先用 Codex Slack connector，发送频道用 `SLACK_CHANNEL_ID` 或 `SLACK_CHANNEL_NAME`，脚本兜底用 `SLACK_WEBHOOK_URL` |
 | `jz-manage-cron-jobs` | cron-job.org API key，放在 `~/.config/skills/jz-manage-cron-jobs/.env` 的 `CRON_JOB_API_KEY` | 创建、更新、启停、删除 job 需要账号写权限；建议先创建 disabled job 再启用 |

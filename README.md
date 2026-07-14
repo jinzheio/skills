@@ -44,7 +44,7 @@ Skill names follow the [`jz-<method>-<resource>[-<qualifier>]` convention](docs/
 | Path | Topic | Skills |
 | --- | --- | --- |
 | `ship/` | Site-building, launch, growth, and site operations | See "Ship Skills" above. |
-| `content/` | Content production and distribution | `jz-get-x-posts`, `jz-get-feishu-doc`, `jz-get-scys-article`, `jz-get-video-transcript`, `jz-transcribe-media`, `jz-get-douyin-transcripts`, `jz-sync-wechat-archive`, `jz-get-readest-highlights`, `jz-create-marketing-video`, `jz-create-book-notes`, `jz-edit-talking-head-video` |
+| `content/` | Content production and distribution | `jz-get-x-posts`, `jz-get-feishu-doc`, `jz-get-scys-article`, `jz-get-video-transcript`, `jz-transcribe-media`, `jz-get-douyin-transcripts`, `jz-get-wechat-articles`, `jz-get-readest-highlights`, `jz-create-marketing-video`, `jz-create-book-notes`, `jz-edit-talking-head-video` |
 | `infra/` | Infrastructure operations | `jz-send-notification`, `jz-manage-cron-jobs`, `jz-manage-litellm`, `jz-manage-cloudflare-ai-gateway`, `jz-manage-newapi`, `jz-manage-ovh-servers`, `jz-manage-hetzner-servers` |
 | `local/` | Local machine operations | `jz-setup-browser-automation`, `jz-launch-chrome`, `jz-manage-launchd-tasks`, `jz-connect-mac`, `jz-review-bug`, `jz-setup-personal-context` |
 
@@ -117,7 +117,7 @@ cp -R content/jz-get-scys-article ~/.codex/skills/
 cp -R content/jz-get-video-transcript ~/.codex/skills/
 cp -R content/jz-transcribe-media ~/.codex/skills/
 cp -R content/jz-get-douyin-transcripts ~/.codex/skills/
-cp -R content/jz-sync-wechat-archive ~/.codex/skills/
+cp -R content/jz-get-wechat-articles ~/.codex/skills/
 cp -R content/jz-get-readest-highlights ~/.codex/skills/
 cp -R content/jz-create-marketing-video ~/.codex/skills/
 cp -R content/jz-create-book-notes ~/.codex/skills/
@@ -306,7 +306,7 @@ Use $jz-get-douyin-transcripts to transcribe this Douyin profile, channel <chann
 ```
 
 ```text
-Use $jz-sync-wechat-archive to update the WeChat article archive for this account.
+Use $jz-get-wechat-articles to fetch the latest articles from this WeChat Official Account and save them to the current project.
 ```
 
 ```text
@@ -392,7 +392,7 @@ Use `.env` for environment variables and `config.yml` for structured settings.
 | `jz-create-book-notes` | Python 3 and EPUB file access | `~/.config/skills/jz-create-book-notes/config.yml` to set a custom output directory |
 | `jz-edit-talking-head-video` | `ffmpeg`/`ffprobe` and Python 3; Shotcut for the MLT backend, or `pyJianYingDraft` plus a plaintext JianyingPro draft folder for the JianYing backend | `faster-whisper` for transcription (or an existing srt); Pexels/Pixabay API keys in `~/.config/skills/jz-edit-talking-head-video/.env` for stock footage |
 | `jz-get-douyin-transcripts` | `GLM_API_KEY`, `ffmpeg`/`ffprobe`, and Douyin video/profile access | Logged-in Chrome CDP for profile collection; `--input-file` works without CDP |
-| `jz-sync-wechat-archive` | API key for the archive provider | Existing state/cache files when resuming a sync |
+| `jz-get-wechat-articles` | API key for the article list provider | Existing state, list-page cache, and metrics cache when resuming a backfill |
 | `jz-get-readest-highlights` | Readest base URL, anon key, owner email, and owner password in local `.env` | Export by list index or title fragment |
 | `jz-send-notification` | No extra credential for local system notifications | Feishu needs `lark-cli` auth or `FEISHU_WEBHOOK_URL`; signed Feishu webhooks use `FEISHU_SIGN_KEY`; Slack prefers the Codex Slack connector, reads the target from `SLACK_CHANNEL_ID` or `SLACK_CHANNEL_NAME`, and uses `SLACK_WEBHOOK_URL` as script fallback |
 | `jz-manage-cron-jobs` | cron-job.org API key as `CRON_JOB_API_KEY` in `~/.config/skills/jz-manage-cron-jobs/.env` | Account write access is needed to create, update, enable, disable, or delete jobs; create disabled jobs first when possible |

@@ -22,13 +22,13 @@ ARTICLE_HTML_URL = "https://www.dajiala.com/fbmain/monitor/v3/article_html"
 READ_ZAN_PRO_URL = "https://www.dajiala.com/fbmain/monitor/v3/read_zan_pro"
 ARTICLE_INFO_URL = "https://www.dajiala.com/fbmain/monitor/v3/article_info"
 DEFAULT_TIMEOUT = 30
-DEFAULT_QPS_DELAY = 0.25
+DEFAULT_QPS_DELAY = 1.5
 WECHAT_MOBILE_UA = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) "
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
     "MicroMessenger/8.0.54 NetType/WIFI Language/zh_CN"
 )
-DEFAULT_CONFIG_ENV = Path.home() / ".config" / "skills" / "jz-sync-wechat-archive" / ".env"
+DEFAULT_CONFIG_ENV = Path.home() / ".config" / "skills" / "jz-get-wechat-articles" / ".env"
 
 
 class ApiError(RuntimeError):
@@ -163,7 +163,7 @@ def fetch_wechat_article_html(url: str, timeout: int, retry: int) -> dict[str, A
                 break
             time.sleep(min(2 * attempt, 5))
 
-    raise ApiError(f"direct article fetch failed after {retry} attempts: {last_error}")
+    raise ApiError(f"wechat article fetch failed after {retry} attempts: {last_error}")
 
 
 def extract_article_title(html: str) -> str:
@@ -230,39 +230,41 @@ def default_secret(name: str, fallback_name: str | None = None) -> str:
     return ""
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="通过极致了 API 抓取微信公众号文章，并保存到本地归档。"
+        description="获取微信公众号文章、正文和可选的互动指标，并保存到本地。",
+        allow_abbrev=False,
     )
     parser.add_argument(
         "--api-key",
         default=default_secret("JZL_API_KEY", "JZL_KEY"),
         help=(
             "极致了 API key。默认先读环境变量 JZL_API_KEY/JZL_KEY，"
-            "再读 ~/.config/skills/jz-sync-wechat-archive/.env。"
+            "再读 ~/.config/skills/jz-get-wechat-articles/.env。"
         ),
     )
     parser.add_argument(
-        "--verifycode",
+        "--verification-code",
+        dest="verification_code",
         default=default_secret("JZL_VERIFYCODE"),
         help="可选的极致了 verifycode / 加购码。",
     )
     parser.add_argument(
-        "--name",
+        "--account",
         default="",
         help="公众号名称或微信 ID。",
     )
-    parser.add_argument("--biz", default="", help="公众号 biz。优先级高于 name。")
-    parser.add_argument("--url", default="", help="公众号文章链接或主页链接。优先级高于 name。")
+    parser.add_argument("--biz-id", default="", help="公众号 biz 标识。")
+    parser.add_argument("--source-url", default="", help="公众号文章链接或主页链接。")
     parser.add_argument(
         "--output-dir",
         default="output",
         help="输出目录。默认：./output。",
     )
     parser.add_argument(
-        "--flat-output",
+        "--no-run-dir",
         action="store_true",
-        help="直接写入 --output-dir，不创建 account_timestamp 单次运行目录。",
+        help="直接写入 --output-dir，不创建 <account>_<timestamp> 单次运行目录。",
     )
     parser.add_argument(
         "--compact-output",
@@ -279,9 +281,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mode",
-        choices=("full", "latest"),
-        default="full",
-        help="抓取全部历史，或只抓取上次运行后的新文章。默认：full。",
+        choices=("backfill", "latest"),
+        default="latest",
+        help="补齐历史文章，或只获取上次运行后的新文章。默认：latest。",
     )
     parser.add_argument(
         "--start-page",
@@ -293,7 +295,7 @@ def parse_args() -> argparse.Namespace:
         "--end-page",
         type=int,
         default=0,
-        help="抓取到第几页。0 表示使用 API 返回的 total_page。",
+        help="获取到第几页。0 表示使用 API 返回的 total_page。",
     )
     parser.add_argument(
         "--metadata-only",
@@ -301,14 +303,17 @@ def parse_args() -> argparse.Namespace:
         help="只保存文章列表元数据，跳过正文请求。",
     )
     parser.add_argument(
-        "--fetch-stats",
+        "--fetch-metrics",
         action="store_true",
-        help="抓取发布时间超过 24 小时的文章数据。默认关闭。",
+        help="获取发布时间超过 24 小时的文章互动指标。默认关闭。",
     )
     parser.add_argument(
-        "--stats-from-cache-only",
+        "--metrics-from-list-cache-only",
         action="store_true",
-        help="只根据本地缓存历史页里的 URL 抓取文章数据，跳过 post_history 和正文抓取。",
+        help=(
+            "从本地历史列表页缓存读取文章 URL，跳过列表 API 和正文获取；"
+            "仍会请求未缓存的互动指标。需同时使用 --fetch-metrics。"
+        ),
     )
     parser.add_argument(
         "--published-within-days",
@@ -318,9 +323,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--body-source",
-        choices=("direct", "api"),
-        default="direct",
-        help="正文抓取方式。默认：direct。",
+        choices=("wechat", "api"),
+        default="wechat",
+        help="正文来源。wechat 直接读取微信文章页，api 使用正文 API。默认：wechat。",
     )
     parser.add_argument(
         "--retry",
@@ -338,7 +343,7 @@ def parse_args() -> argparse.Namespace:
         "--delay",
         type=float,
         default=DEFAULT_QPS_DELAY,
-        help="API 调用间隔，单位秒。保持 >=0.2 可低于 5 QPS。",
+        help=f"请求间隔，单位秒。默认：{DEFAULT_QPS_DELAY}。",
     )
     parser.add_argument(
         "--extra-body",
@@ -348,9 +353,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--state-file",
         default="",
-        help="增量同步状态 JSON 路径。默认：<output-dir>/<account>.state.json。",
+        help="增量获取状态 JSON 路径。默认：<output-dir>/<account>.state.json。",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def load_extra_body(path_value: str) -> dict[str, Any]:
@@ -365,9 +370,9 @@ def load_extra_body(path_value: str) -> dict[str, Any]:
 
 
 def ensure_query_source(args: argparse.Namespace) -> None:
-    if args.biz or args.url or args.name:
+    if args.biz_id or args.source_url or args.account:
         return
-    raise ValueError("you must pass at least one of --biz, --url, or --name")
+    raise ValueError("you must pass at least one of --biz-id, --source-url, or --account")
 
 
 def slugify(value: str, fallback: str) -> str:
@@ -896,7 +901,7 @@ def main() -> int:
     if not args.api_key:
         print(
             "error: 缺少 API key。请传 --api-key，设置 JZL_API_KEY，或配置 "
-            "~/.config/skills/jz-sync-wechat-archive/.env。",
+            "~/.config/skills/jz-get-wechat-articles/.env。",
             file=sys.stderr,
         )
         return 2
@@ -910,20 +915,20 @@ def main() -> int:
     client = JizhileClient(
         ClientConfig(
             api_key=args.api_key,
-            verifycode=args.verifycode,
+            verifycode=args.verification_code,
             timeout=args.timeout,
             retry=args.retry,
             delay=args.delay,
         )
     )
 
-    account_hint = args.biz or args.name or args.url
+    account_hint = args.biz_id or args.account or args.source_url
     output_dir = Path(args.output_dir)
-    run_dir = prepare_flat_run_dir(output_dir, args.compact_output) if args.flat_output else make_run_dir(output_dir, account_hint)
+    run_dir = prepare_flat_run_dir(output_dir, args.compact_output) if args.no_run_dir else make_run_dir(output_dir, account_hint)
     state_file = resolve_state_file(output_dir, account_hint, args.state_file)
     history_cache_dir = resolve_history_cache_dir(output_dir, account_hint)
     stats_db_path = resolve_stats_db_path(output_dir, account_hint)
-    use_history_cache = args.mode == "full"
+    use_history_cache = args.mode == "backfill"
     try:
         state = load_state(state_file)
     except (OSError, json.JSONDecodeError, ValueError) as exc:
@@ -943,17 +948,17 @@ def main() -> int:
     newest_post_time_seen_this_run = known_newest_post_time
     manifest: dict[str, Any] = {
         "query": {
-            "name": args.name,
-            "biz": args.biz,
-            "url": args.url,
+            "name": args.account,
+            "biz": args.biz_id,
+            "url": args.source_url,
             "mode": args.mode,
             "start_page": args.start_page,
             "end_page": args.end_page,
             "metadata_only": args.metadata_only,
-            "fetch_stats": args.fetch_stats,
+            "fetch_stats": args.fetch_metrics,
             "published_within_days": args.published_within_days,
             "body_source": args.body_source,
-            "flat_output": args.flat_output,
+            "flat_output": args.no_run_dir,
             "compact_output": args.compact_output,
         },
         "state_file": str(state_file),
@@ -988,9 +993,9 @@ def main() -> int:
     }
 
     try:
-        if args.stats_from_cache_only:
-            if not args.fetch_stats:
-                raise ApiError("--stats-from-cache-only requires --fetch-stats")
+        if args.metrics_from_list_cache_only:
+            if not args.fetch_metrics:
+                raise ApiError("--metrics-from-list-cache-only requires --fetch-metrics")
             if not history_cache_dir.exists():
                 raise ApiError(f"history cache dir not found: {history_cache_dir}")
 
@@ -1044,7 +1049,7 @@ def main() -> int:
                             {
                                 "url": url,
                                 "title": item.get("title"),
-                                "error": f"stats: {exc}",
+                                "error": f"metrics: {exc}",
                             }
                         )
 
@@ -1058,10 +1063,10 @@ def main() -> int:
             )
             if not args.compact_output:
                 save_json(run_dir / "manifest.json", manifest)
-            print(f"stats-only scanned {manifest['stats_targets_from_cache']} cached articles")
-            print(f"stats fetched: {manifest['stats_fetched']}, cache hits: {manifest['stats_cache_hits']}")
+            print(f"metrics-only scanned {manifest['stats_targets_from_cache']} cached articles")
+            print(f"metrics fetched: {manifest['stats_fetched']}, cache hits: {manifest['stats_cache_hits']}")
             if manifest["stats_pending_under_24h"]:
-                print(f"stats pending (<24h): {manifest['stats_pending_under_24h']}")
+                print(f"metrics pending (<24h): {manifest['stats_pending_under_24h']}")
             if manifest["initial_balance"] is not None:
                 print(
                     "balance initial:"
@@ -1085,9 +1090,9 @@ def main() -> int:
                 manifest["history_cached_pages_used"] += 1
             else:
                 response = client.fetch_history_page(
-                    name=args.name,
-                    biz=args.biz,
-                    url=args.url,
+                    name=args.account,
+                    biz=args.biz_id,
+                    url=args.source_url,
                     page=page,
                     extra_body=extra_body,
                 )
@@ -1201,7 +1206,7 @@ def main() -> int:
                     finally:
                         time.sleep(args.delay)
 
-                if args.fetch_stats:
+                if args.fetch_metrics:
                     if not article_is_older_than_24h(post_time):
                         manifest["stats_pending_under_24h"] += 1
                     else:
@@ -1231,7 +1236,7 @@ def main() -> int:
                                         {
                                             "url": url,
                                             "title": item.get("title"),
-                                            "error": f"stats: {exc}",
+                                            "error": f"metrics: {exc}",
                                         }
                                     )
                         if stats_data and current_article_dir:
@@ -1289,10 +1294,10 @@ def main() -> int:
         print(f"saved {manifest['article_bodies_saved']} article bodies via {args.body_source}")
         if manifest["article_body_fetch_failures"]:
             print(f"blocked or failed article pages: {manifest['article_body_fetch_failures']}")
-    if args.fetch_stats:
-        print(f"stats fetched: {manifest['stats_fetched']}, cache hits: {manifest['stats_cache_hits']}")
+    if args.fetch_metrics:
+        print(f"metrics fetched: {manifest['stats_fetched']}, cache hits: {manifest['stats_cache_hits']}")
         if manifest["stats_pending_under_24h"]:
-            print(f"stats pending (<24h): {manifest['stats_pending_under_24h']}")
+            print(f"metrics pending (<24h): {manifest['stats_pending_under_24h']}")
     if manifest["initial_balance"] is not None:
         print(
             "balance initial:"
