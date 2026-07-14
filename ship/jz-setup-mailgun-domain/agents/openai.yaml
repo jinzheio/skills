@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mailgun 发信域名"
+  short_description: "初始化 Mailgun 发信域名、Cloudflare DNS 和发送凭证。"
+  default_prompt: "使用 $jz-setup-mailgun-domain 初始化这个 Mailgun 发信域名，确认地区和 EMAIL_FROM 后写入 DNS 和项目配置。"
