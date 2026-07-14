@@ -22,13 +22,13 @@ Cloudflare 公开站点必须先完成 GitHub Actions 自动部署并验证公�
 1. 判断待提交变更是否影响公开页面或公开路由结构。
 2. 从 repo 文档配置、package scripts、env examples、deployment metadata 或用户提供值解析 production base URL。
 3. 如果是 Cloudflare 公开站点，确认主流程已经处理 GitHub Actions 自动部署 workflow 和 `[skip deploy]` 规则。
-4. 除非 repo 已有以下能力，否则优先用 `add-search-index` 安装可复用 IndexNow 支持：
+4. 除非 repo 已有以下能力，否则优先用 `setup-indexnow` 安装可复用 IndexNow 支持：
    - `scripts/indexnow-collect-urls.ts` 或等价 `indexnow:collect`
    - `scripts/indexnow-submit.ts` 或等价 `indexnow:submit`
    - hosted key verification file 或已记录的 `INDEXNOW_KEY`
-5. 如果 `add-search-index` 创建或更新文件，把这些文件放进 push 前 commit。
+5. 如果 `setup-indexnow` 创建或更新文件，把这些文件放进 push 前 commit。
 
-不要在 push 后运行 `add-search-index`。push 后步骤不能修改 tracked project files。
+不要在 push 后运行 `setup-indexnow`。push 后步骤不能修改 tracked project files。
 
 ## URL 收集
 

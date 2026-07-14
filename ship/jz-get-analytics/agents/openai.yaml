@@ -1,4 +1,0 @@
-interface:
-  display_name: "站点 Metrics"
-  short_description: "查看 GSC、Cloudflare、Umami 和 Clarity 的站点数据。"
-  default_prompt: "使用 $jz-get-analytics 查看目标站点最近数据，覆盖全部可用 provider，并说明失败项和 fallback。"

@@ -165,13 +165,13 @@ dispatcher 默认打开 macOS 系统通知：
 - 完成 PR 时通知：`Auto PR completed`。
 - 失败时通知：`Auto PR failed`。
 
-dispatcher 完成或失败时会优先调用 `jz-notify`：
+dispatcher 完成或失败时会优先调用 `jz-send-notification`：
 
-- 系统通知和飞书由 `jz-notify` 统一发送。
-- 默认查找 `$HOME/.codex/skills/jz-notify/scripts/notify.sh`、`$HOME/.agents/skills/jz-notify/scripts/notify.sh`、`$HOME/.claude/skills/jz-notify/scripts/notify.sh`。
+- 系统通知和飞书由 `jz-send-notification` 统一发送。
+- 默认查找 `$HOME/.codex/skills/jz-send-notification/scripts/notify.sh`、`$HOME/.agents/skills/jz-send-notification/scripts/notify.sh`、`$HOME/.claude/skills/jz-send-notification/scripts/notify.sh`。
 - 可用 `AUTO_PR_NOTIFY_SCRIPT` 覆盖通知脚本路径。
 - 可用 `AUTO_PR_NOTIFY=0` 关闭完成/失败通知。
-- 如果找不到 `jz-notify`，回退为 macOS 系统通知。
+- 如果找不到 `jz-send-notification`，回退为 macOS 系统通知。
 
 如果某台 runner 不适合弹系统通知，可在 runner 环境里设置：
 
@@ -457,7 +457,7 @@ dispatcher 应至少做到：
 - 自动把 PR assign 给用户。
 - 自动把用户加为 reviewer。
 - dispatcher 接收任务时默认发送 macOS notification。
-- dispatcher 完成或失败时默认调用 `jz-notify`，至少覆盖系统通知和飞书；找不到 `jz-notify` 时回退到 macOS notification。
+- dispatcher 完成或失败时默认调用 `jz-send-notification`，至少覆盖系统通知和飞书；找不到 `jz-send-notification` 时回退到 macOS notification。
 
 可选提醒：
 
@@ -467,7 +467,7 @@ dispatcher 应至少做到：
 
 不要默认打电话或发短信，除非用户明确要求。
 
-不要默认创建飞书 webhook 或写入飞书凭证；凭证只放在 `jz-notify` 的本机未跟踪配置里。
+不要默认创建飞书 webhook 或写入飞书凭证；凭证只放在 `jz-send-notification` 的本机未跟踪配置里。
 
 ## 安全规则
 

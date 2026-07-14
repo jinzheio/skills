@@ -11,7 +11,7 @@
 
 ### CLOUDFLARE_ACCOUNT_ID（共享）
 
-所有 Cloudflare 项目共用同一个 Account ID。通过 `jz-create-cf-token` 本地配置读取 bootstrap env，再从其中读取 `CLOUDFLARE_ACCOUNT_ID`。
+所有 Cloudflare 项目共用同一个 Account ID。通过 `jz-create-cloudflare-token` 本地配置读取 bootstrap env，再从其中读取 `CLOUDFLARE_ACCOUNT_ID`。
 
 这是默认 Account ID 来源。项目 `.dev.vars` 可以保存同一个值，方便本地 `wrangler` 使用，但不要把其它账号的 Account ID 混进同一个项目。
 
@@ -24,13 +24,13 @@
 1. 项目 `.dev.vars` 中的 `CLOUDFLARE_API_TOKEN`，用于本地开发和手动验证。
 2. GitHub repo secrets 中的 `CLOUDFLARE_API_TOKEN`，用于 CI/CD 自动部署。
 
-`jz-create-cf-token` 本地配置指定的 bootstrap token 只用于创建项目 token，或给已有项目 token 增加必要权限，不得直接用于项目部署、资源创建、GitHub Secrets 或 CI/CD。
+`jz-create-cloudflare-token` 本地配置指定的 bootstrap token 只用于创建项目 token，或给已有项目 token 增加必要权限，不得直接用于项目部署、资源创建、GitHub Secrets 或 CI/CD。
 
 ### 创建项目专属 Token
 
 如果项目已经有 token，先验证它是否满足 workflow 需要。权限不足时，优先在 token id 可确认的情况下更新这个项目 token 的 policy；不能安全更新时，再创建新 token。
 
-用 `jz-create-cf-token` 本地配置指定的、具备 Account API Tokens Write 权限的 bootstrap token 调用 Cloudflare API 创建或更新项目 token。先查询 permission group id，再按项目实际 workflow 选择最小权限。
+用 `jz-create-cloudflare-token` 本地配置指定的、具备 Account API Tokens Write 权限的 bootstrap token 调用 Cloudflare API 创建或更新项目 token。先查询 permission group id，再按项目实际 workflow 选择最小权限。
 
 读取 `wrangler.jsonc` 或 `wrangler.toml`（如果存在），根据项目实际使用的 Cloudflare 资源确定所需权限。常见项目 profile：
 
@@ -150,17 +150,17 @@ gh secret list --repo OWNER/REPO
 
 Cloudflare 自动部署需要：
 
-- `CLOUDFLARE_ACCOUNT_ID`（从 `jz-create-cf-token` 本地配置指定的 bootstrap env 获取）
+- `CLOUDFLARE_ACCOUNT_ID`（从 `jz-create-cloudflare-token` 本地配置指定的 bootstrap env 获取）
 - `CLOUDFLARE_API_TOKEN`（项目专属最小权限 token）
 
 ## Token 创建约定
 
 缺少 secrets 时，不要 push 后声称会自动部署。默认按下面的顺序处理：
 
-1. 通过 `jz-create-cf-token` 本地配置读取共享 `CLOUDFLARE_ACCOUNT_ID`。
+1. 通过 `jz-create-cloudflare-token` 本地配置读取共享 `CLOUDFLARE_ACCOUNT_ID`。
 2. 先检查当前项目 `.dev.vars`、`.env.local` 或其它本地 env 中是否已有项目专属 `CLOUDFLARE_API_TOKEN`。
 3. 如果项目 token 存在，验证它的目标 API 权限；权限足够就直接写入 GitHub Secrets。
-4. 如果项目 token 缺失或权限不足，通过 `jz-create-cf-token` 本地配置读取具备 Account API Tokens Write 权限的 bootstrap token。
+4. 如果项目 token 缺失或权限不足，通过 `jz-create-cloudflare-token` 本地配置读取具备 Account API Tokens Write 权限的 bootstrap token。
 5. 用 bootstrap token 调用 Cloudflare API 创建当前项目专属 token，或给已有项目 token 增加必要权限。
 6. 把项目 token 写入当前项目 `.dev.vars` 的 `CLOUDFLARE_API_TOKEN`。
 7. 用 `gh secret set` 写入 GitHub repo secrets：

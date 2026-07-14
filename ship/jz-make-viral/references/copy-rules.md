@@ -1,6 +1,6 @@
 # 文案规则
 
-从 8 个改版案例、ClawSimple 实际实施、以及 32 Principles of a Viral Product 中提炼的文案写法。
+从 8 个改版案例、实际项目实施和 32 Principles of a Viral Product 中提炼的文案写法。
 
 ## 标题写法
 

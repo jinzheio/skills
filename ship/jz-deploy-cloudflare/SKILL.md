@@ -1,139 +1,200 @@
 ---
 name: jz-deploy-cloudflare
-version: "1.0.0"
-description: "当用户想把一个新网站或 Web app 从本地代码推进到 Cloudflare 上线，并顺手配置 GitHub、自动部署、正式域名、搜索/统计、转化埋点和 Auto PR 时使用。适用于 deploy this site to Cloudflare、ship this site to Cloudflare、从代码到上线、新站点发布全流程、上线后接 analytics 和 Auto PR。默认新站点发布到 Cloudflare，不处理 Vercel 迁移；迁移旧项目仍单独使用 jz-migrate-to-cf。"
+description: "当用户想把本地网站或 Web app 完整发布到 Cloudflare 时使用，包括 deploy this site to Cloudflare、publish this local app on Cloudflare、wrangler deploy、create a GitHub repo and deploy to Cloudflare Workers、上线到 Cloudflare。支持 GitHub 不能关联 Cloudflare 时通过 Wrangler 直接发布。默认使用 Cloudflare 一级支持技术栈：Workers、Workers Static Assets、Wrangler、Workers Builds、Cloudflare 官方框架适配器和 Cloudflare 原生数据/存储产品。不要用于从 Vercel 迁移生产流量；迁移用 migrate-vercel-to-cloudflare。不要处理正式域名 cutover 或搜索/统计 onboarding；这些作为后续 handoff。"
 ---
 
-# Deploy to Cloudflare
+# 发布本地站点到 Cloudflare
 
-用于编排新站点从本地代码到 Cloudflare 上线后的常见流程。
+用于把本地 repo 发布成 Cloudflare 托管的站点。
 
-这个 skill 是总控，不重写部署、DNS、统计或 Auto PR 细节。它负责判断当前项目状态、选择阶段顺序、调用对应 skill、检查阶段门槛，并给出统一汇报。
+这是 release workflow，不只是 `wrangler deploy`。任务是让 repo 可以稳定发布并正确连接：
 
-默认路线：
+1. 检查本地 repo 和 build 状态
+2. 按需创建或连接 GitHub repo
+3. 选择 Cloudflare 一级支持技术栈
+4. 修复阻塞 Workers build 或 runtime 的问题
+5. 配置 Wrangler、bindings、secrets 和生产环境变量
+6. 本地验证 Workers runtime
+7. 有意图地 commit 和 push
+8. 创建或连接 Cloudflare Worker
+9. 部署并验证 `workers.dev` 或用户指定的临时域名
 
-```text
-jz-create-cf-site -> jz-launch-domain -> jz-push-code -> jz-setup-analytics -> jz-track-conversion -> jz-setup-auto-pr
-```
+默认使用 `wrangler deploy` 完成可验证部署。只有用户明确要求 Cloudflare 连接 GitHub / GitLab，或账号权限已确认可用时，才配置 Workers Builds。
 
-其中 `jz-track-conversion` 和 `jz-setup-auto-pr` 是按需阶段。用户没有要求转化埋点或 Auto PR 时，不默认实现。
+如果用户说明 GitHub 账号不能关联 Cloudflare，只走 Wrangler 直发；不要要求 Cloudflare Git integration，也不要把 Workers Builds 列为待办。
 
-## 范围
+如果用户还要正式域名和搜索/统计 onboarding，后续顺序是：
 
-适用：
+1. `setup-site-domain`
+2. `setup-site-analytics`
 
-- 新站点或新 Web app 发布到 Cloudflare Workers / Workers Static Assets / Pages。
-- 已有本地代码，需要创建或连接 GitHub repo。
-- 已有 Cloudflare 临时 URL，需要绑定正式域名。
-- 正式域名可访问后，接入统计、搜索索引、Sentry、Clarity。
-- 已有 GitHub repo 后，配置 GitHub issue 触发的本机 Codex Auto PR runner。
+如果用户是在把 Vercel 生产流量迁到 Cloudflare，改用 `migrate-vercel-to-cloudflare`。
 
-不适用：
+## 输入
 
-- 从 Vercel 迁移生产流量。使用 `jz-migrate-to-cf`。
-- 只改 DNS。使用 `jz-launch-domain`。
-- 只推送已有变更。使用 `jz-push-code`。
-- 只接统计和搜索。使用 `jz-setup-analytics`。
-- 只配置 Auto PR。使用 `jz-setup-auto-pr`。
+- 必填：本地 repo path，或当前就在目标 repo 中
+- 必填：Cloudflare account id 或可用 `wrangler whoami`
+- 可选：GitHub owner，例如 `<github-owner>`；只有需要创建或连接源码 repo 时必填
+- 可选：repo / Worker name，默认当前目录名
+- 可选：monorepo app root，例如 `apps/web`
+- 可选：production env vars 来源：`.env.production`、`.env` 或其它路径
+- 可选：repo visibility；默认 private，除非用户要求 public
 
-## 开始前
+如果用户未指定 repo name 或 Worker name，默认使用当前目录名。
 
-先读取：
+## 必需工具和认证
 
-- `references/preflight-checklist.md`
-- `references/decision-matrix.md`
-- `references/stage-gates.md`
+任何 repo 或 deploy 改动前确认：
 
-如果当前仓库可运行 Node.js，可先执行：
+- `wrangler --version` 或项目内 `pnpm exec wrangler --version`
+- `wrangler whoami` 或 `scripts/with-cloudflare-env.mjs ... wrangler whoami`
 
-```bash
-node <skill-dir>/scripts/inspect-cloudflare-ship-state.mjs
-```
+如果需要创建或连接 GitHub repo，再确认：
 
-脚本只做本地状态检查，不读取或输出 secret 值。脚本不可用时，用 reference 中的命令手动检查。
+- `gh --version`
+- `gh auth status`
+
+如果缺少 `wrangler`，停止并说明缺哪个 CLI。只有当前任务需要 GitHub 时，缺少 `gh` 才阻塞。
+
+如果缺少认证，先检查本项目 `.dev.vars`、`.env.local`、`.env` 等本地凭据。Cloudflare 操作默认使用项目自己的最小权限 `CLOUDFLARE_API_TOKEN`。
+
+如果项目没有可用 token，使用 `create-cloudflare-token` skill：通过 `create-cloudflare-token` 本地配置读取 bootstrap token，为当前项目创建最小权限 token，或给已有项目 token 增加本次需要的权限。共享 token 只用于创建或更新项目 token，不得直接用于 `wrangler deploy`、资源创建、GitHub Secrets、Workers Builds 或其它项目操作。
+
+不要输出 token 或 `.env` 值。
+
+## 一级支持技术栈
+
+默认选择 Cloudflare Workers，不默认选择 Vercel、Netlify、Docker、VPS、Workers Sites 或非官方适配层。
+
+可接受路径：
+
+- 静态站点、SPA：Workers Static Assets，`wrangler.jsonc` 的 `assets.directory` 指向构建产物。
+- Vite + React/Vue/Svelte 等 SPA + API：Cloudflare Vite plugin 或 Workers Static Assets + Worker API。
+- Astro、React Router、Next.js、Nuxt、SvelteKit 等框架：Cloudflare Workers 官方框架指南或官方/Cloudflare 维护适配器。
+- Next.js：使用 Cloudflare OpenNext adapter，不使用 Vercel-only 功能作为生产依赖。
+- 数据和存储：D1、R2、KV、Durable Objects、Queues、Vectorize、Hyperdrive、Workers AI、Secrets。
+- 发布：Wrangler 直发是默认路径；Workers Builds 只在用户要求 Git 集成且账号可关联时配置。
+
+不要为新项目使用 Workers Sites。不要把 Pages 作为默认承载面，除非项目已经明确以 Pages Git integration 为目标，或用户指定 Cloudflare Pages。
 
 ## 核心规则
 
-- 新站点默认走 Cloudflare，不走 Vercel。
-- 不复制其它 skill 的安全规则。进入具体阶段时，必须读取并遵守对应 skill。
-- 不把“命令退出 0”当作完成。每阶段必须满足 `references/stage-gates.md` 的验收条件。
-- 不静默 push 无关变更，不使用 `git add .`。
-- 不输出 token、env 值、GitHub Secrets、API 响应里的敏感内容。
-- 删除 DNS 记录、改 registrar、改生产域名、写 GitHub Secrets、创建 Cloudflare token 等动作，交给对应 skill 的确认规则处理。
-- 如果阶段前置条件不满足，标记为 `skipped` 或 `blocked`，不要硬推进。
+- repo 检查优先用 `rg`。
+- 不要用 `git add .`。
+- 不要静默 push 无关本地改动。
+- 不要使用 `reset --hard` 这类破坏性 git 命令。
+- 默认创建 private GitHub repo，除非用户要求 public。
+- 默认使用 Workers + Wrangler 配置，不写 Vercel 专属配置。
+- monorepo 必须显式设置 Cloudflare project root / build working directory。
+- lockfile 过期时先修复再发布。
+- local build 或 Workers runtime 预览失败时先修复或报告 blocker，不要继续 release。
+- 不要把域名 cutover、DNS 清理或 indexing 混进核心 repo-to-hosted-deploy 流程。
+- Cloudflare deploy、resource create、secret sync、Workers Builds 和 GitHub Actions secrets 都必须使用项目最小权限 token。`create-cloudflare-token` 本地配置指定的共享 token 只能作为 bootstrap，用来创建或更新项目 token。
 
-## 编排流程
+## 流程
 
-### 1. 识别状态
+### 1. 计划
 
-收集：
+阅读 `references/github-cloudflare-release.md`，执行其中 Repo Inspection commands，然后给出计划：
 
-- repo 路径、git 状态、remote、branch。
-- package manager、build/check/test 命令。
-- Cloudflare 配置：`wrangler.jsonc`、`wrangler.toml`、deploy script、bindings。
-- GitHub Actions：生产部署 workflow、Auto PR workflow。
-- 域名状态：临时 URL、正式域名、canonical host。
-- 搜索和统计：robots、sitemap、analytics script、IndexNow、Sentry、Clarity。
-- Auto PR 需求：是否需要 issue 自动处理、触发策略、self-hosted runner 和 dispatcher。
+- GitHub owner 和 repo name，如果本次需要源码 repo
+- repo visibility
+- 当前 branch 和 dirty worktree
+- package manager 与 build/check commands
+- Cloudflare account 和 Worker name
+- deploy root，尤其是 monorepo
+- 选用的 Cloudflare 技术栈和理由
+- 需要创建的 bindings / resources
+- 需要同步的 production env vars / secrets
+- 预期 commit / push / deploy 步骤
+- 是否使用 Wrangler 直发，或是否需要 Workers Builds
 
-### 2. 选择路线
+### 2. 准备 repo
 
-按 `references/decision-matrix.md` 判断需要哪些阶段。
+检查：
 
-常见路线：
+- 是否已经是 git repo
+- remote 是否存在
+- 当前 branch
+- 未提交变更
+- `.gitignore`
+- lockfile 与 package manager
+- build 是否可运行
+- 是否已有 `wrangler.jsonc`、`wrangler.toml`、`open-next.config.ts`
 
-- 只有本地代码：先 `jz-create-cf-site`。
-- 已有 Cloudflare 部署但没有正式域名：先 `jz-launch-domain`。
-- 已有正式域名但没统计：运行 `jz-setup-analytics`。
-- 已有可部署 Cloudflare 项目但缺生产自动部署：运行 `jz-push-code`，由它检查并补 Cloudflare 自动部署 workflow。
-- 需要 Auto PR：确认已有 GitHub repo 和本机 checkout 后，运行 `jz-setup-auto-pr`。
+如果不是 git repo，初始化并添加合适 `.gitignore`。
 
-如果用户要求“一次做完”，仍按阶段推进。高风险阶段由对应 skill 决定是否需要停下确认。
+### 3. Cloudflare 适配
 
-### 3. 执行阶段
+按项目类型选择最小改动：
 
-每个阶段开始前，向用户说明：
+- 已有 Wrangler 配置：审查并修正 `name`、`main`、`assets`、`compatibility_date`、bindings。
+- 静态站点 / SPA：添加 Workers Static Assets 配置。
+- Next.js：添加 Cloudflare OpenNext adapter、`open-next.config.ts`、Wrangler 配置和 scripts。
+- 需要 API：用 Worker `fetch` handler 或框架路由，不引入 Node server。
+- 需要数据库/对象存储/队列：创建或复用 Cloudflare 原生资源，把 binding 写入 Wrangler 配置。
 
-- 本阶段调用哪个 skill。
-- 本阶段完成条件。
-- 本阶段可能跳过的分支。
+详细命令见 `references/github-cloudflare-release.md`。
 
-阶段顺序：
+### 4. GitHub（可选）
 
-1. **Cloudflare deploy**：使用 `jz-create-cf-site`。
-2. **Domain**：用户给出正式域名时使用 `jz-launch-domain`。
-3. **Production auto deploy / push**：使用 `jz-push-code`。
-4. **Analytics and search**：正式域名可访问后使用 `jz-setup-analytics`。
-5. **Conversion tracking**：用户要求转化漏斗或已有明确转化路径时使用 `jz-track-conversion`。
-6. **Auto PR**：用户要求自动处理 issue 或自动提 PR 时使用 `jz-setup-auto-pr`。
+用户需要源码 repo 时，创建或连接 GitHub repo：
 
-### 4. 中断与恢复
+- 默认 private
+- 使用用户指定 owner
+- remote 使用 SSH
+- 不覆盖已有 remote，除非用户确认
+- push 前确保 commit 只包含目标变更
 
-如果中间失败，不要重跑已完成阶段。按 `references/stage-gates.md` 复查当前状态，从第一个未满足验收条件的阶段恢复。
+### 5. Build 与修复
 
-### 5. 完成汇报
+运行适用检查：
 
-读取 `references/report-template.md`，使用 `docs/status-terms.md` 状态词汇报：
+- lint / typecheck
+- build
+- Workers runtime preview
 
-- Cloudflare deploy
-- GitHub repo / push
-- production auto deploy
-- domain / HTTPS / redirect
-- analytics / search / Sentry / Clarity
-- conversion events
-- Auto PR
-- skipped / blocked / manual 项
+失败时只修复与发布直接相关的问题。不要做无关重构。
 
-不要把没有 live 验证的结果写成 `done`。
+### 6. Cloudflare env / secrets
 
-## 相关 skill
+同步最低限度 production env vars。细节见 `references/env-sync.md`。
 
-- Cloudflare 发布：`jz-create-cf-site`
-- Cloudflare token：`jz-create-cf-token`
-- 域名绑定：`jz-launch-domain`
-- 推送与 Cloudflare 自动部署：`jz-push-code`
-- 搜索与统计：`jz-setup-analytics`
-- IndexNow：`jz-add-search-index`
-- 转化埋点：`jz-track-conversion`
-- Auto PR：`jz-setup-auto-pr`
-- 旧项目迁移：`jz-migrate-to-cf`，只在用户明确要求迁移时使用
+原则：
+
+- secret 用 `wrangler secret put` 或 Cloudflare dashboard secret。
+- 非 secret 变量写 Wrangler `vars` 或 Workers Builds 环境变量。
+- Wrangler 和 Cloudflare API 操作用项目最小权限 token；缺失或权限不足时先用 `create-cloudflare-token` 创建或更新项目 token。
+- 不输出 secret 值。
+- `.env.local` 只能用于本机 CLI 注入，确认被 Git 忽略且未纳入 Git 管理。
+
+### 7. Deploy
+
+默认顺序：
+
+1. `wrangler deploy`
+2. GitHub Actions + 官方 Cloudflare Workers deploy action
+3. Workers Builds GitHub / GitLab 集成
+
+如果用户的 GitHub 账号不能关联 Cloudflare，固定使用第 1 项。不要把 Workers Builds 标记为 `manual`，除非用户仍要求后续人工连接。
+
+部署验证见 `references/deploy-verify.md`。
+
+### 8. 完成汇报
+
+使用 `docs/status-terms.md` 里的状态词汇报：
+
+- GitHub repo URL，如果本次创建或连接了 repo
+- Cloudflare Worker / deployment URL
+- 发布方式：Wrangler 直发、GitHub Actions 或 Workers Builds
+- build/check/runtime preview 结果
+- production env / secrets 同步范围
+- 创建或复用的 Cloudflare resources
+- 是否还有未提交变更
+- 后续是否需要 `setup-site-domain` 或 `setup-site-analytics`
+
+## 相关引用
+
+- GitHub + Cloudflare release：`references/github-cloudflare-release.md`
+- env 同步：`references/env-sync.md`
+- deploy 验证：`references/deploy-verify.md`

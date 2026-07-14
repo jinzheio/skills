@@ -1,6 +1,5 @@
 ---
 name: jz-deploy-vercel
-version: "1.1.0"
 description: "当用户想把本地网站或 Web app 完整发布上线时使用，包括 deploy this site、publish this local app、create a GitHub repo and deploy to Vercel、上线到 Vercel。创建或连接 GitHub，验证 build，push，连接 Vercel，同步最低限度生产环境变量，并验证 GitHub 触发的部署。不要处理自定义域名 cutover 或搜索/统计 onboarding；这些作为后续 handoff。"
 ---
 
@@ -24,10 +23,10 @@ description: "当用户想把本地网站或 Web app 完整发布上线时使用
 
 如果用户还要正式域名和搜索/统计 onboarding，后续顺序是：
 
-1. `launch-domain`
-2. `setup-analytics`
+1. `setup-site-domain`
+2. `setup-site-analytics`
 
-如果用户还要最终域名的入站邮件转发，域名进入 Cloudflare 后交给 `launch-domain`。这不阻塞核心发布流程。
+如果用户还要最终域名的入站邮件转发，域名进入 Cloudflare 后交给 `setup-site-domain`。这不阻塞核心发布流程。
 
 ## 输入
 
@@ -142,7 +141,7 @@ push 后让 Vercel 通过 GitHub 触发部署。不要用本地 deploy 伪装成
 - build/check 结果
 - production env 同步范围
 - 是否还有未提交变更
-- 后续是否需要 `launch-domain` 或 `setup-analytics`
+- 后续是否需要 `setup-site-domain` 或 `setup-site-analytics`
 
 ## 相关引用
 

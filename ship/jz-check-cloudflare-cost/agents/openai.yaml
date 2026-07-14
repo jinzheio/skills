@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloudflare 成本核算"
+  short_description: "从当前项目读取 Cloudflare 配置和 usage，核对账期成本"
+  default_prompt: "使用 $jz-check-cloudflare-cost 核对当前项目的 Cloudflare usage/cost，识别本账期运行中资源的按量费用和异常计费。"

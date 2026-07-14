@@ -1,7 +1,0 @@
-interface:
-  display_name: "Mac Remote"
-  short_description: "通过 Bonjour 连接局域网 Mac，执行远程命令、文件传输和 CC Switch 配置同步。"
-  default_prompt: "使用 $jz-mac-remote 连接到局域网内的 Mac（通过 .local 名称），执行远程命令、文件传输、CC Switch provider 同步等操作。前置条件：目标 Mac 已开启远程登录，本机已配置免密 SSH。"
-
-policy:
-  allow_implicit_invocation: true

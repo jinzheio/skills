@@ -1,0 +1,4 @@
+interface:
+  display_name: "cron-job.org 管理"
+  short_description: "检查 API key，管理 cron-job.org 定时任务、历史和文件夹。"
+  default_prompt: "使用 $jz-manage-cron-jobs 检查 cron-job.org API key，并按需要列出、创建、更新或删除定时任务。"

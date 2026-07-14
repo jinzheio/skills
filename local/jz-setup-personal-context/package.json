@@ -1,0 +1,8 @@
+{
+  "name": "jz-setup-personal-context",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "setup-personal-context": "./scripts/install-profile.mjs"
+  }
+}

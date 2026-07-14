@@ -1,6 +1,6 @@
 # Landing Page 设计
 
-用于新建或改进 landing page 时读取。合并了 8 个改版案例的 5 条规律、ClawSimple 实施经验，以及 32 条 Principles of a Viral Product 中与页面设计相关的原则。
+用于新建或改进 landing page 时读取。合并了 8 个改版案例的 5 条规律、实际项目经验，以及 32 条 Principles of a Viral Product 中与页面设计相关的原则。
 
 ## 核心思路
 

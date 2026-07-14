@@ -52,12 +52,10 @@ skill-name/
 ---
 name: skill-name                  # 必需，机器可读的唯一标识
 description: "..."                # 必需，agent 触发决策的依据
-# 可选扩展字段（平台支持情况不同）：
-tools: [bash, read_file]          # 声明所需工具
-permissions: [filesystem]         # 声明所需权限
-version: "1.0.0"                  # 版本追踪
 ---
 ```
+
+本仓库的 frontmatter 只保留 `name` 和 `description`。工具、权限和版本信息放在平台 metadata 或正文中，避免不同 runner 对扩展字段的解析差异。
 
 ### 3.3 Description 写法要点
 
@@ -118,7 +116,7 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 
 对于会产生不可逆外部副作用（DNS 变更、代码推送、域名绑定、环境变量写入）的 skill，仅靠 "Do not" 规则列表来约束 agent 行为是不够稳定的。更有效的模式是在 skill 中要求 agent 先输出一份结构化执行计划，再对照真实状态验证，最后才执行。
 
-**三段式结构示例**（适用于 `jz-launch-domain`、`jz-deploy-vercel` 等）：
+**三段式结构示例**（适用于 `jz-setup-site-domain`、`jz-deploy-vercel` 等）：
 
 1. **Plan**：agent 在动手前先输出：涉及的系统（registrar / DNS provider / hosting）、计划创建的 records、验证命令清单、回滚路径
 2. **Validate**：对照平台 API / CLI 的实际返回值确认前提成立（repo 存在？zone 已激活？env 已设置？）
@@ -137,10 +135,10 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 
 | Prompt | 预期行为 |
 |---|---|
-| "帮我 push 这个后端 API 库" | 触发 `push-code` 但**不**运行 IndexNow |
-| "域名解析好了，帮我接 GSC" | 触发 `setup-analytics`，**不**触发 `launch-domain` |
+| "帮我 push 这个后端 API 库" | 触发 `jz-push-code` 但**不**运行 IndexNow |
+| "域名解析好了，帮我接 GSC" | 触发 `jz-setup-site-analytics`，**不**触发 `jz-setup-site-domain` |
 | "部署到 Vercel 临时域名就行" | 触发 `jz-deploy-vercel`，**不**继续进入 domain/index onboarding |
-| "帮我 commit 一下这几个文件" | 触发 `commit-code`，**不**触发 `push-code` |
+| "帮我 commit 一下这几个文件" | 触发 `jz-commit-code`，**不**触发 `jz-push-code` |
 
 在调整 description 后，用这些 eval prompt 对比"修改前 / 修改后"的触发结果，才能知道改动是否真的有效。
 

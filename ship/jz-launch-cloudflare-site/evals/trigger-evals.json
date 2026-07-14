@@ -1,0 +1,38 @@
+{
+  "skill_name": "jz-launch-cloudflare-site",
+  "eval_type": "trigger",
+  "cases": [
+    {
+      "prompt": "把这个新网站从代码发布到 Cloudflare，上线后接统计和搜索",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Use jz-launch-cloudflare-site for this local app, including GitHub, domain, analytics, and Auto PR.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "从代码到上线全流程走 Cloudflare，最后把 Auto PR 也配好",
+      "should_trigger": true
+    },
+    {
+      "prompt": "新站点默认发到 Cloudflare，域名好了以后接 GSC、Clarity 和 Sentry",
+      "should_trigger": true
+    },
+    {
+      "prompt": "把这个本地网站上线到 Cloudflare，并创建 GitHub repo",
+      "should_trigger": false
+    },
+    {
+      "prompt": "使用 jz-setup-site-domain 把 example.com 绑定到这个已部署网站",
+      "should_trigger": false
+    },
+    {
+      "prompt": "把这个 Vercel 项目迁移到 Cloudflare，并切生产域名",
+      "should_trigger": false
+    },
+    {
+      "prompt": "只给这个 GitHub repo 配置 Auto PR",
+      "should_trigger": false
+    }
+  ]
+}

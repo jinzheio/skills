@@ -1,6 +1,5 @@
 ---
 name: jz-commit-code
-version: "1.3.0"
 description: "当用户要求 review 并提交本地工作区变更时使用，包括 commit this、帮我 commit、确认提交、split these changes into commits。必须优先分派 subagent 在独立 context window 中执行 review 与提交流程。先 review diff 并报告风险，等待用户明确确认，再按功能创建干净的 scoped commits。除非用户同时要求 push，否则不要推送。当带有 force 参数时（如 commit-code force），跳过确认，自动 review 后直接按功能拆分提交。"
 ---
 

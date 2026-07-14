@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloudflare AI Gateway 管理"
+  short_description: "查询和配置 Cloudflare AI Gateway"
+  default_prompt: "Use $jz-manage-cloudflare-ai-gateway to inspect a Cloudflare AI Gateway request path and latency."

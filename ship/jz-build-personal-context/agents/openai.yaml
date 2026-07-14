@@ -1,4 +1,0 @@
-interface:
-  display_name: "个人上下文访谈"
-  short_description: "访谈生成 about、voice 和 anti-style 文件"
-  default_prompt: "使用 $jz-build-personal-context 通过访谈生成我的个人上下文和写作风格文件，并用 -g 接入 Codex、ChatGPT、Claude、Claude Code。"

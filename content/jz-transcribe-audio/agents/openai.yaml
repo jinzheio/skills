@@ -1,4 +1,0 @@
-interface:
-  display_name: "音视频转写"
-  short_description: "用 GLM ASR 把音频或视频转成中文文本。"
-  default_prompt: "使用 $jz-transcribe-audio 转写用户提供的音频或视频文件，输出文本文件路径和必要的处理说明。"

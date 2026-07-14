@@ -3,35 +3,31 @@
   "eval_type": "trigger",
   "cases": [
     {
-      "prompt": "把这个新网站从代码发布到 Cloudflare，上线后接统计和搜索",
-      "should_trigger": true
-    },
-    {
-      "prompt": "Use jz-deploy-cloudflare for this local app, including GitHub, domain, analytics, and Auto PR.",
-      "should_trigger": true
-    },
-    {
-      "prompt": "从代码到上线全流程走 Cloudflare，最后把 Auto PR 也配好",
-      "should_trigger": true
-    },
-    {
-      "prompt": "新站点默认发到 Cloudflare，域名好了以后接 GSC、Clarity 和 Sentry",
-      "should_trigger": true
-    },
-    {
       "prompt": "把这个本地网站上线到 Cloudflare，并创建 GitHub repo",
-      "should_trigger": false
+      "should_trigger": true
     },
     {
-      "prompt": "使用 jz-launch-domain 把 example.com 绑定到这个已部署网站",
-      "should_trigger": false
+      "prompt": "Publish this local Next.js app through GitHub and Cloudflare Workers.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "Deploy this SPA to Cloudflare Workers Static Assets.",
+      "should_trigger": true
+    },
+    {
+      "prompt": "我的 GitHub 不能关联 Cloudflare，用 wrangler deploy 直接发布这个站点",
+      "should_trigger": true
     },
     {
       "prompt": "把这个 Vercel 项目迁移到 Cloudflare，并切生产域名",
       "should_trigger": false
     },
     {
-      "prompt": "只给这个 GitHub repo 配置 Auto PR",
+      "prompt": "域名已经好了，帮我接 GSC 和统计",
+      "should_trigger": false
+    },
+    {
+      "prompt": "Push this existing repo to origin.",
       "should_trigger": false
     }
   ]

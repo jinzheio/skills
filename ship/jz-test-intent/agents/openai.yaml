@@ -1,4 +1,0 @@
-interface:
-  display_name: "Test Intent Planner"
-  short_description: "Turn feature ideas, specs, issues, conversations, or diffs into gstack QA-ready test plans"
-  default_prompt: "Uses the $jz-test-intent skill to analyze the current feature idea, spec, issue, conversation, or branch diff, then save a QA-ready test-plan artifact under the matching gstack project directory."

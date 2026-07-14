@@ -1,0 +1,4 @@
+interface:
+  display_name: "书籍笔记"
+  short_description: "精读 EPUB，提炼反常识观点和分析框架，输出结构化笔记。"
+  default_prompt: "使用 $jz-create-book-notes 精读这本 EPUB，提炼有证据支持的反常识观点和分析框架，输出结构化 Markdown 笔记。"

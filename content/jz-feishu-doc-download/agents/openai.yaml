@@ -1,4 +1,0 @@
-interface:
-  display_name: "飞书文档下载"
-  short_description: "下载飞书文档为 Markdown，并把正文图片保存到本地。"
-  default_prompt: "使用 $jz-feishu-doc-download 先查下载记录，再下载这个飞书文档为本地 Markdown clipping，并下载图片后回写本地路径。"

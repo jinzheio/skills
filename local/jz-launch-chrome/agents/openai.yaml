@@ -1,0 +1,7 @@
+interface:
+  display_name: "启动 Chrome"
+  short_description: "分别启动日常 Chrome profile 和隔离的 Agent Chrome。"
+  default_prompt: "使用 $jz-launch-chrome 启动本机 Chrome：daily 打开带日常 profile 的 Chrome，agent 打开隔离 profile 并使用 9333 端口，status 查看当前 Chrome 实例和端口状态。"
+
+policy:
+  allow_implicit_invocation: true

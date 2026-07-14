@@ -121,8 +121,8 @@ Manage Account > Billing > Billable Usage > Budget alerts
 ## Cloudflare 账单安全检查
 
 ### 涉及的资源
-- Durable Objects (clawsimple-runner-notify)
-- Workers (clawsimple, staging)
+- Durable Objects (`<durable-object-name>`)
+- Workers (`<worker-name>`、`<staging-worker-name>`)
 
 ### 检查结果
 

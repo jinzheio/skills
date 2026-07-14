@@ -156,9 +156,9 @@ resolve_notify_script() {
 
   local candidate
   for candidate in \
-    "$HOME/.codex/skills/jz-notify/scripts/notify.sh" \
-    "$HOME/.agents/skills/jz-notify/scripts/notify.sh" \
-    "$HOME/.claude/skills/jz-notify/scripts/notify.sh"; do
+    "$HOME/.codex/skills/jz-send-notification/scripts/notify.sh" \
+    "$HOME/.agents/skills/jz-send-notification/scripts/notify.sh" \
+    "$HOME/.claude/skills/jz-send-notification/scripts/notify.sh"; do
     if [ -x "$candidate" ]; then
       printf '%s\n' "$candidate"
       return 0

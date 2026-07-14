@@ -1,0 +1,7 @@
+interface:
+  display_name: "LiteLLM 管理"
+  short_description: "查询 LiteLLM 模型价格、key 用量、fallback 和服务状态。"
+  default_prompt: "使用 $jz-manage-litellm 查询 LiteLLM 服务状态、模型价格、key 权限和 SpendLogs；默认只读，修改前先备份并验证。"
+
+policy:
+  allow_implicit_invocation: true

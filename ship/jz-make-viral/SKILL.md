@@ -1,12 +1,11 @@
 ---
 name: jz-make-viral
-version: "2.0.0"
-description: "讨论如何让产品/网站/页面更具传播力、更易转化、更像 viral product 时使用。触发语包括 make it viral、传播力、怎么让它火、为什么没人分享、product principles、定价设计、产品定位、文案写法、landing page 优化、改首页、重写 hero、提升转化率。不用于具体埋点实现（用 jz-track-conversion）。"
+description: "讨论如何让产品/网站/页面更具传播力、更易转化、更像 viral product 时使用。触发语包括 make it viral、传播力、怎么让它火、为什么没人分享、product principles、定价设计、产品定位、文案写法、landing page 优化、改首页、重写 hero、提升转化率。不用于具体埋点实现（用 jz-setup-conversion-tracking）。"
 ---
 
 # 让产品传播起来
 
-综合了 8 个经过验证的高转化改版案例 + 32 Principles of a Viral Product + ClawSimple 实际实施的规律。
+综合了 8 个经过验证的高转化改版案例、32 Principles of a Viral Product 和实际项目中的实施规律。
 
 不试图一次读完所有 reference。根据讨论主题，读取对应的 reference 文件。
 

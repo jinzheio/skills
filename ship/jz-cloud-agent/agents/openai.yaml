@@ -1,4 +1,0 @@
-interface:
-  display_name: "Cloud Agent Ops"
-  short_description: "诊断和运维云端 agent 部署，以及将 skill 同步到 Hermes/OpenClaw"
-  default_prompt: "使用 $jz-cloud-agent 加载配置，检查云端 agent 状态、同步 skill 或定位故障。"

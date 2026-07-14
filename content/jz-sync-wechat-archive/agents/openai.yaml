@@ -1,0 +1,4 @@
+interface:
+  display_name: "微信公众号归档同步"
+  short_description: "抓取和更新微信公众号文章归档"
+  default_prompt: "使用 $jz-sync-wechat-archive 在当前项目抓取或更新某个微信公众号的文章归档，可按需要包含文章数据。"

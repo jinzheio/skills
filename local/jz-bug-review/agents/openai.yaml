@@ -1,4 +1,0 @@
-interface:
-  display_name: "Bug Review"
-  short_description: "写入 gbrain 学习卡和 HKB 复盘文档"
-  default_prompt: "使用 $jz-bug-review 记录这次 bug 来源，并写一篇 HKB 复盘文档。"
