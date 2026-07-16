@@ -1,3 +1,5 @@
+.ruff_cache/
+learn-skill/
 work/
 .wrangler/
 data/
@@ -26,6 +28,8 @@ build/
 
 # Python
 __pycache__/
+training/**/__pycache__/
+training/**/.ruff_cache/
 *.pyc
 *.pyo
 .venv/
