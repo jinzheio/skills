@@ -1,4 +1,0 @@
-interface:
-  display_name: "Auto PR Runner"
-  short_description: "为 GitHub repo 接入本机 Auto PR runner。"
-  default_prompt: "使用 $jz-setup-auto-pr 为这个 GitHub repo 接入本机 Auto PR runner。"

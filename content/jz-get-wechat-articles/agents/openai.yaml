@@ -1,4 +1,0 @@
-interface:
-  display_name: "获取微信公众号文章"
-  short_description: "获取公众号文章、正文和互动指标"
-  default_prompt: "使用 $jz-get-wechat-articles 获取这个公众号的最新文章并保存到当前项目。"

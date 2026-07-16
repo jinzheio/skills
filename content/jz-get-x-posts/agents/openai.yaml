@@ -1,4 +1,0 @@
-interface:
-  display_name: "X 帖子抓取"
-  short_description: "按 username 或 userId 抓取指定数量的 X 帖子。"
-  default_prompt: "使用 $jz-get-x-posts 抓取指定 X 账号最近若干条帖子，并汇报实际条数、是否使用 search 补齐，以及 API 请求次数。"

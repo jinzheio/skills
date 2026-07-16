@@ -1,4 +1,0 @@
-interface:
-  display_name: "口播视频后期包装"
-  short_description: "转录分段、标注情绪，自动插 B-roll 配图、关键词卡片、蒙版框选、动势关键帧和胶片转场，生成 Shotcut/MLT 项目或剪映草稿，时间轴可直接调节。"
-  default_prompt: "使用 $jz-edit-talking-head-video 给这条口播视频做后期包装：先转录并按语义分段标注情绪和重点词，按设计语言选择配图、关键词放大、文字卡片、蒙版框选等手法写出剪辑决策，经我确认后生成 Shotcut/MLT 项目或剪映草稿。"

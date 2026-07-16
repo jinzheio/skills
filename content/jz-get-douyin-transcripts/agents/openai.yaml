@@ -1,4 +1,0 @@
-interface:
-  display_name: "抖音口播转录"
-  short_description: "抓取单个抖音视频或作者主页最新视频，调用中文 ASR，输出 Markdown 并保存同步进度。"
-  default_prompt: "使用 $jz-get-douyin-transcripts 转录抖音视频或作者主页，默认抓取最新 30 条，跳过超过 5 分钟的视频，并把 Markdown 和 sync-state.json 保存到 raw/clippings/douyin/<channel>/。"

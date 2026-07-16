@@ -1,4 +1,0 @@
-interface:
-  display_name: "产品营销视频"
-  short_description: "分析网站、SaaS 或产品宣传参考视频，用 Remotion 为当前项目制作同风格宣传片并合成配乐。"
-  default_prompt: "使用 $jz-create-marketing-video 分析我提供的一个或多个网站、SaaS 或产品宣传参考视频；如果我没有提供视频，就先列出项目 references/marketing-video/ 里的已缓存参考视频让我选择。提取视觉风格、场景结构和音乐节奏，复用已有分析缓存，然后结合当前项目的品牌色、文案和定价，用 Remotion 制作一支同风格的宣传视频（含合成配乐），渲染成 mp4 并把源码留在项目里。"

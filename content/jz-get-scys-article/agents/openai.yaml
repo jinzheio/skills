@@ -1,7 +1,0 @@
-interface:
-  display_name: "生财文章获取"
-  short_description: "抓取生财文章；飞书全文时输出飞书内容。"
-  default_prompt: "使用 $jz-get-scys-article 抓取这个生财文章链接，保存为 Markdown；如果全文在飞书中，输出飞书内容并记录生财原始链接。"
-
-policy:
-  allow_implicit_invocation: true

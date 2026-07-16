@@ -1,12 +1,18 @@
 # Skill 命名规范
 
-Skill 名称使用：
+单一任务 skill 使用：
 
 ```text
 jz-<method>-<resource>[-<qualifier>]
 ```
 
-名称必须以动作开头。目录名、`SKILL.md` frontmatter 的 `name`、`agents/openai.yaml` 的 `default_prompt` 使用同一名称。
+按产品域合并、由顶层 router 分发多个 action 的大 skill 使用：
+
+```text
+jz-<product-or-domain>
+```
+
+例如 `jz-cloudflare`、`jz-github`、`jz-site-observability`。只有当多个 action 共享主要认证、配置、用户意图和发布生命周期时才使用这种名称；action 名仍使用动作词。目录名、`SKILL.md` frontmatter 的 `name`、`agents/openai.yaml` 的 `default_prompt` 必须一致。
 
 ## Method
 
@@ -30,7 +36,7 @@ jz-<method>-<resource>[-<qualifier>]
 - 内容：`transcribe`、`edit`、`review`
 - 操作：`send`、`connect`
 
-`jz-make-viral` 作为已有产品方法名保留，不作为新 skill 的命名样例。
+产品域 router 内的 action 可以保留已有方法含义，但不再为每个方法创建一个公开 skill 名。
 
 ## Resource
 
@@ -40,7 +46,7 @@ jz-<method>-<resource>[-<qualifier>]
 - 使用产品全名，例如 `cloudflare`、`github`。保留 `api`、`pr`、`x`、`ovh` 等正式缩写。
 - `jz-` 后通常不超过四段。
 
-不要新增 `ops`、`add`、`init`、`build`、`fetch`、`download`、`audit` 等同义写法。确实需要新 method 时，先更新本文档并说明现有 method 为什么不适用。
+不要新增 `ops`、`add`、`init`、`fetch`、`download`、`audit` 等同义写法。`build` 只用于明确产出可运行项目的 builder，例如 `jz-build-tanstack`。确实需要新 method 时，先更新本文档并说明现有 method 为什么不适用。
 
 ## 修改检查
 

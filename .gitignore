@@ -32,3 +32,20 @@ __pycache__/
 venv/
 *.egg-info/
 .gbrain-source
+
+# Independently versioned flagship skill repositories
+/ship/jz-build-tanstack/
+/ship/jz-cloudflare/
+/content/jz-content-ingest/
+/ship/jz-github/
+/ship/jz-site-observability/
+/ship/jz-vercel/
+/ship/jz-testing/
+/infra/jz-llm-gateway/
+/infra/jz-cloud-servers/
+/local/jz-browser-automation/
+/infra/jz-scheduler/
+/content/jz-video-production/
+/ship/jz-product-research/
+/ship/jz-product-page/
+/training/jz-training/

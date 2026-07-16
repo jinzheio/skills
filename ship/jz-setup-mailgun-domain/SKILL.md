@@ -59,11 +59,11 @@ noreply@<Mailgun domain>
 - `MAILGUN_PRIMARY_API_KEY`：只用于域名和 key 管理，不写入应用配置
 - `CLOUDFLARE_DNS_API_TOKEN`，其次才是 `CLOUDFLARE_API_TOKEN`
 
-调用 `$jz-create-cloudflare-token` 新建 token 时还需要 `CLOUDFLARE_ACCOUNT_ID`。
+调用 `$jz-cloudflare` 的 `credentials` action 新建 token 时还需要 `CLOUDFLARE_ACCOUNT_ID`。
 
 Mailgun Primary Key 也可以放在 `~/.config/skills/jz-setup-mailgun-domain/.env`。不要把 Cloudflare bootstrap token 当作 DNS token 使用。
 
-Cloudflare token 缺失或没有目标 Zone 权限时，使用 `$jz-create-cloudflare-token` 创建仅限目标 Zone 的 `Zone Read + DNS Write` token，再保存为项目的 `CLOUDFLARE_DNS_API_TOKEN`。初次确认已经列明该权限集时，不重复询问。
+Cloudflare token 缺失或没有目标 Zone 权限时，使用 `$jz-cloudflare` 的 `credentials` action 创建仅限目标 Zone 的 `Zone Read + DNS Write` token，再保存为项目的 `CLOUDFLARE_DNS_API_TOKEN`。初次确认已经列明该权限集时，不重复询问。
 
 任何时候都不要输出 secret、Authorization header 或完整 API 响应。
 

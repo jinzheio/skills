@@ -1,4 +1,0 @@
-interface:
-  display_name: "测试环境配置"
-  short_description: "为 Next.js、Astro 和 TanStack Start 项目配置或增强测试。"
-  default_prompt: "使用 $jz-setup-testing 检查当前项目的测试基础设施，为关键路径增加测试、覆盖率和 CI。"

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Cloudflare 新站上线"
-  short_description: "从本地代码编排 Cloudflare 上线全流程。"
-  default_prompt: "使用 $jz-launch-cloudflare-site 把这个新站点发布到 Cloudflare，并按需接域名、统计和 Auto PR。"

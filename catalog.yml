@@ -1,0 +1,52 @@
+version: 1
+
+# The paths below are ordinary nested Git repositories. This catalog records
+# workspace membership only; it does not copy or vendor their source code.
+# local-ready means the repository passed local validation; it does not imply
+# that a remote repository exists or that changes were pushed.
+repositories:
+  - name: jz-build-tanstack
+    path: ship/jz-build-tanstack
+    status: local-ready
+  - name: jz-cloudflare
+    path: ship/jz-cloudflare
+    status: local-ready
+  - name: jz-content-ingest
+    path: content/jz-content-ingest
+    status: local-ready
+  - name: jz-github
+    path: ship/jz-github
+    status: local-ready
+  - name: jz-site-observability
+    path: ship/jz-site-observability
+    status: local-ready
+  - name: jz-vercel
+    path: ship/jz-vercel
+    status: local-ready
+  - name: jz-testing
+    path: ship/jz-testing
+    status: local-ready
+  - name: jz-llm-gateway
+    path: infra/jz-llm-gateway
+    status: local-ready
+  - name: jz-cloud-servers
+    path: infra/jz-cloud-servers
+    status: local-ready
+  - name: jz-browser-automation
+    path: local/jz-browser-automation
+    status: local-ready
+  - name: jz-scheduler
+    path: infra/jz-scheduler
+    status: local-ready
+  - name: jz-video-production
+    path: content/jz-video-production
+    status: local-ready
+  - name: jz-product-research
+    path: ship/jz-product-research
+    status: local-ready
+  - name: jz-product-page
+    path: ship/jz-product-page
+    status: local-ready
+  - name: jz-training
+    path: training/jz-training
+    status: local-ready

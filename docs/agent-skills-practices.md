@@ -65,7 +65,7 @@ Description 是 skill 最重要的单行文字，直接影响 agent 的触发准
 
 - **用户意图**：这个 skill 解决什么问题
 - **典型触发词**：用户可能说的具体短语，如 `"Use when user says 'publish this site', 'push and go live', '帮我 commit'"`
-- **不触发的边界**：避免误触发的关键边界，如 `"Not for backend-only repos without public pages"`、`"Use after jz-deploy-vercel, not before"`
+- **不触发的边界**：避免误触发的关键边界，如 `"Not for backend-only repos without public pages"`、`"Use the deploy action in $jz-vercel only after the project builds locally"`
 
 正文里原有的 `## Use This When` 节可以删除，或保留为对已触发 agent 的补充说明，但不能依赖它来帮助触发。
 
@@ -85,7 +85,7 @@ Description 是 skill 最重要的单行文字，直接影响 agent 的触发准
 
 ### 4.3 拆分过大的 SKILL.md
 
-开放 Agent Skills 规范的建议上限是 500 行，Anthropic 的建议是 5000 tokens，两个标准大致对应。超过这一范围时，通常是需要拆分的信号。社区推荐的拆分策略：
+开放 Agent Skills 规范的建议上限是 500 行，Anthropic 的建议是 5000 tokens，两个标准大致对应。超过这一范围时，通常需要拆分。社区推荐的拆分策略：
 
 - **互斥路径**：把互相排斥的场景（如"已有 IndexNow"vs"新安装 IndexNow"）拆到独立的 reference 文件
 - **可选模块**：把非必经流程（如邮件转发、Clarity 配置）移入 `references/`
@@ -95,13 +95,14 @@ Description 是 skill 最重要的单行文字，直接影响 agent 的触发准
 
 Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务的过程中，请 Claude 将成功的方法和常见错误记录进 skill。如果 Claude 用 skill 出错，请它自我反思并建议改进点。这比独自预测 agent 的需求更有效。
 
-### 4.5 skill 间编排与依赖关系
+### 4.5 skill、action 与依赖关系
 
-2026 年的主流模式是将复杂工作流拆分为多个单一职责的 skill，通过显式引用编排：
+边界应由触发意图、认证、配置和生命周期共同决定，不必把每个动作都发布成一个 skill：
 
-- 每个 skill 只做一件事（single responsibility）
-- 在 SKILL.md 中明确说明"推荐前置 skill"和"推荐后续 skill"
-- 避免在一个 skill 里重复实现另一个 skill 的逻辑，改为显式调用
+- 用户通常以同一产品域提出、并共享认证和配置的流程，可以合并为一个公开 skill，在顶层 `SKILL.md` 按 action 路由。
+- 每个 action 仍保持单一职责，具体流程放入一层 `references/`，确定性操作放入 `scripts/`。
+- 认证、风险、发布周期或受众明显不同的能力继续作为独立 skill，通过显式调用编排。
+- 不在一个 action 里重复实现另一个 action 或外部 skill 的逻辑；写清前置条件、后续动作和失败交接。
 
 ### 4.6 错误恢复与幂等性
 
@@ -116,7 +117,7 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 
 对于会产生不可逆外部副作用（DNS 变更、代码推送、域名绑定、环境变量写入）的 skill，仅靠 "Do not" 规则列表来约束 agent 行为是不够稳定的。更有效的模式是在 skill 中要求 agent 先输出一份结构化执行计划，再对照真实状态验证，最后才执行。
 
-**三段式结构示例**（适用于 `jz-setup-site-domain`、`jz-deploy-vercel` 等）：
+**三段式结构示例**（适用于 `$jz-setup-site-domain`、`$jz-vercel` 的 `deploy` action 等）：
 
 1. **Plan**：agent 在动手前先输出：涉及的系统（registrar / DNS provider / hosting）、计划创建的 records、验证命令清单、回滚路径
 2. **Validate**：对照平台 API / CLI 的实际返回值确认前提成立（repo 存在？zone 已激活？env 已设置？）
@@ -135,10 +136,10 @@ Anthropic 推荐的 skill 开发方式：在与 Claude 合作完成真实任务�
 
 | Prompt | 预期行为 |
 |---|---|
-| "帮我 push 这个后端 API 库" | 触发 `jz-push-code` 但**不**运行 IndexNow |
-| "域名解析好了，帮我接 GSC" | 触发 `jz-setup-site-analytics`，**不**触发 `jz-setup-site-domain` |
-| "部署到 Vercel 临时域名就行" | 触发 `jz-deploy-vercel`，**不**继续进入 domain/index onboarding |
-| "帮我 commit 一下这几个文件" | 触发 `jz-commit-code`，**不**触发 `jz-push-code` |
+| "帮我 push 这个后端 API 库" | 触发 `$jz-github` 的 `push` action，但**不**运行 IndexNow |
+| "域名解析好了，帮我接 GSC" | 触发 `$jz-site-observability` 的 `onboard` action，**不**触发 `$jz-setup-site-domain` |
+| "部署到 Vercel 临时域名就行" | 触发 `$jz-vercel` 的 `deploy` action，**不**继续进入 domain/index onboarding |
+| "帮我 commit 一下这几个文件" | 触发 `$jz-github` 的 `commit` action，**不**触发 `push` action |
 
 在调整 description 后，用这些 eval prompt 对比"修改前 / 修改后"的触发结果，才能知道改动是否真的有效。
 

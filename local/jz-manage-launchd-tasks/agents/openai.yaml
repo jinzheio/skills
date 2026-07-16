@@ -1,7 +1,0 @@
-interface:
-  display_name: "launchd 任务管理"
-  short_description: "创建、整理和排查 macOS launchd 后台任务。"
-  default_prompt: "使用 $jz-manage-launchd-tasks 创建或整理 macOS launchd 定时任务，确保后台显示名清楚、日志可查、任务可单独管理。"
-
-policy:
-  allow_implicit_invocation: true

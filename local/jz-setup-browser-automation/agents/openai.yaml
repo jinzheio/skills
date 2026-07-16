@@ -1,7 +1,0 @@
-interface:
-  display_name: "浏览器自动化环境"
-  short_description: "建立隔离的 Chrome 实例和 CDP Proxy 用于自动化任务。"
-  default_prompt: "使用 $jz-setup-browser-automation 建立隔离的 Agent Chrome 实例和 CDP Proxy 连接。"
-
-policy:
-  allow_implicit_invocation: true

@@ -1,4 +1,0 @@
-interface:
-  display_name: "视频中英文字幕"
-  short_description: "抓取 YouTube 或 X 视频英文字幕，清洗字幕文本，并生成中文和双语 Markdown。"
-  default_prompt: "使用 $jz-get-video-transcript 获取 YouTube 或 X 视频字幕，生成英文、中文和双语 Markdown，并汇报成功数量、失败 URL 和输出目录。"

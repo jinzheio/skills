@@ -21,6 +21,6 @@ All skills in this pack use a shared set of status terms when reporting the outc
 
 ## Skills that use these terms
 
-- `jz-setup-site-analytics` — reports status for each of: analytics, Search Console, robots/sitemap, IndexNow, Bing Webmaster Tools, Clarity
-- `jz-push-code` — reports status for: IndexNow URL submission, Search Console sitemap check
-- `jz-setup-site-domain` — reports status for: nameserver delegation, domain binding, TLS, redirect, email forwarding
+- `$jz-site-observability` `onboard` action — reports status for each of: analytics, Search Console, robots/sitemap, IndexNow, Bing Webmaster Tools, Clarity
+- `$jz-github` `push` action — reports status for: IndexNow URL submission, Search Console sitemap check
+- `$jz-setup-site-domain` — reports status for: nameserver delegation, domain binding, TLS, redirect, email forwarding

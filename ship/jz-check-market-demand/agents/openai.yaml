@@ -1,4 +1,0 @@
-interface:
-  display_name: "产品市场前景验证"
-  short_description: "用搜索需求、社区讨论、开源供给、竞品收费和工具试用判断产品是否值得继续做。"
-  default_prompt: "使用 $jz-check-market-demand 验证这个产品或 idea 是否有市场，分别试商业工具和公开数据源，给出 BUILD/PIVOT/DON'T BUILD 判断。"

@@ -1,4 +1,0 @@
-interface:
-  display_name: "创建测试计划"
-  short_description: "把功能想法、spec、issue、对话或 diff 转成 QA 测试计划。"
-  default_prompt: "使用 $jz-create-test-plan 分析当前功能想法、spec、issue、对话或分支 diff，保存可供 QA 执行的测试计划。"
